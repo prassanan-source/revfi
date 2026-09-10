@@ -135,12 +135,21 @@
     /* ── Sidebar ── */
     #sidebar {
       width: var(--sidebar-w);
+<<<<<<< HEAD
       min-height: 100vh;
+=======
+      height: 100vh;
+>>>>>>> 75952c0 (second)
       background: var(--sidebar-bg);
       position: fixed; top:0; left:0; z-index:100;
       display: flex; flex-direction: column;
       border-right: 1px solid var(--sidebar-border);
       transition: background .2s;
+<<<<<<< HEAD
+=======
+      overflow-y: auto;
+      overflow-x: hidden;
+>>>>>>> 75952c0 (second)
     }
     .sidebar-brand { padding: 20px 18px 14px; border-bottom: 1px solid var(--sidebar-border); }
     .brand-tag  { font-size: 10px; font-weight:700; color: var(--brand-tag-color); letter-spacing:2px; text-transform:uppercase; }
@@ -222,10 +231,17 @@
     }
     .theme-btn:hover { border-color: var(--gold); }
     .theme-menu {
+<<<<<<< HEAD
       position:absolute; right:0; top:46px; background: var(--card-bg);
       border:1px solid var(--card-border); border-radius:12px; min-width:170px;
       box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
       display:none;
+=======
+      position:absolute; left:0; right:0; background: var(--card-bg);
+      border:1px solid var(--card-border); border-radius:12px; min-width:170px;
+      box-shadow:0 -8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
+      display:none; bottom:calc(100% + 4px);
+>>>>>>> 75952c0 (second)
     }
     .theme-menu.open { display:block; }
     .theme-option {
@@ -263,6 +279,7 @@
     <a href="{{ url_for('invoices') }}"    class="sidebar-link {% if 'invoice' in request.endpoint %}active{% endif %}"><i class="bi bi-receipt"></i> Invoices</a>
     <a href="{{ url_for('commissions') }}" class="sidebar-link {% if request.endpoint=='commissions' %}active{% endif %}"><i class="bi bi-cash-coin"></i> Commissions</a>
 
+<<<<<<< HEAD
     <div class="nav-section-label">Admin</div>
     <a href="{{ url_for('products') }}"      class="sidebar-link {% if 'product' in request.endpoint or 'plan' in request.endpoint %}active{% endif %}"><i class="bi bi-box-seam"></i> Products &amp; Plans</a>
     <a href="{{ url_for('users') }}"         class="sidebar-link {% if 'user' in request.endpoint %}active{% endif %}"><i class="bi bi-people"></i> Users</a>
@@ -273,11 +290,57 @@
     <div style="font-size:10.5px;color:var(--muted);opacity:.7;">Logged in as</div>
     <div style="font-size:13px;font-weight:600;color:var(--sidebar-text);">{{ session.get('user_name','—') }}</div>
     <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary mt-2 w-100" style="font-size:12px;color:var(--muted);border-color:var(--card-border);">Sign out</a>
+=======
+    {% if session.get('user_role') == 'admin' %}
+    <div class="nav-section-label">Admin</div>
+    <a href="{{ url_for('products') }}"       class="sidebar-link {% if 'product' in request.endpoint or 'plan' in request.endpoint %}active{% endif %}"><i class="bi bi-box-seam"></i> Products &amp; Plans</a>
+    <a href="{{ url_for('users') }}"          class="sidebar-link {% if 'user' in request.endpoint %}active{% endif %}"><i class="bi bi-people"></i> Users</a>
+    <a href="{{ url_for('email_settings') }}" class="sidebar-link {% if 'email_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-envelope-gear"></i> Email Settings</a>
+    <a href="{{ url_for('square_settings') }}" class="sidebar-link {% if 'square_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-square"></i> Square Settings</a>
+    {% endif %}
+  </nav>
+  <div id="sidebar-footer">
+    <!-- User info -->
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:#22A06B;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;">
+        {{ session.get('user_name','?')[0]|upper }}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--brand-name-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ session.get('user_name','—') }}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+          {% if session.get('user_role') == 'admin' %}
+          <span style="font-size:10px;font-weight:700;background:rgba(201,168,76,.2);color:#C9A84C;border-radius:8px;padding:1px 6px;text-transform:uppercase;letter-spacing:.4px;">Admin</span>
+          {% else %}
+          <span style="font-size:10px;color:var(--muted);">Sales Rep</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <!-- Theme switcher -->
+    <div style="margin-bottom:10px;position:relative;">
+      <button onclick="toggleThemeMenu()" style="width:100%;background:var(--sidebar-hover-bg);border:1px solid var(--sidebar-border);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--sidebar-text);font-size:12.5px;font-weight:600;">
+        <span id="theme-icon">🌤️</span>
+        <span id="theme-label-txt">Theme</span>
+        <span style="margin-left:auto;font-size:10px;">▼</span>
+      </button>
+      <div class="theme-menu" id="theme-menu" style="bottom:calc(100% + 6px);top:auto;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 12px 8px;">Choose Theme</div>
+        <div class="theme-option" id="opt-light"  onclick="setTheme('light')"><div class="theme-dot" style="background:radial-gradient(circle at 40% 40%,#FFD700 30%,#FFA500 100%);"></div>Light</div>
+        <div class="theme-option" id="opt-medium" onclick="setTheme('medium')"><div class="theme-dot" style="background:#2E3A50;"></div>Medium</div>
+        <div class="theme-option" id="opt-modern" onclick="setTheme('modern')"><div class="theme-dot" style="background:#F7F5F2;border-color:#C9A84C;"></div>Modern</div>
+        <div class="theme-option" id="opt-dark"   onclick="setTheme('dark')"><div class="theme-dot" style="background:#0F1C2E;"></div>Dark</div>
+      </div>
+    </div>
+    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary w-100" style="font-size:12px;color:var(--muted);border-color:var(--sidebar-border);">
+      <i class="bi bi-box-arrow-left me-1"></i>Sign out
+    </a>
+>>>>>>> 75952c0 (second)
   </div>
 </div>
 
 <!-- Main -->
 <div id="main">
+<<<<<<< HEAD
   <!-- Theme switcher in top-right corner -->
   <div style="position:fixed;top:18px;right:24px;z-index:200;">
     <div style="position:relative;">
@@ -301,6 +364,9 @@
       </div>
     </div>
   </div>
+=======
+
+>>>>>>> 75952c0 (second)
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for cat, msg in messages %}
@@ -323,11 +389,20 @@ const THEME_LABELS = { light:'Light', medium:'Medium', modern:'Modern', dark:'Da
 
 function setTheme(t) {
   document.getElementById('html-root').setAttribute('data-theme', t);
+<<<<<<< HEAD
   // Bootstrap theme
   document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
   localStorage.setItem('revfi_theme', t);
   document.getElementById('theme-icon').textContent = THEME_ICONS[t] || '🌤️';
   // Update selected state
+=======
+  document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
+  localStorage.setItem('revfi_theme', t);
+  const iconEl = document.getElementById('theme-icon');
+  const lblEl  = document.getElementById('theme-label-txt');
+  if (iconEl) iconEl.textContent = THEME_ICONS[t] || '🌤️';
+  if (lblEl)  lblEl.textContent  = THEME_LABELS[t] || 'Theme';
+>>>>>>> 75952c0 (second)
   ['light','medium','modern','dark'].forEach(opt => {
     const el = document.getElementById('opt-' + opt);
     if (el) el.classList.toggle('selected', opt === t);
@@ -341,8 +416,14 @@ function toggleThemeMenu() {
 
 // Close menu when clicking outside
 document.addEventListener('click', function(e) {
+<<<<<<< HEAD
   if (!e.target.closest('#theme-toggle-btn') && !e.target.closest('#theme-menu')) {
     document.getElementById('theme-menu').classList.remove('open');
+=======
+  if (!e.target.closest('#sidebar-footer')) {
+    const m = document.getElementById('theme-menu');
+    if (m) m.classList.remove('open');
+>>>>>>> 75952c0 (second)
   }
 });
 

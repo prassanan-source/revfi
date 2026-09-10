@@ -756,11 +756,24 @@ def logout():
 @app.route("/")
 @login_required
 def dashboard():
+<<<<<<< HEAD
     # Salesperson filter
     filter_user = request.args.get("user_id", "")
     leads_q = Lead.query
     if filter_user:
         leads_q = leads_q.filter_by(assignee_id=filter_user)
+=======
+    is_admin = session.get("user_role") == "admin"
+    current_uid = session.get("user_id")
+
+    # Admin can filter by rep; non-admin always sees only their own leads
+    filter_user = request.args.get("user_id", "") if is_admin else ""
+    leads_q = Lead.query
+    if is_admin and filter_user:
+        leads_q = leads_q.filter_by(assignee_id=filter_user)
+    elif not is_admin:
+        leads_q = leads_q.filter_by(assignee_id=current_uid)
+>>>>>>> 75952c0 (second)
     leads = leads_q.order_by(Lead.created_at.desc()).all()
 
     won    = [l for l in leads if l.status == "Closed Won"]
@@ -772,9 +785,13 @@ def dashboard():
     arr = mrr * 12
     pipeline_val = sum(calc_discounted_price(l)[0] for l in active)
 
+<<<<<<< HEAD
     invs = Invoice.query.all()
     paid_invoices = sum(i.amount for i in invs if i.status == "Paid")
     sent_invoices = sum(i.amount for i in invs if i.status == "Sent")
+=======
+
+>>>>>>> 75952c0 (second)
 
     # All stages for kanban
     kanban = {s: [l for l in leads if l.status == s] for s in PIPELINE_STAGES}
@@ -782,12 +799,33 @@ def dashboard():
     users    = User.query.filter_by(active=True).all()
     products = Product.query.filter_by(active=True).all()
 
+<<<<<<< HEAD
     # Subscriptions tab data
     subscribers = [l for l in Lead.query.filter_by(status="Closed Won").all()]
     sub_prices  = {s.id: calc_discounted_price(s)[0] for s in subscribers}
 
     # Billing tab
     invoices_all = Invoice.query.order_by(Invoice.due_date.desc()).limit(20).all()
+=======
+    # Subscriptions — non-admin sees only their own won leads
+    subs_q = Lead.query.filter_by(status="Closed Won")
+    if not is_admin:
+        subs_q = subs_q.filter_by(assignee_id=current_uid)
+    subscribers = subs_q.all()
+    sub_prices  = {s.id: calc_discounted_price(s)[0] for s in subscribers}
+
+    # Billing — non-admin sees invoices for their own subscribers only
+    if is_admin:
+        invoices_all = Invoice.query.order_by(Invoice.due_date.desc()).limit(20).all()
+        paid_invoices = sum(i.amount for i in Invoice.query.all() if i.status == "Paid")
+        sent_invoices = sum(i.amount for i in Invoice.query.all() if i.status == "Sent")
+    else:
+        my_lead_ids = [l.id for l in subscribers]
+        my_invs = Invoice.query.filter(Invoice.lead_id.in_(my_lead_ids)).order_by(Invoice.due_date.desc()).limit(20).all() if my_lead_ids else []
+        invoices_all  = my_invs
+        paid_invoices = sum(i.amount for i in my_invs if i.status == "Paid")
+        sent_invoices = sum(i.amount for i in my_invs if i.status == "Sent")
+>>>>>>> 75952c0 (second)
 
     # Swimlane: all leads regardless of filter — grouped by assignee × stage
     # Only shown to admin
@@ -823,8 +861,11 @@ def dashboard():
             "mrr":      sum(calc_discounted_price(l)[0] for l in rep_won),
         }
 
+<<<<<<< HEAD
     is_admin = session.get("user_role") == "admin"
 
+=======
+>>>>>>> 75952c0 (second)
     # Pre-compute aggregates for template (avoids Jinja sum/selectattr bugs)
     stage_counts = {s: sum(1 for l in leads if l.status == s) for s in PIPELINE_STAGES}
     prod_mrr = {}
@@ -857,6 +898,7 @@ def dashboard():
 @app.route("/leads")
 @login_required
 def leads():
+<<<<<<< HEAD
     q = Lead.query
     if f := request.args.get("product"):
         q = q.filter_by(product_id=f)
@@ -864,11 +906,29 @@ def leads():
         q = q.filter_by(status=s)
     if a := request.args.get("assignee"):
         q = q.filter_by(assignee_id=a)
+=======
+    is_admin = session.get("user_role") == "admin"
+    q = Lead.query
+    # Non-admin: always scoped to their own leads, no filters shown
+    if not is_admin:
+        q = q.filter_by(assignee_id=session.get("user_id"))
+    else:
+        if f := request.args.get("product"):
+            q = q.filter_by(product_id=f)
+        if s := request.args.get("status"):
+            q = q.filter_by(status=s)
+        if a := request.args.get("assignee"):
+            q = q.filter_by(assignee_id=a)
+>>>>>>> 75952c0 (second)
     leads_list = q.order_by(Lead.created_at.desc()).all()
     products = Product.query.filter_by(active=True).all()
     users    = User.query.filter_by(active=True).all()
     return render_template("leads.html", leads=leads_list,
+<<<<<<< HEAD
                            products=products, users=users)
+=======
+                           products=products, users=users, is_admin=is_admin)
+>>>>>>> 75952c0 (second)
 
 @app.route("/leads/new", methods=["GET","POST"])
 @login_required
@@ -1204,8 +1264,17 @@ def invoice_generate_bulk():
 @app.route("/commissions")
 @login_required
 def commissions():
+<<<<<<< HEAD
     period = request.args.get("period", datetime.utcnow().strftime("%Y-%m"))
     comms  = Commission.query.filter_by(period=period).order_by(Commission.created_at.desc()).all()
+=======
+    is_admin = session.get("user_role") == "admin"
+    period = request.args.get("period", datetime.utcnow().strftime("%Y-%m"))
+    q = Commission.query.filter_by(period=period)
+    if not is_admin:
+        q = q.filter_by(user_id=session.get("user_id"))
+    comms = q.order_by(Commission.created_at.desc()).all()
+>>>>>>> 75952c0 (second)
     users  = User.query.filter_by(active=True).all()
     # summary per user
     summary = {}
@@ -1269,8 +1338,16 @@ def _create_commissions(lead):
 @app.route("/subscribers")
 @login_required
 def subscribers():
+<<<<<<< HEAD
     subs = Lead.query.filter_by(status="Closed Won").order_by(Lead.updated_at.desc()).all()
     # Build discounted price map for each subscriber
+=======
+    is_admin = session.get("user_role") == "admin"
+    q = Lead.query.filter_by(status="Closed Won")
+    if not is_admin:
+        q = q.filter_by(assignee_id=session.get("user_id"))
+    subs = q.order_by(Lead.updated_at.desc()).all()
+>>>>>>> 75952c0 (second)
     sub_prices = {}
     for s in subs:
         final, setup, label = calc_discounted_price(s)

@@ -1,0 +1,125 @@
+/home/www/revfi/venv/lib/python3.11/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.7.0) or chardet (7.6.0)/charset_normalizer (3.5.1) doesn't match a supported version!
+  warnings.warn(
+[2026-09-10 20:00:48 +0200] [9] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:00:48 +0200] [9] [INFO] Listening at: http://127.0.0.1:8099 (9)
+[2026-09-10 20:00:48 +0200] [9] [INFO] Using worker: sync
+[2026-09-10 20:00:48 +0200] [10] [INFO] Booting worker with pid: 10
+[2026-09-10 20:00:48 +0200] [11] [INFO] Booting worker with pid: 11
+[2026-09-10 20:01:08 +0200] [11] [INFO] Worker exiting (pid: 11)
+[2026-09-10 20:01:08 +0200] [10] [INFO] Worker exiting (pid: 10)
+[2026-09-10 20:01:08 +0200] [9] [INFO] Handling signal: term
+[2026-09-10 20:01:08 +0200] [9] [ERROR] Worker (pid:11) was sent SIGTERM!
+[2026-09-10 20:01:08 +0200] [9] [ERROR] Worker (pid:10) was sent SIGTERM!
+[2026-09-10 20:01:08 +0200] [9] [INFO] Shutting down: Master
+[2026-09-10 20:01:08 +0200] [17] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:01:08 +0200] [17] [INFO] Listening at: http://127.0.0.1:8099 (17)
+[2026-09-10 20:01:08 +0200] [17] [INFO] Using worker: sync
+[2026-09-10 20:01:08 +0200] [18] [INFO] Booting worker with pid: 18
+[2026-09-10 20:01:08 +0200] [19] [INFO] Booting worker with pid: 19
+[2026-09-10 20:01:08 +0200] [18] [INFO] Worker exiting (pid: 18)
+[2026-09-10 20:01:08 +0200] [19] [INFO] Worker exiting (pid: 19)
+[2026-09-10 20:01:08 +0200] [17] [INFO] Handling signal: term
+[2026-09-10 20:01:08 +0200] [17] [ERROR] Worker (pid:18) was sent SIGTERM!
+[2026-09-10 20:01:09 +0200] [17] [INFO] Shutting down: Master
+[2026-09-10 20:01:09 +0200] [25] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:01:09 +0200] [25] [INFO] Listening at: http://127.0.0.1:8099 (25)
+[2026-09-10 20:01:09 +0200] [25] [INFO] Using worker: sync
+[2026-09-10 20:01:09 +0200] [26] [INFO] Booting worker with pid: 26
+[2026-09-10 20:01:09 +0200] [27] [INFO] Booting worker with pid: 27
+[2026-09-10 20:01:09 +0200] [27] [INFO] Worker exiting (pid: 27)
+[2026-09-10 20:01:09 +0200] [25] [INFO] Handling signal: term
+[2026-09-10 20:01:09 +0200] [26] [INFO] Worker exiting (pid: 26)
+[2026-09-10 20:01:09 +0200] [25] [ERROR] Worker (pid:27) was sent SIGTERM!
+[2026-09-10 20:01:10 +0200] [25] [INFO] Shutting down: Master
+[2026-09-10 20:01:10 +0200] [33] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:01:10 +0200] [33] [INFO] Listening at: http://127.0.0.1:8099 (33)
+[2026-09-10 20:01:10 +0200] [33] [INFO] Using worker: sync
+[2026-09-10 20:01:10 +0200] [34] [INFO] Booting worker with pid: 34
+[2026-09-10 20:01:10 +0200] [35] [INFO] Booting worker with pid: 35
+[2026-09-10 20:01:30 +0200] [35] [INFO] Worker exiting (pid: 35)
+[2026-09-10 20:01:30 +0200] [34] [INFO] Worker exiting (pid: 34)
+[2026-09-10 20:01:30 +0200] [33] [INFO] Handling signal: term
+[2026-09-10 20:01:30 +0200] [33] [ERROR] Worker (pid:34) was sent SIGTERM!
+[2026-09-10 20:01:30 +0200] [33] [ERROR] Worker (pid:35) was sent SIGTERM!
+[2026-09-10 20:01:30 +0200] [33] [INFO] Shutting down: Master
+[2026-09-10 20:01:30 +0200] [41] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:01:30 +0200] [41] [INFO] Listening at: http://127.0.0.1:8099 (41)
+[2026-09-10 20:01:30 +0200] [41] [INFO] Using worker: sync
+[2026-09-10 20:01:30 +0200] [42] [INFO] Booting worker with pid: 42
+[2026-09-10 20:01:30 +0200] [43] [INFO] Booting worker with pid: 43
+[2026-09-10 20:01:31 +0200] [41] [INFO] Handling signal: term
+[2026-09-10 20:01:31 +0200] [43] [INFO] Worker exiting (pid: 43)
+[2026-09-10 20:01:31 +0200] [42] [INFO] Worker exiting (pid: 42)
+[2026-09-10 20:01:31 +0200] [41] [INFO] Shutting down: Master
+[2026-09-10 20:01:31 +0200] [49] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:01:31 +0200] [49] [INFO] Listening at: http://127.0.0.1:8099 (49)
+[2026-09-10 20:01:31 +0200] [49] [INFO] Using worker: sync
+[2026-09-10 20:01:31 +0200] [50] [INFO] Booting worker with pid: 50
+[2026-09-10 20:01:31 +0200] [51] [INFO] Booting worker with pid: 51
+[2026-09-10 20:54:05 +0200] [9] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:54:05 +0200] [9] [INFO] Listening at: http://127.0.0.1:8099 (9)
+[2026-09-10 20:54:05 +0200] [9] [INFO] Using worker: sync
+[2026-09-10 20:54:05 +0200] [10] [INFO] Booting worker with pid: 10
+[2026-09-10 20:54:05 +0200] [11] [INFO] Booting worker with pid: 11
+[2026-09-10 20:54:28 +0200] [10] [INFO] Worker exiting (pid: 10)
+[2026-09-10 20:54:28 +0200] [11] [INFO] Worker exiting (pid: 11)
+[2026-09-10 20:54:28 +0200] [9] [INFO] Handling signal: term
+[2026-09-10 20:54:28 +0200] [9] [ERROR] Worker (pid:10) was sent SIGTERM!
+[2026-09-10 20:54:28 +0200] [9] [INFO] Shutting down: Master
+[2026-09-10 20:54:29 +0200] [17] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:54:29 +0200] [17] [INFO] Listening at: http://127.0.0.1:8099 (17)
+[2026-09-10 20:54:29 +0200] [17] [INFO] Using worker: sync
+[2026-09-10 20:54:29 +0200] [18] [INFO] Booting worker with pid: 18
+[2026-09-10 20:54:29 +0200] [19] [INFO] Booting worker with pid: 19
+[2026-09-10 20:54:37 +0200] [18] [INFO] Worker exiting (pid: 18)
+[2026-09-10 20:54:37 +0200] [17] [INFO] Handling signal: term
+[2026-09-10 20:54:37 +0200] [19] [INFO] Worker exiting (pid: 19)
+[2026-09-10 20:54:37 +0200] [17] [ERROR] Worker (pid:18) was sent SIGTERM!
+[2026-09-10 20:54:37 +0200] [17] [INFO] Shutting down: Master
+[2026-09-10 20:54:37 +0200] [25] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:54:37 +0200] [25] [INFO] Listening at: http://127.0.0.1:8099 (25)
+[2026-09-10 20:54:37 +0200] [25] [INFO] Using worker: sync
+[2026-09-10 20:54:37 +0200] [26] [INFO] Booting worker with pid: 26
+[2026-09-10 20:54:37 +0200] [27] [INFO] Booting worker with pid: 27
+[2026-09-10 20:55:13 +0200] [26] [INFO] Worker exiting (pid: 26)
+[2026-09-10 20:55:13 +0200] [25] [INFO] Handling signal: term
+[2026-09-10 20:55:13 +0200] [27] [INFO] Worker exiting (pid: 27)
+[2026-09-10 20:55:13 +0200] [25] [ERROR] Worker (pid:26) was sent SIGTERM!
+[2026-09-10 20:55:14 +0200] [25] [INFO] Shutting down: Master
+[2026-09-10 20:55:14 +0200] [33] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:55:14 +0200] [33] [INFO] Listening at: http://127.0.0.1:8099 (33)
+[2026-09-10 20:55:14 +0200] [33] [INFO] Using worker: sync
+[2026-09-10 20:55:14 +0200] [34] [INFO] Booting worker with pid: 34
+[2026-09-10 20:55:14 +0200] [35] [INFO] Booting worker with pid: 35
+[2026-09-10 20:55:14 +0200] [35] [INFO] Worker exiting (pid: 35)
+[2026-09-10 20:55:14 +0200] [34] [INFO] Worker exiting (pid: 34)
+[2026-09-10 20:55:14 +0200] [33] [INFO] Handling signal: term
+[2026-09-10 20:55:14 +0200] [33] [ERROR] Worker (pid:34) was sent SIGTERM!
+[2026-09-10 20:55:14 +0200] [33] [ERROR] Worker (pid:35) was sent SIGTERM!
+[2026-09-10 20:55:14 +0200] [33] [INFO] Shutting down: Master
+[2026-09-10 20:55:15 +0200] [41] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:55:15 +0200] [41] [INFO] Listening at: http://127.0.0.1:8099 (41)
+[2026-09-10 20:55:15 +0200] [41] [INFO] Using worker: sync
+[2026-09-10 20:55:15 +0200] [42] [INFO] Booting worker with pid: 42
+[2026-09-10 20:55:15 +0200] [43] [INFO] Booting worker with pid: 43
+[2026-09-10 20:55:31 +0200] [43] [INFO] Worker exiting (pid: 43)
+[2026-09-10 20:55:31 +0200] [42] [INFO] Worker exiting (pid: 42)
+[2026-09-10 20:55:31 +0200] [41] [INFO] Handling signal: term
+[2026-09-10 20:55:31 +0200] [41] [ERROR] Worker (pid:42) was sent SIGTERM!
+[2026-09-10 20:55:31 +0200] [41] [ERROR] Worker (pid:43) was sent SIGTERM!
+[2026-09-10 20:55:31 +0200] [41] [INFO] Shutting down: Master
+[2026-09-10 20:55:31 +0200] [49] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:55:31 +0200] [49] [INFO] Listening at: http://127.0.0.1:8099 (49)
+[2026-09-10 20:55:31 +0200] [49] [INFO] Using worker: sync
+[2026-09-10 20:55:31 +0200] [50] [INFO] Booting worker with pid: 50
+[2026-09-10 20:55:32 +0200] [51] [INFO] Booting worker with pid: 51
+[2026-09-10 20:55:32 +0200] [51] [INFO] Worker exiting (pid: 51)
+[2026-09-10 20:55:32 +0200] [49] [INFO] Handling signal: term
+[2026-09-10 20:55:32 +0200] [50] [INFO] Worker exiting (pid: 50)
+[2026-09-10 20:55:32 +0200] [49] [ERROR] Worker (pid:51) was sent SIGTERM!
+[2026-09-10 20:55:32 +0200] [49] [INFO] Shutting down: Master
+[2026-09-10 20:55:32 +0200] [57] [INFO] Starting gunicorn 22.0.0
+[2026-09-10 20:55:32 +0200] [57] [INFO] Listening at: http://127.0.0.1:8099 (57)
+[2026-09-10 20:55:32 +0200] [57] [INFO] Using worker: sync
+[2026-09-10 20:55:32 +0200] [58] [INFO] Booting worker with pid: 58
+[2026-09-10 20:55:32 +0200] [59] [INFO] Booting worker with pid: 59

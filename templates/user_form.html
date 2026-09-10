@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit User' if user else 'New User' }}{% endblock %}
 {% block content %}
+<<<<<<< HEAD
 <div class="page-header"><div class="page-title">{{ 'Edit User' if user else 'New User' }}</div></div>
 <div class="card" style="max-width:480px;">
   <div class="card-body p-4">
@@ -26,6 +27,67 @@
       {% endif %}
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-gold px-4">{{ 'Update User' if user else 'Create User' }}</button>
+=======
+<div class="page-header d-flex justify-content-between align-items-center" style="">
+  <div>
+    <div class="page-title">{{ 'Edit User' if user else 'New User' }}</div>
+    <div class="page-sub">{{ user.email if user else 'Create a new sales rep or admin account' }}</div>
+  </div>
+  <a href="{{ url_for('users') }}" class="btn btn-outline-secondary btn-sm">← Back to Users</a>
+</div>
+
+<div class="card" style="max-width:520px;">
+  <div class="card-body p-4">
+    <form method="post">
+      <div class="row g-3 mb-3">
+        <div class="col-12">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="name" class="form-control"
+            value="{{ user.name if user else '' }}" required placeholder="Jane Smith">
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-12">
+          <label class="form-label">Email Address *</label>
+          <input type="email" name="email" class="form-control"
+            value="{{ user.email if user else '' }}" required placeholder="jane@revfi.ai">
+        </div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">Role</label>
+          <select name="role" class="form-select">
+            <option value="sales" {% if not user or user.role=='sales' %}selected{% endif %}>Sales Rep</option>
+            <option value="admin" {% if user and user.role=='admin' %}selected{% endif %}>Admin</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Status</label>
+          <div class="form-check mt-2" style="padding-top:6px;">
+            <input type="checkbox" name="active" id="active-chk" class="form-check-input"
+              {% if not user or user.active %}checked{% endif %}>
+            <label for="active-chk" class="form-check-label" style="color:var(--main-color);">Active account</label>
+          </div>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password {% if user %}<span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(leave blank to keep current)</span>{% endif %}</label>
+        <input type="password" name="password" class="form-control"
+          {% if not user %}required{% endif %} placeholder="••••••••">
+      </div>
+
+      {% if user %}
+      <div class="mb-4 p-3 rounded" style="background:var(--table-row-hover);border:1px solid var(--card-border);font-size:12.5px;">
+        <div style="color:var(--muted);margin-bottom:4px;">Account created</div>
+        <div style="color:var(--main-color);">{{ user.created.strftime('%B %d, %Y') if user.created else '—' }}</div>
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-gold px-4">
+          <i class="bi bi-check-lg me-1"></i>{{ 'Update User' if user else 'Create User' }}
+        </button>
+>>>>>>> 75952c0 (second)
         <a href="{{ url_for('users') }}" class="btn btn-outline-secondary">Cancel</a>
       </div>
     </form>
