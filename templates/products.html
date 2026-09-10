@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Products & Plans{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <div class="page-title">Products &amp; Subscription Plans</div>
+    <div class="page-sub">Configure pricing for each product independently</div>
+  </div>
+  <a href="{{ url_for('product_new') }}" class="btn btn-gold"><i class="bi bi-plus-lg me-1"></i> Add Product</a>
+</div>
+
+{% for prod in products %}
+<div class="mb-5">
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <div style="width:44px;height:44px;border-radius:10px;background:{{ prod.color }}22;display:flex;align-items:center;justify-content:center;font-size:24px;">{{ prod.icon }}</div>
+    <div>
+      <div style="font-size:17px;font-weight:800;color:{{ prod.color }};">{{ prod.name }}</div>
+      <div style="font-size:12px;color:var(--revfi-muted);">{{ prod.description }}</div>
+    </div>
+    <div class="ms-auto d-flex gap-2">
+      <a href="{{ url_for('product_edit', pid=prod.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+      <a href="{{ url_for('plan_new', pid=prod.id) }}" class="btn btn-sm btn-navy"><i class="bi bi-plus-lg me-1"></i>Add Plan</a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    {% for plan in prod.plans if plan.active %}
+    <div class="col-md-4">
+      <div class="card" style="border-top:3px solid {{ prod.color }};">
+        <div class="card-body">
+          <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:4px;">{{ plan.name }}</div>
+          <div style="font-size:26px;font-weight:900;color:{{ prod.color }};">
+            ${{ '{:,.0f}'.format(plan.price) }}<span style="font-size:13px;font-weight:500;color:var(--revfi-muted);">/{{ 'mo' if plan.cadence=='monthly' else plan.cadence }}</span>
+          </div>
+          <div style="font-size:12px;color:var(--revfi-muted);margin-top:10px;line-height:1.7;">{{ plan.features }}</div>
+          <div class="d-flex gap-2 mt-3">
+            <a href="{{ url_for('plan_edit', plid=plan.id) }}" class="btn btn-sm btn-outline-secondary flex-grow-1">Edit</a>
+            <form method="post" action="{{ url_for('plan_delete', plid=plan.id) }}" class="d-inline">
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove this plan?')"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+      <div class="card p-4 text-center" style="color:var(--revfi-muted);border-style:dashed;">
+        No plans yet. <a href="{{ url_for('plan_new', pid=prod.id) }}" style="color:var(--revfi-gold);">Add the first plan →</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

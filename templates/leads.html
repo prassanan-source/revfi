@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Leads{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <div class="page-title">Leads &amp; Pipeline</div>
+    <div class="page-sub">{{ leads|length }} leads total</div>
+  </div>
+  <a href="{{ url_for('lead_new') }}" class="btn btn-gold"><i class="bi bi-plus-lg me-1"></i> New Lead</a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="row g-2 mb-3">
+  <div class="col-auto">
+    <select name="product" class="form-select form-select-sm" style="min-width:130px;" onchange="this.form.submit()">
+      <option value="">All Products</option>
+      {% for p in products %}<option value="{{ p.id }}" {% if request.args.get('product')==p.id|string %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <select name="status" class="form-select form-select-sm" style="min-width:160px;" onchange="this.form.submit()">
+      <option value="">All Stages</option>
+      {% for s in PIPELINE_STAGES %}<option value="{{ s }}" {% if request.args.get('status')==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <select name="assignee" class="form-select form-select-sm" style="min-width:150px;" onchange="this.form.submit()">
+      <option value="">All Reps</option>
+      {% for u in users %}<option value="{{ u.id }}" {% if request.args.get('assignee')==u.id|string %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
+    </select>
+  </div>
+  {% if request.args.get('product') or request.args.get('status') or request.args.get('assignee') %}
+  <div class="col-auto"><a href="{{ url_for('leads') }}" class="btn btn-sm btn-outline-secondary">Clear</a></div>
+  {% endif %}
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Company</th><th>Contact</th><th>Product / Plan</th><th>Stage</th>
+          <th>Rep</th><th>Referral</th><th>Value</th><th>Date</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for l in leads %}
+      <tr>
+        <td><strong>{{ l.company }}</strong></td>
+        <td>
+          <div style="font-size:13px;">{{ l.contact }}</div>
+          <div style="font-size:11px;color:var(--revfi-muted);">{{ l.email }}</div>
+        </td>
+        <td>
+          {% if l.product %}<div style="color:{{ l.product.color }};font-weight:700;font-size:12.5px;">{{ l.product.icon }} {{ l.product.name }}</div>{% endif %}
+          {% if l.plan %}<div style="font-size:11px;color:var(--revfi-muted);">{{ l.plan.name }}</div>{% endif %}
+        </td>
+        <td>
+          <span class="badge rounded-pill px-3 py-1" style="font-size:11px;font-weight:700;background:
+            {% if l.status=='Closed Won' %}rgba(16,185,129,.15);color:#10B981
+            {% elif l.status=='Closed Lost' %}rgba(239,68,68,.15);color:#EF4444
+            {% elif l.status=='Agreement Sent' %}rgba(6,182,212,.15);color:#06B6D4
+            {% elif l.status=='Proposal Sent' %}rgba(245,158,11,.15);color:#F59E0B
+            {% elif l.status=='Demo Scheduled' %}rgba(139,92,246,.15);color:#8B5CF6
+            {% elif l.status=='Contacted' %}rgba(59,130,246,.15);color:#3B82F6
+            {% else %}rgba(107,114,128,.15);color:#9CA3AF{% endif %};">{{ l.status }}</span>
+        </td>
+        <td style="font-size:12.5px;">{{ l.assignee.name if l.assignee else '—' }}</td>
+        <td style="font-size:12px;color:var(--revfi-muted);">
+          {% if l.referral %}{{ l.referral.name }} ({{ l.referral_pct|int }}%){% else %}—{% endif %}
+        </td>
+        <td style="font-weight:700;">{{ fmt_usd(l.value) }}</td>
+        <td style="font-size:11.5px;color:var(--revfi-muted);">{{ l.created_at.strftime('%b %d') }}</td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{{ url_for('lead_edit', lid=l.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            {% if l.status in ['Contacted','Demo Scheduled','Proposal Sent'] %}
+            <form method="post" action="{{ url_for('agreement_send') }}" class="d-inline">
+              <input type="hidden" name="lead_id" value="{{ l.id }}">
+              <input type="hidden" name="signer_name" value="{{ l.contact }}">
+              <input type="hidden" name="signer_title" value="">
+              <button type="submit" class="btn btn-sm btn-navy">Send Agr.</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center py-5" style="color:var(--revfi-muted);">No leads found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

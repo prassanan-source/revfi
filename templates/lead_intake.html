@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{% if intake == 'referral' %}New Referral{% else %}New Lead{% endif %} — RevFi</title>
+{% include '_layout.html' %}
+<style>
+.page-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:760px;}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.df{display:flex;flex-direction:column;gap:4px;}
+.df label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;}
+.df input,.df select,.df textarea{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;width:100%;}
+.df input:focus,.df select:focus,.df textarea:focus{border-color:var(--accent);}
+.sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:10px;}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+@media(max-width:640px){.dr-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <button class="hdr-hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
+  <div style="font-size:18px;font-weight:900;letter-spacing:-.5px;">REV<span style="color:var(--accent);">FI</span></div>
+  <div style="flex:1;"></div>
+  <span id="hdr-user" style="font-size:12px;color:var(--muted);"></span>
+</header>
+<div class="app-shell">
+{% include '_sidebar.html' %}
+<div class="page-content"><div class="page-body">
+
+  <div style="margin-bottom:20px;">
+    {% if intake == 'referral' %}
+    <h1 style="font-size:20px;font-weight:800;">🔁 New Referral</h1>
+    <p style="font-size:13px;color:var(--muted);margin-top:4px;">Record a restaurant referred by a customer or partner</p>
+    {% else %}
+    <h1 style="font-size:20px;font-weight:800;">＋ New Lead</h1>
+    <p style="font-size:13px;color:var(--muted);margin-top:4px;">Add a restaurant to the sales pipeline</p>
+    {% endif %}
+  </div>
+
+  <div class="page-card">
+    {% if intake == 'referral' %}
+    <div class="sec-lbl">Referred by</div>
+    <div class="dr-grid">
+      <div class="df" style="grid-column:1/-1;"><label>Who referred them *</label><input id="dr-referred" placeholder="Restaurant, owner, or partner who made the intro"></div>
+    </div>
+    {% endif %}
+
+    <div class="sec-lbl">Restaurant</div>
+    <div class="dr-grid">
+      <div class="df" style="grid-column:1/-1;"><label>Restaurant Name *</label><input id="dr-rname" placeholder="e.g. Raya Restaurant"></div>
+      <div class="df"><label>City</label><input id="dr-city" placeholder="e.g. Dublin, CA"></div>
+      <div class="df"><label>Cuisine Type</label><input id="dr-cuisine" placeholder="e.g. South Indian"></div>
+      {% if product %}
+      <input type="hidden" id="dr-product" value="{{ product.id }}">
+      <div class="df" style="grid-column:1/-1;"><label>Product</label>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;">{{ product.icon }} {{ product.name }}</div>
+      </div>
+      {% else %}
+      <div class="df" style="grid-column:1/-1;"><label>Product *</label>
+        <select id="dr-product"></select>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="sec-lbl" style="margin-top:8px;">Contact</div>
+    <div class="dr-grid">
+      <div class="df"><label>Contact Name *</label><input id="dr-cname" placeholder="Owner / Manager name"></div>
+      <div class="df"><label>Phone</label><input id="dr-phone" placeholder="+1 (510) 555-1234"></div>
+      <div class="df" style="grid-column:1/-1;"><label>Email</label><input type="email" id="dr-email" placeholder="owner@restaurant.com"></div>
+    </div>
+
+    <div class="sec-lbl" style="margin-top:8px;">Deal</div>
+    <div class="dr-grid">
+      <div class="df"><label>Stage</label>
+        <select id="dr-stage">
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Demo Scheduled">Demo Scheduled</option>
+          <option value="Demo Done">Demo Done</option>
+          <option value="Proposal Sent">Proposal Sent</option>
+          <option value="Negotiation">Negotiation</option>
+          <option value="Closed Won">Closed Won</option>
+          <option value="Closed Lost">Closed Lost</option>
+        </select>
+      </div>
+      <div class="df"><label>Priority</label>
+        <select id="dr-priority">
+          <option value="high">🔴 High</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+      </div>
+      <div class="df"><label>Plan Interest</label>
+        <select id="dr-plan">
+          <option value="starter">Starter — $49/mo</option>
+          <option value="basic" selected>Basic — $99/mo</option>
+          <option value="pro">Pro — $199/mo</option>
+          <option value="enterprise">Enterprise — $399/mo</option>
+        </select>
+      </div>
+      <div class="df"><label>Billing Cycle</label>
+        <select id="dr-cycle">
+          <option value="monthly">Monthly</option>
+          <option value="annual">Annual (save 17%)</option>
+        </select>
+      </div>
+      {% if intake == 'referral' %}
+      <input type="hidden" id="dr-source" value="referral">
+      {% else %}
+      <div class="df"><label>Lead Source</label>
+        <select id="dr-source" onchange="syncReferredField()">
+          <option value="manual">Direct / Manual</option>
+          <option value="referral">Referral</option>
+          <option value="website">Website</option>
+          <option value="cold_call">Cold Call</option>
+          <option value="event">Event / Expo</option>
+          <option value="social">Social Media</option>
+        </select>
+      </div>
+      <div class="df" id="referred-wrap" style="display:none;">
+        <label>Who referred them *</label>
+        <input id="dr-referred" placeholder="Restaurant, owner, or partner">
+      </div>
+      {% endif %}
+      <div class="df" id="assign-wrap">
+        <label>Whose lead</label>
+        <select id="dr-assigned"></select>
+        <div id="dr-assigned-locked" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);"></div>
+      </div>
+      <div class="df"><label>Next Follow-up</label>
+        <input type="date" id="dr-followup"></div>
+    </div>
+
+    <div class="df" style="margin-bottom:16px;"><label>Notes</label>
+      <textarea id="dr-notes" rows="3" style="resize:vertical;" placeholder="Meeting notes, objections, special requirements…"></textarea>
+    </div>
+
+    <div id="dr-deal-value" style="padding:12px;background:var(--surface);border-radius:8px;font-size:13px;margin-bottom:16px;"></div>
+
+    <div class="form-actions">
+      <button onclick="saveLead()" class="btn btn-primary" id="dr-save-btn">{% if intake == 'referral' %}💾 Save Referral{% else %}💾 Save Lead{% endif %}</button>
+      <a href="/sales-crm" class="btn btn-ghost">Cancel</a>
+    </div>
+  </div>
+
+</div></div>
+</div>
+
+<div id="toast"><span id="t-icon"></span><span id="t-msg"></span></div>
+
+<script>
+var INTAKE = {{ intake|tojson }};
+var LOCKED_PRODUCT = {{ (product.id if product else '')|tojson }};
+var PRODUCT_SLUG = {{ (product.slug if product else '')|tojson }};
+var planPrices = {}, salespeople = [], currentUsername = '', currentName = '', canAssign = false;
+
+function salespersonLabel(p) {
+  if (!p) return '';
+  var name = (p.name || '').trim();
+  var login = p.username || '';
+  if (name && name.toLowerCase() !== login.toLowerCase()) return name + ' (' + login + ')';
+  return login;
+}
+
+function fillAssignee() {
+  var sel = document.getElementById('dr-assigned');
+  var locked = document.getElementById('dr-assigned-locked');
+  if (!sel || !locked) return;
+  if (canAssign) {
+    var html = '';
+    salespeople.forEach(function(p) {
+      html += '<option value="'+esc(p.username)+'">'+esc(salespersonLabel(p))+'</option>';
+    });
+    if (currentUsername && !salespeople.some(function(p){ return p.username === currentUsername; })) {
+      html += '<option value="'+esc(currentUsername)+'">'+esc(currentName || currentUsername)+'</option>';
+    }
+    sel.innerHTML = html;
+    sel.value = currentUsername || (sel.options[0] ? sel.options[0].value : '');
+    sel.style.display = '';
+    locked.style.display = 'none';
+  } else {
+    sel.style.display = 'none';
+    locked.style.display = 'block';
+    locked.textContent = currentName || currentUsername || 'You';
+    sel.innerHTML = '<option value="'+esc(currentUsername)+'" selected></option>';
+  }
+}
+
+function syncReferredField() {
+  var wrap = document.getElementById('referred-wrap');
+  if (!wrap) return;
+  wrap.style.display = document.getElementById('dr-source').value === 'referral' ? '' : 'none';
+}
+
+function updateDealValue() {
+  var plan  = document.getElementById('dr-plan').value;
+  var cycle = document.getElementById('dr-cycle').value;
+  var p     = (planPrices[plan]||{});
+  var amt   = p[cycle] || 0;
+  var el    = document.getElementById('dr-deal-value');
+  var stage = document.getElementById('dr-stage').value;
+  el.innerHTML = '<b>Deal Value:</b> <span style="color:var(--accent);font-size:15px;font-weight:700;">'
+    + fmt(amt) + '</span> / '+(cycle==='annual'?'year':'month')
+    + (cycle==='annual' ? ' <span style="color:var(--muted);font-size:11px;">('+fmt(amt/12)+'/mo equiv)</span>' : '')
+    + ' &nbsp;·&nbsp; Plan: <b>'+(p.label||plan)+'</b>'
+    + ' &nbsp;·&nbsp; Stage: <b>'+stage+'</b>';
+}
+
+async function loadPlans() {
+  var r = await fetch('/api/sales/plans');
+  var d = await r.json();
+  planPrices = d.plans || {};
+  var stages = d.stages || [];
+  var sel = document.getElementById('dr-stage');
+  if (sel && stages.length) sel.innerHTML = stages.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+  updateDealValue();
+}
+
+async function loadSalespeople() {
+  var r = await fetch('/api/sales/salespeople');
+  if (!r.ok) return;
+  var d = await r.json();
+  salespeople = d.salespeople || [];
+  currentUsername = d.me || '';
+  currentName = d.me_name || currentUsername;
+  canAssign = !!d.can_assign;
+  fillAssignee();
+}
+
+async function loadProducts() {
+  if (LOCKED_PRODUCT) return;
+  var sel = document.getElementById('dr-product');
+  if (!sel) return;
+  var r = await fetch('/api/products');
+  if (!r.ok) return;
+  var d = await r.json();
+  var html = '<option value="">— Select product —</option>';
+  (d.products || []).forEach(function(p) {
+    html += '<option value="'+esc(p.id)+'">'+esc((p.icon||'')+' '+p.name)+'</option>';
+  });
+  sel.innerHTML = html;
+}
+
+async function saveLead() {
+  var rname = document.getElementById('dr-rname').value.trim();
+  var cname = document.getElementById('dr-cname').value.trim();
+  if (!rname || !cname) { toast('Restaurant name and contact name required', 'warn'); return; }
+  var source = document.getElementById('dr-source').value;
+  var referredEl = document.getElementById('dr-referred');
+  var referred = referredEl ? referredEl.value.trim() : '';
+  if (source === 'referral' && !referred) { toast('Who referred them is required', 'warn'); return; }
+  var productId = document.getElementById('dr-product').value;
+  if (!productId) { toast('Select a product', 'warn'); return; }
+
+  var payload = {
+    restaurant_name: rname,
+    contact_name:    cname,
+    contact_email:   document.getElementById('dr-email').value.trim(),
+    contact_phone:   document.getElementById('dr-phone').value.trim(),
+    city:            document.getElementById('dr-city').value.trim(),
+    cuisine_type:    document.getElementById('dr-cuisine').value.trim(),
+    product_id:      productId,
+    stage:           document.getElementById('dr-stage').value,
+    priority:        document.getElementById('dr-priority').value,
+    plan_interest:   document.getElementById('dr-plan').value,
+    billing_cycle:   document.getElementById('dr-cycle').value,
+    source:          source,
+    referred_by:     referred,
+    assigned_to:     canAssign ? document.getElementById('dr-assigned').value.trim() : currentUsername,
+    next_followup:   document.getElementById('dr-followup').value,
+    notes:           document.getElementById('dr-notes').value.trim(),
+  };
+
+  var btn = document.getElementById('dr-save-btn');
+  var saveLabel = INTAKE === 'referral' ? '💾 Save Referral' : '💾 Save Lead';
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  var r = await fetch('/api/sales/leads', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  var d = await r.json();
+  btn.disabled = false; btn.textContent = saveLabel;
+
+  if (r.ok) {
+    toast(INTAKE === 'referral' ? '✅ Referral saved' : '✅ Lead created', 'success');
+    setTimeout(function(){ window.location.href = PRODUCT_SLUG ? ('/p/'+PRODUCT_SLUG) : '/sales-crm'; }, 600);
+  } else toast(d.error || 'Error', 'error');
+}
+
+function fmt(n){ return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function toast(msg,type){ var ic={info:'ℹ️',success:'✅',error:'❌',warn:'⚠️'}; document.getElementById('t-icon').textContent=ic[type]||'ℹ️'; document.getElementById('t-msg').textContent=msg; var t=document.getElementById('toast'); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},3500); }
+
+['dr-plan','dr-cycle','dr-stage'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('change', updateDealValue);
+});
+
+Promise.all([loadPlans(), loadSalespeople(), loadProducts()]);
+</script>
+</body>
+</html>

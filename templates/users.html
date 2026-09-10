@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div><div class="page-title">Users</div><div class="page-sub">Sales reps and admins</div></div>
+  <a href="{{ url_for('user_new') }}" class="btn btn-gold"><i class="bi bi-person-plus me-1"></i> Add User</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u.name }}</strong></td>
+        <td style="color:var(--revfi-muted);">{{ u.email }}</td>
+        <td><span class="badge rounded-pill px-3" style="font-size:11px;font-weight:700;background:{% if u.role=='admin' %}rgba(201,168,76,.15);color:#C9A84C{% else %}rgba(59,130,246,.15);color:#60A5FA{% endif %};">{{ u.role|capitalize }}</span></td>
+        <td><span class="badge rounded-pill px-3" style="font-size:11px;background:{% if u.active %}rgba(16,185,129,.15);color:#10B981{% else %}rgba(107,114,128,.15);color:#9CA3AF{% endif %};">{{ 'Active' if u.active else 'Inactive' }}</span></td>
+        <td><a href="{{ url_for('user_edit', uid=u.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

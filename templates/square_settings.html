@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Square Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">Square Settings</div>
+  <div class="page-sub">Connect your Square account to send invoices and collect payments</div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-square-fill" style="color:var(--karyva-gold,#C9A84C);"></i> Square API Credentials
+      </div>
+      <div class="card-body p-4">
+        <form method="post">
+
+          <div class="mb-3">
+            <label class="form-label">Environment</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="environment" id="env-sandbox" value="sandbox" {% if cfg.environment != 'production' %}checked{% endif %}>
+                <label class="form-check-label" for="env-sandbox" style="color:#cdd5e0;font-size:13.5px;">
+                  Sandbox <span style="font-size:11px;color:var(--karyva-muted,#8A9BB0);">(testing)</span>
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="environment" id="env-production" value="production" {% if cfg.environment == 'production' %}checked{% endif %}>
+                <label class="form-check-label" for="env-production" style="color:#cdd5e0;font-size:13.5px;">
+                  Production <span style="font-size:11px;color:var(--karyva-muted,#8A9BB0);">(live payments)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Access Token</label>
+            <input type="password" name="access_token" class="form-control"
+              placeholder="{% if cfg.access_token %}••••••••••••• (saved){% else %}EAAAl... or sandbox-EAAAl...{% endif %}">
+            <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:4px;">Leave blank to keep existing token.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Location ID</label>
+            <input type="text" name="location_id" class="form-control"
+              value="{{ cfg.location_id }}" placeholder="Lxxxxxxxxxxxxxxxxx">
+            <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:4px;">
+              Found in Square Developer Dashboard → Locations, or in your Square Dashboard URL.
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Webhook Signature Secret <span style="font-size:10px;color:var(--karyva-muted,#8A9BB0);">(optional — for auto-paid detection)</span></label>
+            <input type="password" name="webhook_secret" class="form-control"
+              placeholder="{% if cfg.webhook_secret %}••••••• (saved){% else %}From Square Developer → Webhooks{% endif %}">
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" name="save" class="btn btn-gold px-4">Save Settings</button>
+            <button type="submit" name="test" class="btn btn-navy px-4">
+              <i class="bi bi-plug me-1"></i>Save & Test Connection
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header py-3"><i class="bi bi-lightning me-2" style="color:#C9A84C;"></i>Setup Guide</div>
+      <div class="card-body" style="font-size:13px;line-height:1.9;color:#cdd5e0;">
+        <ol style="padding-left:18px;margin:0;">
+          <li>Go to <a href="https://developer.squareup.com/apps" target="_blank" style="color:#C9A84C;">developer.squareup.com/apps</a></li>
+          <li>Create an app (or open existing)</li>
+          <li>Under <strong>Credentials</strong> → copy your <strong>Access Token</strong><br>
+            <span style="font-size:11px;color:var(--karyva-muted,#8A9BB0);">Use Sandbox token for testing, Production for live</span>
+          </li>
+          <li>Under <strong>Locations</strong> → copy your <strong>Location ID</strong></li>
+          <li>Click <strong>Save &amp; Test Connection</strong></li>
+          <li>For auto-paid detection, add a webhook:<br>
+            URL: <code style="color:#C9A84C;font-size:11px;">https://yourdomain.com/webhooks/square</code><br>
+            Event: <code style="color:#C9A84C;font-size:11px;">invoice.payment_made</code>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header py-3"><i class="bi bi-info-circle me-2" style="color:#C9A84C;"></i>How Invoice Sending Works</div>
+      <div class="card-body" style="font-size:12.5px;color:#cdd5e0;line-height:1.8;">
+        <p>When you send via Square:</p>
+        <ol style="padding-left:16px;margin:0;">
+          <li>Revfi creates a Square Customer (or finds existing)</li>
+          <li>Creates an Order for the invoice amount</li>
+          <li>Creates and publishes a Square Invoice</li>
+          <li>Square emails a branded payment page to your client</li>
+          <li>Client pays by card, ACH, Cash App, or Afterpay</li>
+          <li>Square fires a webhook → Revfi marks the invoice Paid automatically</li>
+        </ol>
+        <p class="mt-2 mb-0" style="color:var(--karyva-muted,#8A9BB0);font-size:11.5px;">
+          Square charges 3.3% + 30¢ per invoice payment (US). Funds deposit to your Square account.
+        </p>
+      </div>
+    </div>
+
+    {% if cfg.access_token %}
+    <div class="card">
+      <div class="card-header py-3"><i class="bi bi-check-circle me-2" style="color:#10B981;"></i>Status</div>
+      <div class="card-body" style="font-size:13px;">
+        <div class="d-flex justify-content-between mb-2">
+          <span style="color:var(--karyva-muted,#8A9BB0);">Environment</span>
+          <span class="badge rounded-pill px-3" style="background:{% if cfg.environment=='production' %}rgba(16,185,129,.15);color:#10B981{% else %}rgba(245,158,11,.15);color:#F59E0B{% endif %};">{{ cfg.environment|capitalize }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span style="color:var(--karyva-muted,#8A9BB0);">Access Token</span>
+          <span style="color:#10B981;">✓ Saved</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span style="color:var(--karyva-muted,#8A9BB0);">Location ID</span>
+          <span style="font-family:monospace;font-size:11px;color:#cdd5e0;">{{ cfg.location_id or '—' }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span style="color:var(--karyva-muted,#8A9BB0);">Webhook Secret</span>
+          <span>{{ '✓ Set' if cfg.webhook_secret else '— Not set' }}</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

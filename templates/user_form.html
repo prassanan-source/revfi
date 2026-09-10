@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit User' if user else 'New User' }}{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-title">{{ 'Edit User' if user else 'New User' }}</div></div>
+<div class="card" style="max-width:480px;">
+  <div class="card-body p-4">
+    <form method="post">
+      <div class="mb-3"><label class="form-label">Full Name *</label><input type="text" name="name" class="form-control" value="{{ user.name if user else '' }}" required></div>
+      <div class="mb-3"><label class="form-label">Email *</label><input type="email" name="email" class="form-control" value="{{ user.email if user else '' }}" required></div>
+      <div class="mb-3">
+        <label class="form-label">Role</label>
+        <select name="role" class="form-select">
+          <option value="sales" {% if user and user.role=='sales' %}selected{% endif %}>Sales Rep</option>
+          <option value="admin" {% if user and user.role=='admin' %}selected{% endif %}>Admin</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password {% if user %}(leave blank to keep){% endif %}</label>
+        <input type="password" name="password" class="form-control" {% if not user %}required{% endif %} placeholder="••••••••">
+      </div>
+      {% if user %}
+      <div class="mb-4 form-check">
+        <input type="checkbox" name="active" id="active-chk" class="form-check-input" {% if user.active %}checked{% endif %}>
+        <label for="active-chk" class="form-check-label" style="font-size:13.5px;color:#cdd5e0;">Active</label>
+      </div>
+      {% endif %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-gold px-4">{{ 'Update User' if user else 'Create User' }}</button>
+        <a href="{{ url_for('users') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

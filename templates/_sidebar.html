@@ -1,0 +1,41 @@
+<aside class="left-nav" id="left-nav">
+  <div style="padding:12px 16px 6px;">
+    <div id="sb-restaurant-wrap"></div>
+    <div id="sb-user" style="font-size:11px;color:var(--muted);margin-top:3px;"></div>
+  </div>
+  <div id="sb-nav">
+    <div style="padding:16px;color:var(--muted);font-size:12px;">Loading…</div>
+  </div>
+  <div style="margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);">RevFi Sales CRM</div>
+</aside>
+<div id="nav-overlay" class="nav-overlay"></div>
+<script>
+(async function loadSidebar() {
+  try {
+    var resp = await fetch('/api/sidebar');
+    if (!resp.ok) { window.location.href = '/login'; return; }
+    var d = await resp.json();
+    if (d.theme && window.THEME) THEME.apply(d.theme);
+    if (window.THEME) THEME.ensureBtn();
+    var wrap = document.getElementById('sb-restaurant-wrap');
+    if (wrap) {
+      wrap.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);padding:2px 0;">🎯 '
+        + (d.restaurant_name || 'RevFi')
+        + '<span style="font-size:11px;color:var(--muted);"> · ' + (d.branch || 'Sales CRM') + '</span></div>';
+    }
+    var ue = document.getElementById('sb-user');
+    if (ue) ue.textContent = (d.name || d.username) + ' · ' + (d.role_label || d.role || '');
+    var he = document.getElementById('hdr-user');
+    if (he) he.textContent = d.name || d.username;
+    var nav = document.getElementById('sb-nav');
+    if (nav && window.SIDEBAR && typeof SIDEBAR._renderNav === 'function') {
+      SIDEBAR._renderNav(nav, d.menus || [], window.location.pathname);
+    } else if (nav && window.SIDEBAR && typeof SIDEBAR._render === 'function') {
+      SIDEBAR._render(d, window.location.pathname);
+    }
+    if (typeof _initMobileSidebar === 'function') _initMobileSidebar();
+  } catch (e) {
+    console.error('Sidebar load error:', e);
+  }
+})();
+</script>

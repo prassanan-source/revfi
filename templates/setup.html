@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Setup — RevFi</title>
+{% include '_layout.html' %}
+<style>
+.page-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:820px;}
+.add-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.add-row input{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;}
+.add-row input:focus{border-color:var(--accent);}
+.prod-icon{width:56px;}
+.prod-name{flex:1;min-width:160px;}
+</style>
+</head>
+<body>
+<header>
+  <button class="hdr-hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
+  <div style="font-size:18px;font-weight:900;letter-spacing:-.5px;">REV<span style="color:var(--accent);">FI</span></div>
+  <div style="flex:1;"></div>
+  <span id="hdr-user" style="font-size:12px;color:var(--muted);"></span>
+</header>
+<div class="app-shell">
+{% include '_sidebar.html' %}
+<div class="page-content"><div class="page-body">
+
+  <div style="margin-bottom:20px;">
+    <h1 style="font-size:20px;font-weight:800;">⚙️ Setup</h1>
+    <p style="font-size:13px;color:var(--muted);margin-top:4px;">Add products. Each one gets its own pipeline page in the sidebar.</p>
+  </div>
+
+  <div class="page-card">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:12px;">Products</div>
+    <div class="add-row">
+      <input class="prod-icon" id="np-icon" placeholder="Icon" value="📦">
+      <input class="prod-name" id="np-name" placeholder="Product name — e.g. RezFi">
+      <button class="btn btn-primary" onclick="addProduct()">＋ Add product</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Icon</th><th>Name</th><th>Page</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="prod-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div></div>
+</div>
+<div id="toast"><span id="t-icon"></span><span id="t-msg"></span></div>
+<script>
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function toast(msg,type){ var ic={info:'ℹ️',success:'✅',error:'❌',warn:'⚠️'}; document.getElementById('t-icon').textContent=ic[type]||'ℹ️'; document.getElementById('t-msg').textContent=msg; var t=document.getElementById('toast'); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},3500); }
+
+async function loadProducts() {
+  var r = await fetch('/api/setup/products');
+  if (r.status === 403) { window.location.href = '/sales-crm'; return; }
+  var d = await r.json();
+  var rows = d.products || [];
+  var html = rows.map(function(p) {
+    var on = p.active !== false;
+    return '<tr>'
+      + '<td><input data-id="'+esc(p.id)+'" data-f="icon" value="'+esc(p.icon)+'" style="width:56px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:14px;text-align:center;"></td>'
+      + '<td><input data-id="'+esc(p.id)+'" data-f="name" value="'+esc(p.name)+'" style="width:100%;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:12px;color:var(--text);"></td>'
+      + '<td><a href="/p/'+esc(p.slug)+'" style="font-size:12px;">/p/'+esc(p.slug)+'</a></td>'
+      + '<td><button class="btn btn-sm '+(on?'btn-ghost':'btn-danger')+'" onclick="toggleActive(\''+esc(p.id)+'\','+(!on)+')">'+(on?'Active':'Hidden')+'</button></td>'
+      + '<td style="white-space:nowrap;"><button class="btn btn-sm btn-primary" onclick="saveProduct(\''+esc(p.id)+'\')">Save</button> '
+      + '<button class="btn btn-sm btn-danger" onclick="deleteProduct(\''+esc(p.id)+'\',\''+esc(p.name)+'\')">Delete</button></td>'
+      + '</tr>';
+  }).join('');
+  document.getElementById('prod-tbody').innerHTML = html || '<tr><td colspan="5" style="color:var(--muted);">No products yet.</td></tr>';
+}
+
+async function addProduct() {
+  var name = document.getElementById('np-name').value.trim();
+  var icon = document.getElementById('np-icon').value.trim() || '📦';
+  if (!name) { toast('Product name required', 'warn'); return; }
+  var r = await fetch('/api/setup/products', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:name, icon:icon})});
+  var d = await r.json();
+  if (r.ok) {
+    document.getElementById('np-name').value = '';
+    toast('Product added — it is now in the sidebar', 'success');
+    await loadProducts();
+  } else toast(d.error || 'Error', 'error');
+}
+
+async function saveProduct(id) {
+  var nameEl = document.querySelector('input[data-id="'+id+'"][data-f="name"]');
+  var iconEl = document.querySelector('input[data-id="'+id+'"][data-f="icon"]');
+  var r = await fetch('/api/setup/products/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name: nameEl.value.trim(), icon: iconEl.value.trim()})});
+  var d = await r.json();
+  if (r.ok) { toast('Saved', 'success'); await loadProducts(); }
+  else toast(d.error || 'Error', 'error');
+}
+
+async function toggleActive(id, active) {
+  var r = await fetch('/api/setup/products/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({active: active})});
+  if (r.ok) { toast(active ? 'Shown in sidebar' : 'Hidden from sidebar', 'success'); await loadProducts(); }
+  else toast('Error', 'error');
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm('Delete product "'+name+'"? Existing leads stay, but this sidebar page is removed.')) return;
+  var r = await fetch('/api/setup/products/'+id, {method:'DELETE'});
+  if (r.ok) { toast('Deleted', 'warn'); await loadProducts(); }
+  else toast('Error', 'error');
+}
+
+loadProducts();
+</script>
+</body>
+</html>

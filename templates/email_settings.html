@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Email Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">Email Settings</div>
+  <div class="page-sub">Configure SMTP for agreements and invoices</div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-envelope-gear" style="color:var(--karyva-gold, #C9A84C);"></i> SMTP Configuration
+      </div>
+      <div class="card-body p-4">
+        <form method="post">
+
+          <div class="alert alert-info py-2 mb-4" style="font-size:13px;background:rgba(59,130,246,.1);border-color:#3B82F6;color:#93C5FD;">
+            <i class="bi bi-info-circle me-1"></i>
+            Using Gmail? Enable 2FA, then generate an
+            <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#C9A84C;">App Password</a>
+            and paste it below instead of your regular password.
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-8">
+              <label class="form-label">SMTP Host</label>
+              <input type="text" name="smtp_host" class="form-control" value="{{ cfg.smtp_host }}" placeholder="smtp.gmail.com">
+            </div>
+            <div class="col-4">
+              <label class="form-label">Port</label>
+              <input type="number" name="smtp_port" class="form-control" value="{{ cfg.smtp_port }}" placeholder="587">
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">SMTP Username (your email)</label>
+              <input type="email" name="smtp_user" class="form-control" value="{{ cfg.smtp_user }}" placeholder="you@gmail.com">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Password / App Password</label>
+              <input type="password" name="smtp_pass" class="form-control" placeholder="{% if cfg.smtp_pass %}••••••••••• (saved){% else %}Paste app password here{% endif %}">
+              <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:4px;">Leave blank to keep existing password.</div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">From Name</label>
+              <input type="text" name="from_name" class="form-control" value="{{ cfg.from_name }}" placeholder="Revfi Team">
+            </div>
+            <div class="col-6">
+              <label class="form-label">From Email Address</label>
+              <input type="email" name="from_email" class="form-control" value="{{ cfg.from_email }}" placeholder="noreply@revfi.ai">
+            </div>
+          </div>
+
+          <div class="mb-4 form-check">
+            <input type="checkbox" name="use_tls" id="use-tls" class="form-check-input" {% if cfg.use_tls %}checked{% endif %}>
+            <label for="use-tls" class="form-check-label" style="font-size:13.5px;color:#cdd5e0;">Use TLS (recommended — required for Gmail port 587)</label>
+          </div>
+
+          <hr style="border-color:#1f2d3d;margin:20px 0;">
+
+          <div class="mb-3">
+            <label class="form-label">Send Test Email To</label>
+            <input type="email" name="test_to" class="form-control" value="{{ cfg.smtp_user }}" placeholder="your@email.com" style="max-width:320px;">
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" name="save" class="btn btn-gold px-4">Save Settings</button>
+            <button type="submit" name="test" class="btn btn-navy px-4">
+              <i class="bi bi-send me-1"></i> Save & Send Test Email
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header py-3"><i class="bi bi-lightning me-2" style="color:#C9A84C;"></i>Quick Setup — Gmail</div>
+      <div class="card-body" style="font-size:13px;line-height:1.8;color:#cdd5e0;">
+        <ol style="padding-left:18px;margin:0;">
+          <li>Go to <a href="https://myaccount.google.com/security" target="_blank" style="color:#C9A84C;">Google Account → Security</a></li>
+          <li>Enable <strong>2-Step Verification</strong></li>
+          <li>Search for <strong>App Passwords</strong> in Google Account</li>
+          <li>Create one named <em>Revfi</em> — copy the 16-char code</li>
+          <li>Fill in:<br>
+            &nbsp;Host: <code style="color:#C9A84C;">smtp.gmail.com</code><br>
+            &nbsp;Port: <code style="color:#C9A84C;">587</code><br>
+            &nbsp;Username: your Gmail address<br>
+            &nbsp;Password: the 16-char app password</li>
+          <li>Click <strong>Save &amp; Send Test Email</strong></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header py-3"><i class="bi bi-lightning me-2" style="color:#C9A84C;"></i>Quick Setup — Other Providers</div>
+      <div class="card-body p-0">
+        <table class="table mb-0" style="font-size:12.5px;">
+          <thead><tr><th>Provider</th><th>Host</th><th>Port</th></tr></thead>
+          <tbody>
+            <tr><td>Gmail</td><td>smtp.gmail.com</td><td>587</td></tr>
+            <tr><td>Outlook/Office 365</td><td>smtp.office365.com</td><td>587</td></tr>
+            <tr><td>Yahoo</td><td>smtp.mail.yahoo.com</td><td>587</td></tr>
+            <tr><td>Zoho</td><td>smtp.zoho.com</td><td>587</td></tr>
+            <tr><td>SendGrid</td><td>smtp.sendgrid.net</td><td>587</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Revfi{% endblock %} — SubsManager</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    /* ── Theme variables ── */
+    :root {
+      --gold:    #C9A84C;
+      --navy:    #0F1C2E;
+      --slate:   #1E3A5F;
+      --sidebar-w: 230px;
+    }
+
+    /* ── LIGHT theme (default) ── */
+    html[data-theme="light"] {
+      --bg:         #F4F6F9;
+      --sidebar-bg: #ffffff;
+      --sidebar-border: #E5E8EF;
+      --sidebar-text: #5C6880;
+      --sidebar-active-bg: #E8F7F0;
+      --sidebar-active-color: #167A4F;
+      --sidebar-active-border: #22A06B;
+      --sidebar-hover-bg: #F0F2F5;
+      --sidebar-hover-color: #1a1a2e;
+      --brand-tag-color: #22A06B;
+      --brand-name-color: #1a1a2e;
+      --brand-sub-color: #8892A4;
+      --main-color: #1a1a2e;
+      --card-bg: #ffffff;
+      --card-border: #E5E8EF;
+      --input-bg: #ffffff;
+      --input-border: #D0D5DD;
+      --input-color: #1a1a2e;
+      --table-head-color: #8892A4;
+      --table-row-hover: #FAFBFD;
+      --table-border: #F0F2F5;
+      --muted: #8892A4;
+      --footer-border: #E5E8EF;
+      --alert-bg: #fff;
+    }
+
+    /* ── MEDIUM theme ── */
+    html[data-theme="medium"] {
+      --bg:         #1E2532;
+      --sidebar-bg: #161D2B;
+      --sidebar-border: #252E40;
+      --sidebar-text: #7B8BA4;
+      --sidebar-active-bg: rgba(201,168,76,.15);
+      --sidebar-active-color: #C9A84C;
+      --sidebar-active-border: #C9A84C;
+      --sidebar-hover-bg: rgba(255,255,255,.05);
+      --sidebar-hover-color: #fff;
+      --brand-tag-color: #C9A84C;
+      --brand-name-color: #ffffff;
+      --brand-sub-color: #4A5568;
+      --main-color: #E2E8F0;
+      --card-bg: #252E40;
+      --card-border: #2E3A50;
+      --input-bg: #1E2532;
+      --input-border: #2E3A50;
+      --input-color: #E2E8F0;
+      --table-head-color: #7B8BA4;
+      --table-row-hover: rgba(255,255,255,.03);
+      --table-border: #252E40;
+      --muted: #7B8BA4;
+      --footer-border: #252E40;
+      --alert-bg: #252E40;
+    }
+
+    /* ── MODERN theme ── */
+    html[data-theme="modern"] {
+      --bg:         #F7F5F2;
+      --sidebar-bg: #FAF8F5;
+      --sidebar-border: #E8E4DE;
+      --sidebar-text: #7A7267;
+      --sidebar-active-bg: #FFF3E0;
+      --sidebar-active-color: #C9A84C;
+      --sidebar-active-border: #C9A84C;
+      --sidebar-hover-bg: #F0EDE8;
+      --sidebar-hover-color: #2D2A25;
+      --brand-tag-color: #C9A84C;
+      --brand-name-color: #2D2A25;
+      --brand-sub-color: #9A9085;
+      --main-color: #2D2A25;
+      --card-bg: #ffffff;
+      --card-border: #E8E4DE;
+      --input-bg: #FAF8F5;
+      --input-border: #D8D4CE;
+      --input-color: #2D2A25;
+      --table-head-color: #9A9085;
+      --table-row-hover: #FAF8F5;
+      --table-border: #EDE9E3;
+      --muted: #9A9085;
+      --footer-border: #E8E4DE;
+      --alert-bg: #FFF;
+    }
+
+    /* ── DARK theme ── */
+    html[data-theme="dark"] {
+      --bg:         #0d1117;
+      --sidebar-bg: #0F1C2E;
+      --sidebar-border: #1a2d45;
+      --sidebar-text: #8A9BB0;
+      --sidebar-active-bg: rgba(201,168,76,.12);
+      --sidebar-active-color: #C9A84C;
+      --sidebar-active-border: #C9A84C;
+      --sidebar-hover-bg: rgba(201,168,76,.08);
+      --sidebar-hover-color: #ffffff;
+      --brand-tag-color: #C9A84C;
+      --brand-name-color: #ffffff;
+      --brand-sub-color: #4A5568;
+      --main-color: #cdd5e0;
+      --card-bg: #111827;
+      --card-border: #1f2d3d;
+      --input-bg: #0d1117;
+      --input-border: #2a3f58;
+      --input-color: #e2e8f0;
+      --table-head-color: #8A9BB0;
+      --table-row-hover: rgba(255,255,255,.03);
+      --table-border: #1a2635;
+      --muted: #8A9BB0;
+      --footer-border: #1a2d45;
+      --alert-bg: #111827;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); font-family: 'Inter', system-ui, sans-serif; color: var(--main-color); transition: background .2s, color .2s; }
+    button { cursor: pointer; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      position: fixed; top:0; left:0; z-index:100;
+      display: flex; flex-direction: column;
+      border-right: 1px solid var(--sidebar-border);
+      transition: background .2s;
+    }
+    .sidebar-brand { padding: 20px 18px 14px; border-bottom: 1px solid var(--sidebar-border); }
+    .brand-tag  { font-size: 10px; font-weight:700; color: var(--brand-tag-color); letter-spacing:2px; text-transform:uppercase; }
+    .brand-name { font-size:18px; font-weight:800; color: var(--brand-name-color); line-height:1.2; }
+    .brand-sub  { font-size:10.5px; color: var(--brand-sub-color); }
+    .nav-section-label { font-size:10px; font-weight:700; color: var(--muted); opacity:.6; text-transform:uppercase; letter-spacing:.8px; padding: 14px 18px 4px; }
+    .sidebar-link {
+      display:flex; align-items:center; gap:10px;
+      padding:9px 18px; font-size:13px; font-weight:500; color: var(--sidebar-text);
+      text-decoration:none; border-radius:0; transition:all .15s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-link:hover { color: var(--sidebar-hover-color); background: var(--sidebar-hover-bg); }
+    .sidebar-link.active { color: var(--sidebar-active-color); background: var(--sidebar-active-bg); border-left-color: var(--sidebar-active-border); }
+    .sidebar-link i { width:18px; text-align:center; font-size:15px; }
+    #sidebar-footer { padding:14px 18px; border-top:1px solid var(--footer-border); margin-top:auto; }
+
+    /* ── Main ── */
+    #main { margin-left: var(--sidebar-w); padding: 28px; min-height:100vh; }
+
+    /* ── Cards ── */
+    .card { background: var(--card-bg); border:1px solid var(--card-border); border-radius:10px; }
+    .card-header { background: var(--card-bg); border-bottom:1px solid var(--card-border); font-weight:700; font-size:13.5px; color: var(--main-color); }
+
+    /* ── Tables ── */
+    .table { color: var(--main-color); font-size:13px; }
+    .table thead th { font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; color: var(--table-head-color); border-color: var(--card-border); font-weight:700; background: var(--card-bg); }
+    .table tbody tr { border-color: var(--table-border); }
+    .table tbody tr:hover { background: var(--table-row-hover); }
+    .table td { vertical-align:middle; border-color: var(--table-border); color: var(--main-color); }
+
+    /* ── Forms ── */
+    .form-control, .form-select {
+      background: var(--input-bg); border-color: var(--input-border);
+      color: var(--input-color); font-size:13.5px;
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--input-bg); border-color: var(--gold);
+      color: var(--input-color); box-shadow:0 0 0 2px rgba(201,168,76,.2);
+    }
+    .form-label { font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color: var(--muted); margin-bottom:5px; }
+    .form-check-label { color: var(--main-color); }
+
+    /* ── Buttons ── */
+    .btn-gold { background: var(--gold); color: var(--navy); font-weight:700; }
+    .btn-gold:hover { background: #b89438; color: var(--navy); }
+    .btn-navy { background: var(--navy); color: var(--gold); font-weight:700; border:1px solid var(--card-border); }
+    .btn-navy:hover { background: var(--slate); color: var(--gold); }
+
+    /* ── KPI ── */
+    .kpi-card { background: var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:18px 20px; }
+    .kpi-label { font-size:11px; font-weight:700; color: var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+    .kpi-value { font-size:28px; font-weight:800; color: var(--main-color); }
+    .kpi-sub   { font-size:11.5px; color: var(--muted); margin-top:3px; }
+
+    /* ── Page header ── */
+    .page-header { margin-bottom:24px; }
+    .page-title { font-size:20px; font-weight:800; color: var(--main-color); }
+    .page-sub   { font-size:12.5px; color: var(--muted); margin-top:2px; }
+
+    /* ── Modal ── */
+    .modal-content { background: var(--card-bg); border:1px solid var(--card-border); color: var(--main-color); }
+    .modal-header  { border-bottom:1px solid var(--card-border); }
+    .modal-footer  { border-top:1px solid var(--card-border); }
+    .modal-title   { color: var(--main-color); }
+
+    /* ── Misc ── */
+    .progress { height:7px; background: var(--card-border); border-radius:4px; }
+    .alert { font-size:13.5px; border-radius:8px; background: var(--alert-bg); }
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); border-radius:3px; opacity:.5; }
+
+    /* ── Theme switcher ── */
+    .theme-btn {
+      width:38px; height:38px; border-radius:50%; border:2px solid var(--card-border);
+      background: var(--card-bg); display:flex; align-items:center; justify-content:center;
+      cursor:pointer; font-size:18px; position:relative; transition:all .15s;
+    }
+    .theme-btn:hover { border-color: var(--gold); }
+    .theme-menu {
+      position:absolute; right:0; top:46px; background: var(--card-bg);
+      border:1px solid var(--card-border); border-radius:12px; min-width:170px;
+      box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
+      display:none;
+    }
+    .theme-menu.open { display:block; }
+    .theme-option {
+      display:flex; align-items:center; gap:10px; padding:9px 12px;
+      border-radius:8px; cursor:pointer; font-size:13px; font-weight:500;
+      color: var(--main-color); transition:background .12s;
+    }
+    .theme-option:hover { background: var(--sidebar-hover-bg); }
+    .theme-option.selected { background: var(--sidebar-active-bg); color: var(--sidebar-active-color); font-weight:700; }
+    .theme-dot { width:22px; height:22px; border-radius:50%; border:2px solid var(--card-border); flex-shrink:0; }
+
+    @media(max-width:768px){ #sidebar{display:none;} #main{margin-left:0;} }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-tag">Revfi</div>
+    <div class="brand-name">SubsManager</div>
+    <div class="brand-sub">Sales &amp; Subscriptions</div>
+  </div>
+  <nav class="flex-grow-1 py-2">
+    <div class="nav-section-label">Overview</div>
+    <a href="{{ url_for('dashboard') }}" class="sidebar-link {% if request.endpoint=='dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+
+    <div class="nav-section-label">Sales</div>
+    <a href="{{ url_for('leads') }}"       class="sidebar-link {% if 'lead' in request.endpoint %}active{% endif %}"><i class="bi bi-funnel"></i> Leads &amp; Pipeline</a>
+    <a href="{{ url_for('subscribers') }}" class="sidebar-link {% if request.endpoint=='subscribers' %}active{% endif %}"><i class="bi bi-stars"></i> Subscribers</a>
+
+    <div class="nav-section-label">Transactions</div>
+    <a href="{{ url_for('agreements') }}"  class="sidebar-link {% if request.endpoint=='agreements' %}active{% endif %}"><i class="bi bi-pen"></i> Agreements</a>
+    <a href="{{ url_for('invoices') }}"    class="sidebar-link {% if 'invoice' in request.endpoint %}active{% endif %}"><i class="bi bi-receipt"></i> Invoices</a>
+    <a href="{{ url_for('commissions') }}" class="sidebar-link {% if request.endpoint=='commissions' %}active{% endif %}"><i class="bi bi-cash-coin"></i> Commissions</a>
+
+    <div class="nav-section-label">Admin</div>
+    <a href="{{ url_for('products') }}"      class="sidebar-link {% if 'product' in request.endpoint or 'plan' in request.endpoint %}active{% endif %}"><i class="bi bi-box-seam"></i> Products &amp; Plans</a>
+    <a href="{{ url_for('users') }}"         class="sidebar-link {% if 'user' in request.endpoint %}active{% endif %}"><i class="bi bi-people"></i> Users</a>
+    <a href="{{ url_for('email_settings') }}" class="sidebar-link {% if 'email_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-envelope-gear"></i> Email Settings</a>
+    <a href="{{ url_for('square_settings') }}" class="sidebar-link {% if 'square_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-square"></i> Square Settings</a>
+  </nav>
+  <div id="sidebar-footer">
+    <div style="font-size:10.5px;color:var(--muted);opacity:.7;">Logged in as</div>
+    <div style="font-size:13px;font-weight:600;color:var(--sidebar-text);">{{ session.get('user_name','—') }}</div>
+    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary mt-2 w-100" style="font-size:12px;color:var(--muted);border-color:var(--card-border);">Sign out</a>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <!-- Theme switcher in top-right corner -->
+  <div style="position:fixed;top:18px;right:24px;z-index:200;">
+    <div style="position:relative;">
+      <div class="theme-btn" id="theme-toggle-btn" onclick="toggleThemeMenu()" title="Change theme">
+        <span id="theme-icon">🌤️</span>
+      </div>
+      <div class="theme-menu" id="theme-menu">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 12px 8px;">Theme</div>
+        <div class="theme-option" id="opt-light"  onclick="setTheme('light')">
+          <div class="theme-dot" style="background:radial-gradient(circle at 40% 40%,#FFD700 30%,#FFA500 100%);"></div> Light
+        </div>
+        <div class="theme-option" id="opt-medium" onclick="setTheme('medium')">
+          <div class="theme-dot" style="background:#2E3A50;"></div> Medium
+        </div>
+        <div class="theme-option" id="opt-modern" onclick="setTheme('modern')">
+          <div class="theme-dot" style="background:#F7F5F2;border-color:#C9A84C;"></div> Modern
+        </div>
+        <div class="theme-option" id="opt-dark"   onclick="setTheme('dark')">
+          <div class="theme-dot" style="background:#0F1C2E;"></div> Dark
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'success' if cat=='success' else ('warning' if cat=='warning' else ('info' if cat=='info' else 'danger')) }} alert-dismissible fade show mb-3" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script>
+const THEME_ICONS = { light:'🌤️', medium:'⚫', modern:'🪨', dark:'🌑' };
+const THEME_LABELS = { light:'Light', medium:'Medium', modern:'Modern', dark:'Dark' };
+
+function setTheme(t) {
+  document.getElementById('html-root').setAttribute('data-theme', t);
+  // Bootstrap theme
+  document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
+  localStorage.setItem('revfi_theme', t);
+  document.getElementById('theme-icon').textContent = THEME_ICONS[t] || '🌤️';
+  // Update selected state
+  ['light','medium','modern','dark'].forEach(opt => {
+    const el = document.getElementById('opt-' + opt);
+    if (el) el.classList.toggle('selected', opt === t);
+  });
+  document.getElementById('theme-menu').classList.remove('open');
+}
+
+function toggleThemeMenu() {
+  document.getElementById('theme-menu').classList.toggle('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#theme-toggle-btn') && !e.target.closest('#theme-menu')) {
+    document.getElementById('theme-menu').classList.remove('open');
+  }
+});
+
+// Apply saved theme on load
+(function() {
+  const saved = localStorage.getItem('revfi_theme') || 'dark';
+  setTheme(saved);
+})();
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

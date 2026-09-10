@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{% if product %}{{ product.name }} — RevFi{% else %}Sales CRM — RevFi{% endif %}</title>
+{% include '_layout.html' %}
+<style>
+/* ── KPI cards ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.kpi .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.kpi .val{font-size:22px;font-weight:800;line-height:1;}
+.kpi .sub{font-size:11px;color:var(--muted);margin-top:3px;}
+/* ── Tabs ── */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.tab{padding:9px 18px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* ── Pipeline board ── */
+.pipeline{display:flex;gap:10px;overflow-x:auto;padding-bottom:12px;}
+.stage-col{min-width:220px;flex-shrink:0;}
+.stage-hdr{padding:8px 12px;border-radius:8px 8px 0 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;justify-content:space-between;}
+.stage-body{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;min-height:100px;padding:6px;}
+.lead-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:.12s;}
+.lead-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.lead-card .lc-name{font-size:12px;font-weight:700;margin-bottom:3px;}
+.lead-card .lc-contact{font-size:11px;color:var(--muted);}
+.lead-card .lc-plan{font-size:10px;padding:2px 6px;border-radius:10px;font-weight:700;display:inline-block;margin-top:4px;}
+.plan-starter{background:#F1F5F9;color:#475569;}
+.plan-basic{background:#DBEAFE;color:#2563EB;}
+.plan-pro{background:#EDE9FE;color:#6D28D9;}
+.plan-enterprise{background:#FEF3C7;color:#B45309;}
+.priority-high{border-left:3px solid var(--danger);}
+.priority-medium{border-left:3px solid var(--warn);}
+.priority-low{border-left:3px solid var(--muted);}
+/* ── Lead list table ── */
+.stage-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+/* ── Lead detail drawer ── */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;}
+.drawer-overlay.open{display:block;}
+.drawer{position:fixed;top:0;right:-720px;width:720px;max-width:100vw;height:100vh;background:var(--card);border-left:1px solid var(--border);z-index:151;display:flex;flex-direction:column;transition:right .25s ease;}
+.drawer.open{right:0;}
+.drawer-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--surface);}
+.drawer-body{flex:1;overflow-y:auto;padding:20px;}
+.drawer-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;background:var(--surface);}
+.dr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.df{display:flex;flex-direction:column;gap:4px;}
+.df label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;}
+.df input,.df select,.df textarea{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;width:100%;}
+.df input:focus,.df select:focus,.df textarea:focus{border-color:var(--accent);}
+/* ── Activity log ── */
+.act-entry{padding:8px 12px;border-radius:7px;background:var(--surface);border:1px solid var(--border);margin-bottom:6px;font-size:11px;}
+.act-by{font-weight:700;color:var(--accent);}
+.act-time{color:var(--muted);margin-left:6px;}
+/* ── Subscriptions ── */
+.sub-badge-active{background:rgba(37,211,102,.15);color:var(--accent);}
+.sub-badge-cancelled{background:rgba(239,68,68,.15);color:var(--danger);}
+.sub-badge-paused{background:rgba(245,158,11,.15);color:var(--warn);}
+</style>
+</head>
+<body>
+<header>
+  <button class="hdr-hamburger" id="hamburger-btn" aria-label="Menu">☰</button>
+  <div style="font-size:18px;font-weight:900;letter-spacing:-.5px;">REV<span style="color:var(--accent);">FI</span></div>
+  <div style="flex:1;"></div>
+  <span id="hdr-user" style="font-size:12px;color:var(--muted);"></span>
+</header>
+<div class="app-shell">
+{% include '_sidebar.html' %}
+<div class="page-content"><div class="page-body">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h1 style="font-size:20px;font-weight:800;">{% if product %}{{ product.icon }} {{ product.name }}{% else %}🎯 All products{% endif %}</h1>
+      <p style="font-size:13px;color:var(--muted);margin-top:4px;">{% if product %}Pipeline &amp; accounts for {{ product.name }}{% else %}Restaurant subscription pipeline &amp; account management{% endif %}</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div id="sp-filter-wrap" style="display:none;flex-direction:column;gap:4px;">
+        <label for="sp-filter" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);">Login</label>
+        <select id="sp-filter" onchange="onSalespersonChange()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;min-width:180px;">
+          <option value="">All salespeople</option>
+        </select>
+      </div>
+      <a href="{% if product %}/p/{{ product.slug }}/new-lead{% else %}/new-lead{% endif %}" class="btn btn-primary">＋ New Lead</a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="lbl">Total Leads</div><div class="val" id="k-leads">—</div><div class="sub" id="k-leads-sub">in pipeline</div></div>
+    <div class="kpi"><div class="lbl">Active Subscriptions</div><div class="val" id="k-subs" style="color:var(--accent);">—</div><div class="sub">paying customers</div></div>
+    <div class="kpi"><div class="lbl">MRR</div><div class="val" id="k-mrr" style="color:var(--accent);">—</div><div class="sub">monthly recurring</div></div>
+    <div class="kpi"><div class="lbl">ARR</div><div class="val" id="k-arr">—</div><div class="sub">annual recurring</div></div>
+    <div class="kpi"><div class="lbl">Pipeline Value</div><div class="val" id="k-pipe">—</div><div class="sub">potential MRR</div></div>
+    <div class="kpi"><div class="lbl">Won / Lost</div><div class="val" id="k-won">—</div><div class="sub" id="k-lost">—</div></div>
+  </div>
+
+  <!-- Billing summary bar (shows when billing tab active) -->
+  <div id="billing-summary-bar" style="display:none;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px;">
+    <div class="kpi" style="border-color:rgba(100,116,139,.3);">
+      <div class="lbl">📋 Pending</div><div class="val" id="bs-pending">—</div><div class="sub" id="bs-pending-amt">to invoice</div>
+    </div>
+    <div class="kpi" style="border-color:rgba(59,130,246,.3);">
+      <div class="lbl">📨 Sent</div><div class="val" id="bs-sent" style="color:#2563EB;">—</div><div class="sub" id="bs-sent-amt">awaiting payment</div>
+    </div>
+    <div class="kpi" style="border-color:rgba(239,68,68,.3);">
+      <div class="lbl">🔴 Overdue</div><div class="val" id="bs-overdue" style="color:var(--danger);">—</div><div class="sub" id="bs-overdue-amt">past due date</div>
+    </div>
+    <div class="kpi" style="border-color:rgba(37,211,102,.3);">
+      <div class="lbl">✅ Collected</div><div class="val" id="bs-paid" style="color:var(--accent);">—</div><div class="sub" id="bs-paid-amt">this period</div>
+    </div>
+    <div class="kpi">
+      <div class="lbl">📈 Collection Rate</div><div class="val" id="bs-rate">—</div><div class="sub">invoices paid</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <div class="tab active" id="tab-pipeline" onclick="showTab('pipeline')">🗂 Pipeline Board</div>
+    <div class="tab" id="tab-leads"    onclick="showTab('leads')">📋 Lead List</div>
+    <div class="tab" id="tab-subs"     onclick="showTab('subs')">💳 Subscriptions</div>
+    <div class="tab" id="tab-billing"  onclick="showTab('billing')">🧾 Billing &amp; Collection</div>
+  </div>
+
+  <!-- PIPELINE BOARD -->
+  <div id="pane-pipeline">
+    <div class="pipeline" id="pipeline-board"></div>
+  </div>
+
+  <!-- LEAD LIST -->
+  <div id="pane-leads" style="display:none;">
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <input id="ls-search" type="text" placeholder="🔍 Search…" oninput="renderLeadList()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;flex:1;min-width:160px;">
+      <select id="ls-stage" onchange="renderLeadList()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;">
+        <option value="">All Stages</option>
+      </select>
+      <select id="ls-plan" onchange="renderLeadList()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;">
+        <option value="">All Plans</option>
+        <option value="starter">Starter</option>
+        <option value="basic">Basic</option>
+        <option value="pro">Pro</option>
+        <option value="enterprise">Enterprise</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Restaurant</th><th>Contact</th><th>City</th>
+          <th>Stage</th><th>Plan</th><th>Value/mo</th>
+          <th>Assigned</th><th>Next Follow-up</th><th>Action</th>
+        </tr></thead>
+        <tbody id="lead-list-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SUBSCRIPTIONS -->
+  <div id="pane-subs" style="display:none;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Restaurant</th><th>Plan</th><th>Billing</th>
+          <th class="r">Amount</th><th>Status</th>
+          <th>Start Date</th><th>Next Billing</th><th>Assigned</th><th>Action</th>
+        </tr></thead>
+        <tbody id="subs-tbody"></tbody>
+      </table>
+    </div>
+    <div id="subs-footer" style="padding:8px 0;font-size:11px;color:var(--muted);"></div>
+  </div>
+
+</div></div>
+</div>
+
+  <!-- BILLING & COLLECTION -->
+  <div id="pane-billing" style="display:none;">
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+      <select id="bl-status" onchange="renderBilling()" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;">
+        <option value="">All Status</option>
+        <option value="pending">📋 Pending</option>
+        <option value="sent">📨 Sent</option>
+        <option value="overdue">🔴 Overdue</option>
+        <option value="paid">✅ Paid</option>
+      </select>
+      <input id="bl-search" type="text" placeholder="🔍 Search restaurant…" oninput="renderBilling()"
+        style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--text);outline:none;flex:1;min-width:140px;">
+      <button onclick="openCreateInvoiceModal()" class="btn btn-primary">＋ Create Invoice</button>
+      <button onclick="loadBilling()" class="btn btn-ghost btn-sm">↻</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Invoice #</th><th>Restaurant</th><th>Plan</th>
+          <th class="r">Amount</th><th>Status</th>
+          <th>Issued</th><th>Due Date</th><th>Paid Date</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="billing-tbody"></tbody>
+      </table>
+    </div>
+    <div id="billing-footer" style="padding:8px 0;font-size:11px;color:var(--muted);"></div>
+  </div>
+
+</div></div>
+</div>
+
+<!-- Create Invoice Modal -->
+<div class="modal-overlay" id="inv-modal" onclick="if(event.target.id==='inv-modal')closeModal('inv-modal')">
+  <div class="modal" style="width:500px;">
+    <div class="modal-header"><h3>🧾 Create Invoice</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('inv-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Subscription</label>
+        <select id="im-sub">
+          <option value="">— Select subscription —</option>
+        </select>
+      </div>
+      <div id="im-sub-info" style="padding:8px 12px;background:var(--surface);border-radius:7px;font-size:12px;margin-bottom:4px;display:none;"></div>
+      <div class="grid-2">
+        <div class="field"><label>Amount</label><input type="number" id="im-amount" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label>Due Date</label><input type="date" id="im-due"></div>
+      </div>
+      <div class="field"><label>Contact Email (for reminders)</label><input type="email" id="im-email" placeholder="owner@restaurant.com"></div>
+      <div class="field"><label>Contact Name</label><input id="im-contact" placeholder="Owner name"></div>
+      <div class="field"><label>Notes</label><input id="im-notes" placeholder="e.g. Monthly billing for March 2026"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('inv-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createInvoice()">Create Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mark Paid Modal -->
+<div class="modal-overlay" id="pay-modal" onclick="if(event.target.id==='pay-modal')closeModal('pay-modal')">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header"><h3>✅ Record Payment</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('pay-modal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pm-inv-id">
+      <div id="pm-info" style="padding:8px 12px;background:var(--surface);border-radius:7px;font-size:12px;margin-bottom:4px;"></div>
+      <div class="field"><label>Payment Date</label><input type="date" id="pm-date"></div>
+      <div class="field"><label>Amount Received</label><input type="number" id="pm-amount" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Payment Method</label>
+        <select id="pm-method">
+          <option value="zelle">Zelle</option>
+          <option value="check">Check</option>
+          <option value="ach">ACH / Wire</option>
+          <option value="credit_card">Credit Card</option>
+          <option value="cash">Cash</option>
+        </select>
+      </div>
+      <div class="field"><label>Reference / Check #</label><input id="pm-ref" placeholder="e.g. Zelle confirmation, Check #1234"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('pay-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPayment()">✅ Mark as Paid</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reminder Modal -->
+<div class="modal-overlay" id="reminder-modal" onclick="if(event.target.id==='reminder-modal')closeModal('reminder-modal')">
+  <div class="modal" style="width:560px;max-height:80vh;overflow-y:auto;">
+    <div class="modal-header"><h3>📨 Payment Reminder</h3><button class="btn btn-ghost btn-sm" onclick="closeModal('reminder-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>To</label><input id="rm-to" readonly style="color:var(--accent);"></div>
+      <div class="field"><label>Subject</label><input id="rm-subject" readonly></div>
+      <div class="field"><label>Email Body (copy and send manually)</label>
+        <textarea id="rm-body" rows="14" style="font-size:11px;font-family:monospace;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="copyReminder()" class="btn btn-ghost">📋 Copy Body</button>
+      <a id="rm-mailto" href="#" class="btn btn-primary">📧 Open in Email App</a>
+      <button onclick="closeModal('reminder-modal')" class="btn btn-ghost">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lead Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="lead-drawer">
+  <div class="drawer-header">
+    <div>
+      <div id="dr-title" style="font-size:15px;font-weight:800;">New Lead</div>
+      <div id="dr-sub" style="font-size:11px;color:var(--muted);margin-top:2px;"></div>
+    </div>
+    <button onclick="closeDrawer()" style="background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button>
+  </div>
+
+  <div style="display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;">
+    <div class="tab active" id="dtab-info"     onclick="showDTab('info')">📋 Lead Info</div>
+    <div class="tab"        id="dtab-activity"  onclick="showDTab('activity')">💬 Activity</div>
+  </div>
+
+  <div class="drawer-body">
+    <input type="hidden" id="dr-id">
+
+    <!-- INFO TAB -->
+    <div id="dpane-info">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin-bottom:10px;">Restaurant</div>
+      <div class="dr-grid">
+        <div class="df" style="grid-column:1/-1;"><label>Restaurant Name *</label><input id="dr-rname" placeholder="e.g. Raya Restaurant"></div>
+        <div class="df"><label>City</label><input id="dr-city" placeholder="e.g. Dublin, CA"></div>
+        <div class="df"><label>Cuisine Type</label><input id="dr-cuisine" placeholder="e.g. South Indian"></div>
+        <div class="df"><label>Product</label>
+          <select id="dr-product"></select>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin:14px 0 10px;">Contact</div>
+      <div class="dr-grid">
+        <div class="df"><label>Contact Name *</label><input id="dr-cname" placeholder="Owner / Manager name"></div>
+        <div class="df"><label>Phone</label><input id="dr-phone" placeholder="+1 (510) 555-1234"></div>
+        <div class="df" style="grid-column:1/-1;"><label>Email</label><input type="email" id="dr-email" placeholder="owner@restaurant.com"></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em;margin:14px 0 10px;">Deal</div>
+      <div class="dr-grid">
+        <div class="df"><label>Stage</label>
+          <select id="dr-stage">
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Demo Scheduled">Demo Scheduled</option>
+            <option value="Demo Done">Demo Done</option>
+            <option value="Proposal Sent">Proposal Sent</option>
+            <option value="Negotiation">Negotiation</option>
+            <option value="Closed Won">Closed Won</option>
+            <option value="Closed Lost">Closed Lost</option>
+          </select>
+        </div>
+        <div class="df"><label>Priority</label>
+          <select id="dr-priority">
+            <option value="high">🔴 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="df"><label>Plan Interest</label>
+          <select id="dr-plan">
+            <option value="starter">Starter — $49/mo</option>
+            <option value="basic" selected>Basic — $99/mo</option>
+            <option value="pro">Pro — $199/mo</option>
+            <option value="enterprise">Enterprise — $399/mo</option>
+          </select>
+        </div>
+        <div class="df"><label>Billing Cycle</label>
+          <select id="dr-cycle">
+            <option value="monthly">Monthly</option>
+            <option value="annual">Annual (save 17%)</option>
+          </select>
+        </div>
+        <div class="df"><label>Lead Source</label>
+          <select id="dr-source" onchange="syncDrawerReferred()">
+            <option value="manual">Direct / Manual</option>
+            <option value="referral">Referral</option>
+            <option value="website">Website</option>
+            <option value="cold_call">Cold Call</option>
+            <option value="event">Event / Expo</option>
+            <option value="social">Social Media</option>
+          </select>
+        </div>
+        <div class="df" id="dr-referred-wrap" style="display:none;">
+          <label>Referred by</label>
+          <input id="dr-referred" placeholder="Who made the intro">
+        </div>
+        <div class="df"><label>Assigned To (login)</label>
+          <select id="dr-assigned">
+            <option value="">— Unassigned —</option>
+          </select>
+        </div>
+        <div class="df"><label>Next Follow-up</label>
+          <input type="date" id="dr-followup"></div>
+      </div>
+
+      <div class="df" style="margin-bottom:16px;"><label>Notes</label>
+        <textarea id="dr-notes" rows="3" style="resize:vertical;" placeholder="Meeting notes, objections, special requirements…"></textarea>
+      </div>
+
+      <div id="dr-deal-value" style="padding:12px;background:var(--surface);border-radius:8px;font-size:13px;margin-bottom:12px;"></div>
+    </div>
+
+    <!-- ACTIVITY TAB -->
+    <div id="dpane-activity" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input id="act-note" type="text" placeholder="Add a note, call log, email summary…"
+          style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);outline:none;"
+          onkeydown="if(event.key==='Enter')addActivity()">
+        <button onclick="addActivity()" class="btn btn-primary btn-sm">Log</button>
+      </div>
+      <div id="activity-log-list"></div>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button onclick="saveLead()" class="btn btn-primary" id="dr-save-btn">💾 Save Lead</button>
+    <div style="flex:1;"></div>
+    <button id="dr-delete-btn" onclick="deleteLead()" class="btn btn-danger" style="display:none;">🗑 Delete</button>
+  </div>
+</div>
+
+<div id="toast"><span id="t-icon"></span><span id="t-msg"></span></div>
+
+<script>
+var allLeads = [], allSubs = [], allStages = [], planPrices = {}, planLabels = {};
+var currentLeadId = '';
+var salespeople = [];
+var currentUsername = '';
+var canFilterSales = false;
+var PRODUCT_SLUG = {{ (product.slug if product else '')|tojson }};
+var PRODUCTS = [];
+
+function salesQuery() {
+  var q = [];
+  if (canFilterSales) {
+    var v = (document.getElementById('sp-filter') || {}).value || '';
+    if (v) q.push('assigned_to=' + encodeURIComponent(v));
+  }
+  if (PRODUCT_SLUG) q.push('product=' + encodeURIComponent(PRODUCT_SLUG));
+  return q.length ? ('?' + q.join('&')) : '';
+}
+
+function salespersonLabel(p) {
+  if (!p) return '';
+  var name = (p.name || '').trim();
+  var login = p.username || '';
+  if (name && name.toLowerCase() !== login.toLowerCase()) return name + ' (' + login + ')';
+  return login;
+}
+
+function fillAssigneeSelect(selected) {
+  var sel = document.getElementById('dr-assigned');
+  if (!sel) return;
+  var html = '<option value="">— Unassigned —</option>';
+  salespeople.forEach(function(p) {
+    html += '<option value="'+esc(p.username)+'">'+esc(salespersonLabel(p))+'</option>';
+  });
+  if (selected && !salespeople.some(function(p){ return p.username === selected; })) {
+    html += '<option value="'+esc(selected)+'">'+esc(selected)+'</option>';
+  }
+  sel.innerHTML = html;
+  sel.value = selected || '';
+}
+
+async function loadSalespeople() {
+  var r = await fetch('/api/sales/salespeople');
+  if (!r.ok) return;
+  var d = await r.json();
+  salespeople = d.salespeople || [];
+  currentUsername = d.me || '';
+  canFilterSales = !!d.can_filter;
+  var wrap = document.getElementById('sp-filter-wrap');
+  var sel = document.getElementById('sp-filter');
+  if (wrap && sel && canFilterSales) {
+    wrap.style.display = 'flex';
+    var html = '<option value="">All salespeople</option>';
+    salespeople.forEach(function(p) {
+      html += '<option value="'+esc(p.username)+'">'+esc(salespersonLabel(p))+'</option>';
+    });
+    var prev = sel.value || '';
+    sel.innerHTML = html;
+    if (prev && Array.from(sel.options).some(function(o){ return o.value === prev; })) sel.value = prev;
+  }
+  fillAssigneeSelect(currentUsername);
+}
+
+function onSalespersonChange() {
+  Promise.all([loadStats(), loadLeads(), loadSubs()]).then(function() {
+    var billingPane = document.getElementById('pane-billing');
+    if (billingPane && billingPane.style.display !== 'none') loadBilling();
+  });
+}
+
+async function init() {
+  await loadPlans();
+  await Promise.all([loadSalespeople(), loadProducts()]);
+  await Promise.all([loadStats(), loadLeads(), loadSubs()]);
+}
+
+async function loadProducts() {
+  var r = await fetch('/api/products');
+  if (!r.ok) return;
+  var d = await r.json();
+  PRODUCTS = d.products || [];
+  fillProductSelect('');
+}
+
+function fillProductSelect(selected) {
+  var sel = document.getElementById('dr-product');
+  if (!sel) return;
+  var html = '<option value="">— Select product —</option>';
+  PRODUCTS.forEach(function(p) {
+    html += '<option value="'+esc(p.id)+'">'+esc((p.icon||'')+' '+p.name)+'</option>';
+  });
+  if (selected && !PRODUCTS.some(function(p){ return p.id === selected; })) {
+    html += '<option value="'+esc(selected)+'">'+esc(selected)+'</option>';
+  }
+  sel.innerHTML = html;
+  var locked = '';
+  if (PRODUCT_SLUG) {
+    var cur = PRODUCTS.find(function(p){ return p.slug === PRODUCT_SLUG; });
+    if (cur) locked = cur.id;
+  }
+  sel.value = selected || locked || '';
+  sel.disabled = !!PRODUCT_SLUG;
+}
+
+// ── Plans & Stages ────────────────────────────────────────────────────────────
+async function loadPlans() {
+  var r = await fetch('/api/sales/plans');
+  var d = await r.json();
+  allStages  = d.stages || [];
+  planPrices = d.plans  || {};
+  planLabels = {};
+  Object.entries(planPrices).forEach(function([k,v]){ planLabels[k] = v.label; });
+  // Populate stage dropdown
+  var sel = document.getElementById('dr-stage');
+  if (sel) sel.innerHTML = allStages.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+  populateStageFilter();
+}
+
+function populateStageFilter() {
+  var sel = document.getElementById('ls-stage');
+  if (!sel || !allStages.length) return;
+  sel.innerHTML = '<option value="">All Stages</option>'
+    + allStages.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  var r = await fetch('/api/sales/stats' + salesQuery());
+  var d = await r.json();
+  document.getElementById('k-leads').textContent = d.total_leads || 0;
+  document.getElementById('k-subs').textContent  = d.active_subscriptions || 0;
+  document.getElementById('k-mrr').textContent   = fmt(d.mrr || 0);
+  document.getElementById('k-arr').textContent   = fmt(d.arr || 0);
+  document.getElementById('k-pipe').textContent  = fmt(d.pipeline_value || 0);
+  document.getElementById('k-won').textContent   = (d.won || 0) + ' won';
+  document.getElementById('k-lost').textContent  = (d.lost || 0) + ' lost';
+}
+
+// ── Leads ─────────────────────────────────────────────────────────────────────
+async function loadLeads() {
+  var r = await fetch('/api/sales/leads' + salesQuery());
+  var d = await r.json();
+  allLeads = d.leads || [];
+  renderPipeline();
+  renderLeadList();
+}
+
+// ── Pipeline board ────────────────────────────────────────────────────────────
+var STAGE_COLORS = {
+  'New':             '#64748b',
+  'Contacted':       '#3b82f6',
+  'Demo Scheduled':  '#8b5cf6',
+  'Demo Done':       '#f59e0b',
+  'Proposal Sent':   '#f97316',
+  'Negotiation':     '#ec4899',
+  'Closed Won':      '#22c55e',
+  'Closed Lost':     '#ef4444',
+};
+
+function renderPipeline() {
+  var board = document.getElementById('pipeline-board');
+  var html  = '';
+  allStages.forEach(function(stage) {
+    var cards = allLeads.filter(function(l){ return l.stage === stage; });
+    var col   = STAGE_COLORS[stage] || '#64748b';
+    html += '<div class="stage-col">';
+    html += '<div class="stage-hdr" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'44;">';
+    html += '<span>'+stage+'</span><span style="background:'+col+'33;padding:1px 8px;border-radius:10px;font-size:11px;">'+cards.length+'</span>';
+    html += '</div>';
+    html += '<div class="stage-body">';
+    if (!cards.length) {
+      html += '<div style="padding:12px;color:var(--muted);font-size:11px;text-align:center;">No leads</div>';
+    }
+    cards.forEach(function(l) {
+      var planCls = 'plan-'+(l.plan_interest||'basic');
+      var priCls  = 'priority-'+(l.priority||'medium');
+      var amt     = getPlanAmount(l.plan_interest, l.billing_cycle);
+      var fu      = l.next_followup ? '📅 '+l.next_followup : '';
+      html += '<div class="lead-card '+priCls+'" onclick="openLead(\''+l.id+'\',true)">';
+      html += '<div class="lc-name">'+esc(l.restaurant_name)+'</div>';
+      html += '<div class="lc-contact">'+esc(l.contact_name)+'</div>';
+      if (l.city) html += '<div class="lc-contact">📍 '+esc(l.city)+'</div>';
+      if (!PRODUCT_SLUG && l.product_id) {
+        var pr = PRODUCTS.find(function(p){ return p.id === l.product_id; });
+        if (pr) html += '<div class="lc-contact">'+esc(pr.icon+' '+pr.name)+'</div>';
+      }
+      if (l.source === 'referral') html += '<div class="lc-contact">🔁 '+esc(l.referred_by||'Referral')+'</div>';
+      if (l.assigned_to) html += '<div class="lc-contact">👤 '+esc(l.assigned_to)+'</div>';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">';
+      html += '<span class="lc-plan '+planCls+'">'+(planLabels[l.plan_interest]||l.plan_interest)+'</span>';
+      html += '<span style="font-size:10px;color:var(--muted);">'+fmt(amt)+'</span>';
+      html += '</div>';
+      if (fu) html += '<div style="font-size:10px;color:var(--warn);margin-top:4px;">'+fu+'</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+  });
+  board.innerHTML = html;
+}
+
+// ── Lead List ─────────────────────────────────────────────────────────────────
+function renderLeadList() {
+  var s  = (document.getElementById('ls-search')||{value:''}).value.toLowerCase();
+  var st = (document.getElementById('ls-stage')||{value:''}).value;
+  var pl = (document.getElementById('ls-plan')||{value:''}).value;
+
+  var rows = allLeads.filter(function(l) {
+    if (st && l.stage !== st) return false;
+    if (pl && l.plan_interest !== pl) return false;
+    if (s && !l.restaurant_name.toLowerCase().includes(s)
+          && !l.contact_name.toLowerCase().includes(s)
+          && !(l.city||'').toLowerCase().includes(s)) return false;
+    return true;
+  });
+
+  var html = rows.map(function(l) {
+    var col = STAGE_COLORS[l.stage] || '#64748b';
+    var planCls = 'plan-'+(l.plan_interest||'basic');
+    var amt = getPlanAmount(l.plan_interest, l.billing_cycle);
+    var fu  = l.next_followup ? '<span style="color:'+(isPast(l.next_followup)?'var(--danger)':'var(--warn)')+';">'+l.next_followup+'</span>' : '—';
+    return '<tr onclick="openLead(\''+l.id+'\',true)" style="cursor:pointer;">'
+      +'<td style="font-weight:600;">'+esc(l.restaurant_name)+'<div style="font-size:10px;color:var(--muted);">'+esc(l.city||'')+'</div></td>'
+      +'<td>'+esc(l.contact_name)+'<div style="font-size:10px;color:var(--muted);">'+esc(l.contact_email||l.contact_phone||'')+'</div></td>'
+      +'<td style="color:var(--muted);font-size:11px;">'+esc(l.city||'—')+'</td>'
+      +'<td><span class="stage-badge" style="background:'+col+'22;color:'+col+';">'+l.stage+'</span></td>'
+      +'<td><span class="lc-plan '+planCls+'">'+esc(planLabels[l.plan_interest]||l.plan_interest)+'</span></td>'
+      +'<td style="font-weight:700;color:var(--accent);">'+fmt(amt)+'</td>'
+      +'<td style="font-size:11px;color:var(--muted);">'+esc(l.assigned_to||'—')+'</td>'
+      +'<td style="font-size:11px;">'+fu+'</td>'
+      +'<td onclick="event.stopPropagation()"><button onclick="openLead(\''+l.id+'\',true)" class="btn btn-ghost btn-sm">Edit</button></td>'
+      +'</tr>';
+  }).join('');
+
+  var tbody = document.getElementById('lead-list-tbody');
+  if (tbody) tbody.innerHTML = html || '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">No leads found.</td></tr>';
+}
+
+// ── Subscriptions ─────────────────────────────────────────────────────────────
+async function loadSubs() {
+  var r = await fetch('/api/sales/subscriptions' + salesQuery());
+  var d = await r.json();
+  allSubs = d.subscriptions || [];
+  renderSubs();
+  document.getElementById('subs-footer').textContent =
+    allSubs.length + ' subscriptions · MRR: ' + fmt(d.mrr||0) + ' · ARR: ' + fmt(d.arr||0);
+}
+
+function renderSubs() {
+  var html = allSubs.map(function(s) {
+    var statusCls = 'sub-badge-'+(s.status||'active');
+    var planCls   = 'plan-'+(s.plan||'basic');
+    return '<tr>'
+      +'<td style="font-weight:600;">'+esc(s.restaurant_name)+'</td>'
+      +'<td><span class="lc-plan '+planCls+'">'+(planLabels[s.plan]||s.plan)+'</span></td>'
+      +'<td style="color:var(--muted);font-size:11px;">'+(s.billing_cycle||'monthly')+'</td>'
+      +'<td class="r" style="font-weight:700;color:var(--accent);">'+fmt(s.amount||0)+'</td>'
+      +'<td><span class="badge '+statusCls+'">'+(s.status||'active')+'</span></td>'
+      +'<td style="color:var(--muted);font-size:11px;">'+(s.start_date||'—')+'</td>'
+      +'<td style="color:var(--muted);font-size:11px;">'+(s.next_billing||'—')+'</td>'
+      +'<td style="font-size:11px;color:var(--muted);">'+esc(s.assigned_to||'—')+'</td>'
+      +'<td><button onclick="cancelSub(\''+s.id+'\')" class="btn btn-ghost btn-sm" style="font-size:10px;color:var(--danger);">Cancel</button></td>'
+      +'</tr>';
+  }).join('');
+  var tbody = document.getElementById('subs-tbody');
+  if (tbody) tbody.innerHTML = html || '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">No subscriptions yet.</td></tr>';
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+var allBilling = [];
+
+function showTab(tab) {
+  ['pipeline','leads','subs','billing'].forEach(function(t) {
+    var tabEl = document.getElementById('tab-'+t);
+    if (tabEl) tabEl.classList.toggle('active', t===tab);
+    var pane = document.getElementById('pane-'+t);
+    if (pane) pane.style.display = t===tab?'block':'none';
+  });
+  var bbar = document.getElementById('billing-summary-bar');
+  if (bbar) bbar.style.display = tab==='billing' ? 'grid' : 'none';
+  if (tab === 'billing') loadBilling();
+}
+
+// ── Billing & Collection ──────────────────────────────────────────────────────
+async function loadBilling() {
+  var [br, sr] = await Promise.all([
+    fetch('/api/sales/billing' + salesQuery()),
+    fetch('/api/sales/billing/summary' + salesQuery())
+  ]);
+  var bd = await br.json();
+  var sd = await sr.json();
+  allBilling = bd.billing || [];
+
+  // Update summary KPIs
+  document.getElementById('bs-pending').textContent    = sd.pending_count || 0;
+  document.getElementById('bs-pending-amt').textContent = fmt(sd.pending_amount||0);
+  document.getElementById('bs-sent').textContent       = sd.sent_count || 0;
+  document.getElementById('bs-sent-amt').textContent   = fmt(sd.sent_amount||0);
+  document.getElementById('bs-overdue').textContent    = sd.overdue_count || 0;
+  document.getElementById('bs-overdue-amt').textContent = fmt(sd.overdue_amount||0);
+  document.getElementById('bs-paid').textContent       = sd.paid_count || 0;
+  document.getElementById('bs-paid-amt').textContent   = fmt(sd.paid_amount||0);
+  document.getElementById('bs-rate').textContent       = (sd.collection_rate||0) + '%';
+
+  renderBilling();
+}
+
+function renderBilling() {
+  var s  = (document.getElementById('bl-search')||{value:''}).value.toLowerCase();
+  var st = (document.getElementById('bl-status')||{value:''}).value;
+  var today = new Date().toISOString().slice(0,10);
+
+  var rows = allBilling.filter(function(b) {
+    var status = b.status;
+    if (status === 'sent' && b.due_date && b.due_date < today) status = 'overdue';
+    if (st && status !== st) return false;
+    if (s && !(b.restaurant_name||'').toLowerCase().includes(s)
+          && !(b.invoice_number||'').toLowerCase().includes(s)) return false;
+    return true;
+  });
+
+  var statusStyles = {
+    pending: 'background:rgba(100,116,139,.15);color:var(--muted);',
+    sent:    'background:#DBEAFE;color:#2563EB;',
+    overdue: 'background:rgba(239,68,68,.15);color:var(--danger);',
+    paid:    'background:rgba(37,211,102,.15);color:var(--accent);',
+    written_off: 'background:rgba(100,116,139,.1);color:var(--muted);',
+  };
+  var statusIcons = {pending:'📋',sent:'📨',overdue:'🔴',paid:'✅',written_off:'✗'};
+
+  var html = rows.map(function(b) {
+    var status = b.status;
+    if (status === 'sent' && b.due_date && b.due_date < today) status = 'overdue';
+    var sty  = statusStyles[status] || '';
+    var icon = statusIcons[status] || '';
+    var planCls = 'plan-'+(b.plan||'basic');
+    var isOpen  = status !== 'paid' && status !== 'written_off';
+
+    var actions = '';
+    if (status === 'pending') {
+      actions += '<button onclick="sendReminder(\"'+b.id+'\")" class="btn btn-ghost btn-sm" title="Send reminder">📨</button> ';
+    }
+    if (status === 'sent' || status === 'overdue') {
+      actions += '<button onclick="sendReminder(\"'+b.id+'\")" class="btn btn-ghost btn-sm" title="Re-send reminder">📨</button> ';
+      actions += '<button onclick="openMarkPaid(\"'+b.id+'\",'+b.amount+')" class="btn btn-primary btn-sm">✅ Paid</button> ';
+    }
+    if (isOpen) {
+      actions += '<button onclick="writeOff(\"'+b.id+'\")" class="btn btn-ghost btn-sm" style="color:var(--muted);font-size:10px;" title="Write off">✗</button>';
+    }
+
+    return '<tr>'
+      +'<td style="font-family:monospace;font-size:11px;color:var(--muted);">'+esc(b.invoice_number)+'</td>'
+      +'<td style="font-weight:600;">'+esc(b.restaurant_name)
+        +'<div style="font-size:10px;color:var(--muted);">'+esc(b.contact_name||'')+'</div></td>'
+      +'<td><span class="lc-plan '+planCls+'">'+(planLabels[b.plan]||b.plan||'—')+'</span>'
+        +'<div style="font-size:10px;color:var(--muted);">'+esc(b.billing_cycle||'')+'</div></td>'
+      +'<td class="r" style="font-weight:700;">'+(isOpen?fmt(b.amount):'<span style="color:var(--accent);">'+fmt(b.paid_amount||b.amount)+'</span>')+'</td>'
+      +'<td><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;'+sty+'">'+icon+' '+status.replace('_',' ')+'</span></td>'
+      +'<td style="font-size:11px;color:var(--muted);">'+(b.issued_date||'—')+'</td>'
+      +'<td style="font-size:11px;'+(status==='overdue'?'color:var(--danger);font-weight:700;':'color:var(--muted);')+'">'+( b.due_date||'—')+'</td>'
+      +'<td style="font-size:11px;color:var(--accent);">'+(b.paid_date||'—')+'</td>'
+      +'<td style="white-space:nowrap;">'+actions+'</td>'
+      +'</tr>';
+  }).join('');
+
+  var tbody = document.getElementById('billing-tbody');
+  if (tbody) tbody.innerHTML = html || '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">No invoices yet. Create one with the button above.</td></tr>';
+  
+  var outstanding = rows.filter(function(b){ return b.status!=='paid'&&b.status!=='written_off'; })
+                        .reduce(function(s,b){ return s+b.amount; }, 0);
+  var collected   = rows.filter(function(b){ return b.status==='paid'; })
+                        .reduce(function(s,b){ return s+(b.paid_amount||b.amount); }, 0);
+  var el = document.getElementById('billing-footer');
+  if (el) el.textContent = rows.length + ' invoices · Outstanding: ' + fmt(outstanding) + ' · Collected: ' + fmt(collected);
+}
+
+// ── Create Invoice ─────────────────────────────────────────────────────────────
+function openCreateInvoiceModal() {
+  // Populate subscription dropdown
+  var sel = document.getElementById('im-sub');
+  sel.innerHTML = '<option value="">— Select subscription —</option>'
+    + allSubs.map(function(s){
+        return '<option value="'+s.id+'" data-amount="'+s.amount+'" data-email="'+(s.contact_email||'')+'" data-contact="'+(s.contact_name||'')+'">'
+          +esc(s.restaurant_name)+' — '+(planLabels[s.plan]||s.plan)+' $'+fmt(s.amount)+'/'+s.billing_cycle+'</option>';
+      }).join('');
+  // Auto-fill due date to end of month
+  var d = new Date();
+  d.setMonth(d.getMonth()+1, 0);
+  document.getElementById('im-due').value = d.toISOString().slice(0,10);
+  document.getElementById('im-amount').value = '';
+  document.getElementById('im-email').value  = '';
+  document.getElementById('im-contact').value = '';
+  document.getElementById('im-notes').value  = '';
+  document.getElementById('im-sub-info').style.display = 'none';
+  // Wire up sub change
+  sel.onchange = function() {
+    var opt = sel.options[sel.selectedIndex];
+    var amt = opt.dataset.amount;
+    if (amt) {
+      document.getElementById('im-amount').value  = amt;
+      document.getElementById('im-email').value   = opt.dataset.email || '';
+      document.getElementById('im-contact').value = opt.dataset.contact || '';
+      var info = document.getElementById('im-sub-info');
+      info.style.display = 'block';
+      info.innerHTML = 'Plan: <b>'+(planLabels[opt.value]||'')+'</b> · Amount: <b>'+fmt(parseFloat(amt))+'</b>';
+    }
+  };
+  document.getElementById('inv-modal').classList.add('open');
+}
+
+async function createInvoice() {
+  var subId = document.getElementById('im-sub').value;
+  if (!subId) { toast('Select a subscription', 'warn'); return; }
+  var amount = parseFloat(document.getElementById('im-amount').value);
+  if (!amount) { toast('Enter amount', 'warn'); return; }
+
+  var r = await fetch('/api/sales/subscriptions/'+subId+'/invoice', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      amount:       amount,
+      due_date:     document.getElementById('im-due').value,
+      contact_email:document.getElementById('im-email').value.trim(),
+      contact_name: document.getElementById('im-contact').value.trim(),
+      notes:        document.getElementById('im-notes').value.trim(),
+    })
+  });
+  var d = await r.json();
+  if (r.ok) {
+    toast('✅ Invoice '+d.invoice.invoice_number+' created', 'success');
+    closeModal('inv-modal');
+    await loadBilling();
+    await loadStats();
+  } else toast(d.error||'Error', 'error');
+}
+
+// ── Mark Paid ─────────────────────────────────────────────────────────────────
+var _payInvId = '';
+function openMarkPaid(invId, amount) {
+  _payInvId = invId;
+  var inv = allBilling.find(function(b){ return b.id===invId; });
+  document.getElementById('pm-info').innerHTML = inv
+    ? '<b>'+esc(inv.restaurant_name)+'</b> &nbsp;·&nbsp; '+esc(inv.invoice_number)+' &nbsp;·&nbsp; <span style="color:var(--accent);font-weight:700;">'+fmt(inv.amount)+'</span>'
+    : '';
+  document.getElementById('pm-inv-id').value  = invId;
+  document.getElementById('pm-date').value    = new Date().toISOString().slice(0,10);
+  document.getElementById('pm-amount').value  = amount;
+  document.getElementById('pm-ref').value     = '';
+  document.getElementById('pm-method').value  = 'zelle';
+  document.getElementById('pay-modal').classList.add('open');
+}
+
+async function submitPayment() {
+  var invId  = document.getElementById('pm-inv-id').value;
+  var amount = parseFloat(document.getElementById('pm-amount').value)||0;
+  var method = document.getElementById('pm-method').value;
+  var ref    = document.getElementById('pm-ref').value.trim();
+  var notes  = method.toUpperCase() + (ref ? ' | '+ref : '');
+
+  var r = await fetch('/api/sales/billing/'+invId, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status:'paid', paid_amount:amount,
+      paid_date:document.getElementById('pm-date').value,
+      payment_method:method, notes:notes})
+  });
+  var d = await r.json();
+  if (r.ok) {
+    toast('✅ Payment recorded', 'success');
+    closeModal('pay-modal');
+    await loadBilling();
+    await loadStats();
+  } else toast(d.error||'Error','error');
+}
+
+// ── Send Reminder ─────────────────────────────────────────────────────────────
+async function sendReminder(invId) {
+  var r = await fetch('/api/sales/billing/'+invId+'/send-reminder', {method:'POST'});
+  var d = await r.json();
+  if (r.ok) {
+    document.getElementById('rm-to').value      = d.to || '';
+    document.getElementById('rm-subject').value = d.subject || '';
+    document.getElementById('rm-body').value    = d.body || '';
+    var mailto = 'mailto:'+encodeURIComponent(d.to||'')
+      +'?subject='+encodeURIComponent(d.subject||'')
+      +'&body='+encodeURIComponent(d.body||'');
+    document.getElementById('rm-mailto').href = mailto;
+    document.getElementById('reminder-modal').classList.add('open');
+    await loadBilling();
+  } else toast(d.error||'Error','error');
+}
+
+function copyReminder() {
+  var body = document.getElementById('rm-body').value;
+  navigator.clipboard.writeText(body).then(function(){ toast('Copied to clipboard','success'); });
+}
+
+async function writeOff(invId) {
+  if (!confirm('Write off this invoice as uncollectable?')) return;
+  var r = await fetch('/api/sales/billing/'+invId, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'written_off'})});
+  if (r.ok) { toast('Written off','warn'); await loadBilling(); }
+  else toast('Error','error');
+}
+
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+function syncDrawerReferred() {
+  var wrap = document.getElementById('dr-referred-wrap');
+  var src = document.getElementById('dr-source');
+  if (wrap && src) wrap.style.display = src.value === 'referral' ? '' : 'none';
+}
+function showDTab(tab) {
+  ['info','activity'].forEach(function(t) {
+    document.getElementById('dtab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('dpane-'+t).style.display = t===tab?'block':'none';
+  });
+}
+
+// ── Lead Drawer ───────────────────────────────────────────────────────────────
+function openNewLead() {
+  currentLeadId = '';
+  var ids = ['dr-id','dr-rname','dr-city','dr-cuisine','dr-cname','dr-phone','dr-email','dr-assigned','dr-followup','dr-notes'];
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var t=document.getElementById('dr-title'); if(t) t.textContent='＋ New Lead';
+  var s=document.getElementById('dr-sub'); if(s) s.textContent='';
+  var stg=document.getElementById('dr-stage'); if(stg&&stg.options.length) stg.value='New';
+  var pri=document.getElementById('dr-priority'); if(pri) pri.value='medium';
+  var pln=document.getElementById('dr-plan'); if(pln) pln.value='basic';
+  var cyc=document.getElementById('dr-cycle'); if(cyc) cyc.value='monthly';
+  var src=document.getElementById('dr-source'); if(src) src.value='manual';
+  var del=document.getElementById('dr-delete-btn'); if(del) del.style.display='none';
+  var log=document.getElementById('activity-log-list'); if(log) log.innerHTML='';
+  fillAssigneeSelect(currentUsername);
+  updateDealValue();
+  showDTab('info');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('lead-drawer').classList.add('open');
+}
+
+function openLead(leadId, loadFromServer) {
+  currentLeadId = leadId;
+  var lead = allLeads.find(function(l){ return l.id===leadId; });
+  if (!lead) return;
+  document.getElementById('dr-id').value = leadId;
+  document.getElementById('dr-title').textContent = lead.restaurant_name;
+  document.getElementById('dr-sub').textContent = lead.contact_name + ' · ' + (lead.city||'') + ' · ' + lead.stage;
+  document.getElementById('dr-rname').value    = lead.restaurant_name||'';
+  document.getElementById('dr-city').value     = lead.city||'';
+  document.getElementById('dr-cuisine').value  = lead.cuisine_type||'';
+  fillProductSelect(lead.product_id||'');
+  document.getElementById('dr-cname').value    = lead.contact_name||'';
+  document.getElementById('dr-phone').value    = lead.contact_phone||'';
+  document.getElementById('dr-email').value    = lead.contact_email||'';
+  document.getElementById('dr-stage').value    = lead.stage||'New';
+  document.getElementById('dr-priority').value = lead.priority||'medium';
+  document.getElementById('dr-plan').value     = lead.plan_interest||'basic';
+  document.getElementById('dr-cycle').value    = lead.billing_cycle||'monthly';
+  document.getElementById('dr-source').value   = lead.source||'manual';
+  document.getElementById('dr-referred').value = lead.referred_by||'';
+  syncDrawerReferred();
+  fillAssigneeSelect(lead.assigned_to||'');
+  document.getElementById('dr-followup').value = lead.next_followup||'';
+  document.getElementById('dr-notes').value    = lead.notes||'';
+  document.getElementById('dr-delete-btn').style.display = 'inline-flex';
+  renderActivityLog(lead.activity_log || []);
+  updateDealValue();
+  showDTab('info');
+  openDrawerPanel();
+}
+
+function openDrawerPanel() {
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('lead-drawer').classList.add('open');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('lead-drawer').classList.remove('open');
+  currentLeadId = '';
+}
+
+function updateDealValue() {
+  var plan  = document.getElementById('dr-plan').value;
+  var cycle = document.getElementById('dr-cycle').value;
+  var p     = (planPrices[plan]||{});
+  var amt   = p[cycle] || 0;
+  var el    = document.getElementById('dr-deal-value');
+  var stage = document.getElementById('dr-stage').value;
+  el.innerHTML = '<b>Deal Value:</b> <span style="color:var(--accent);font-size:15px;font-weight:700;">'
+    + fmt(amt) + '</span> / '+(cycle==='annual'?'year':'month')
+    + (cycle==='annual' ? ' <span style="color:var(--muted);font-size:11px;">('+fmt(amt/12)+'/mo equiv)</span>' : '')
+    + ' &nbsp;·&nbsp; Plan: <b>'+(p.label||plan)+'</b>'
+    + ' &nbsp;·&nbsp; Stage: <b>'+stage+'</b>';
+}
+
+// Wire up plan/cycle/stage changes to update deal value
+setTimeout(function() {
+  ['dr-plan','dr-cycle','dr-stage'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateDealValue);
+  });
+}, 100);
+
+async function saveLead() {
+  var id    = document.getElementById('dr-id').value;
+  var rname = document.getElementById('dr-rname').value.trim();
+  var cname = document.getElementById('dr-cname').value.trim();
+  if (!rname || !cname) { toast('Restaurant name and contact name required', 'warn'); return; }
+
+  var payload = {
+    restaurant_name: rname,
+    contact_name:    cname,
+    contact_email:   document.getElementById('dr-email').value.trim(),
+    contact_phone:   document.getElementById('dr-phone').value.trim(),
+    city:            document.getElementById('dr-city').value.trim(),
+    cuisine_type:    document.getElementById('dr-cuisine').value.trim(),
+    product_id:      document.getElementById('dr-product').value,
+    stage:           document.getElementById('dr-stage').value,
+    priority:        document.getElementById('dr-priority').value,
+    plan_interest:   document.getElementById('dr-plan').value,
+    billing_cycle:   document.getElementById('dr-cycle').value,
+    source:          document.getElementById('dr-source').value,
+    referred_by:     document.getElementById('dr-referred').value.trim(),
+    assigned_to:     document.getElementById('dr-assigned').value.trim(),
+    next_followup:   document.getElementById('dr-followup').value,
+    notes:           document.getElementById('dr-notes').value.trim(),
+  };
+
+  var btn = document.getElementById('dr-save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+
+  var r;
+  if (id) {
+    r = await fetch('/api/sales/leads/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  } else {
+    r = await fetch('/api/sales/leads', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  }
+  var d = await r.json();
+  btn.disabled=false; btn.textContent='💾 Save Lead';
+
+  if (r.ok) {
+    toast(id ? '✅ Lead updated' : '✅ Lead created', 'success');
+    closeDrawer();
+    await Promise.all([loadStats(), loadLeads()]);
+  } else toast(d.error||'Error', 'error');
+}
+
+async function deleteLead() {
+  var lead = allLeads.find(function(l){ return l.id===currentLeadId; });
+  if (!confirm('Delete lead "' + (lead?lead.restaurant_name:currentLeadId) + '"?')) return;
+  var r = await fetch('/api/sales/leads/'+currentLeadId, {method:'DELETE'});
+  if (r.ok) { toast('Lead deleted', 'warn'); closeDrawer(); await Promise.all([loadStats(), loadLeads()]); }
+  else toast('Error', 'error');
+}
+
+async function addActivity() {
+  var note = document.getElementById('act-note').value.trim();
+  if (!note || !currentLeadId) return;
+  var r = await fetch('/api/sales/leads/'+currentLeadId, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({activity_note: note})
+  });
+  var d = await r.json();
+  if (r.ok) {
+    document.getElementById('act-note').value = '';
+    toast('Activity logged', 'success');
+    // Update local lead
+    var idx = allLeads.findIndex(function(l){ return l.id===currentLeadId; });
+    if (idx !== -1 && d.lead) { allLeads[idx] = d.lead; renderActivityLog(d.lead.activity_log||[]); }
+  } else toast('Error', 'error');
+}
+
+function renderActivityLog(log) {
+  var html = (log||[]).map(function(e) {
+    var dt = new Date(e.at).toLocaleString();
+    return '<div class="act-entry"><span class="act-by">'+esc(e.by||'—')+'</span><span class="act-time">'+dt+'</span><div style="margin-top:3px;color:var(--text);">'+esc(e.action)+'</div></div>';
+  }).join('');
+  var el = document.getElementById('activity-log-list');
+  if (el) el.innerHTML = html || '<div style="color:var(--muted);font-size:12px;">No activity yet.</div>';
+}
+
+async function cancelSub(subId) {
+  if (!confirm('Cancel this subscription?')) return;
+  var r = await fetch('/api/sales/subscriptions/'+subId, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cancelled'})});
+  if (r.ok) { toast('Subscription cancelled', 'warn'); await Promise.all([loadStats(), loadSubs()]); }
+  else toast('Error','error');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getPlanAmount(plan, cycle) {
+  return (planPrices[plan]||{})[cycle||'monthly'] || 0;
+}
+function isPast(dateStr) {
+  return dateStr && new Date(dateStr) < new Date();
+}
+function fmt(n){ return '$'+(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function toast(msg,type){ var ic={info:'ℹ️',success:'✅',error:'❌',warn:'⚠️'}; document.getElementById('t-icon').textContent=ic[type]||'ℹ️'; document.getElementById('t-msg').textContent=msg; var t=document.getElementById('toast'); t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},3500); }
+
+init();
+</script>
+</body>
+</html>

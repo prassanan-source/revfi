@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Plan' if plan else 'New Plan' }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">{{ 'Edit Plan' if plan else 'New Plan' }}</div>
+  <div class="page-sub">{{ product.icon }} {{ product.name }}</div>
+</div>
+<div class="card" style="max-width:560px;">
+  <div class="card-body p-4">
+    <form method="post">
+      <div class="row g-3 mb-3">
+        <div class="col-6"><label class="form-label">Plan Name *</label><input type="text" name="name" class="form-control" value="{{ plan.name if plan else '' }}" required placeholder="Enterprise"></div>
+        <div class="col-6"><label class="form-label">Price ($) *</label><input type="number" name="price" class="form-control" step="0.01" value="{{ plan.price if plan else '' }}" required></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Billing Cadence</label>
+        <select name="cadence" class="form-select">
+          {% for c in ['monthly','quarterly','annual'] %}
+          <option value="{{ c }}" {% if plan and plan.cadence==c %}selected{% elif not plan and c=='monthly' %}selected{% endif %}>{{ c|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-4"><label class="form-label">Features (comma-separated)</label><textarea name="features" class="form-control" rows="3">{{ plan.features if plan else '' }}</textarea></div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-gold px-4">{{ 'Update Plan' if plan else 'Add Plan' }}</button>
+        <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Product' if product else 'New Product' }}{% endblock %}
+{% block content %}
+<div class="page-header"><div class="page-title">{{ 'Edit Product' if product else 'New Product' }}</div></div>
+<div class="card" style="max-width:560px;">
+  <div class="card-body p-4">
+    <form method="post">
+      <div class="row g-3 mb-3">
+        <div class="col-8"><label class="form-label">Product Name *</label><input type="text" name="name" class="form-control" value="{{ product.name if product else '' }}" required></div>
+        <div class="col-4"><label class="form-label">Icon (emoji)</label><input type="text" name="icon" class="form-control" value="{{ product.icon if product else '📦' }}" maxlength="4"></div>
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-8"><label class="form-label">URL Slug *</label><input type="text" name="slug" class="form-control" value="{{ product.slug if product else '' }}" required placeholder="freshfi"></div>
+        <div class="col-4"><label class="form-label">Color</label><input type="color" name="color" class="form-control form-control-color w-100" value="{{ product.color if product else '#2E7D5E' }}"></div>
+      </div>
+      <div class="mb-4"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ product.description if product else '' }}</textarea></div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-gold px-4">{{ 'Update' if product else 'Create Product' }}</button>
+        <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{
+  "name": "RevFi Sales CRM",
+  "short_name": "RevFi",
+  "start_url": "/sales-crm",
+  "display": "standalone",
+  "background_color": "#F4F6F8",
+  "theme_color": "#0F9D58"
+}

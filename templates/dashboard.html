@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block head %}
+<style>
+/* ── Shared dashboard chrome ── */
+.dash-topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-right:60px;}
+.dash-title{font-size:22px;font-weight:800;color:var(--main-color);display:flex;align-items:center;gap:10px;}
+.dash-sub{font-size:13px;color:var(--muted);margin-top:3px;}
+.dash-controls{display:flex;gap:10px;align-items:flex-end;}
+.ctrl-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;}
+.filter-sel{background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--main-color);cursor:pointer;min-width:170px;}
+.btn-new{background:#22A06B;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;}
+.btn-new:hover{background:#1A8A5A;color:#fff;text-decoration:none;}
+
+/* ── KPI bar ── */
+.kpi-bar{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+.kpi-tile{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:18px 22px;flex:1;min-width:130px;transition:background .2s;}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;}
+.kpi-val{font-size:28px;font-weight:800;color:var(--main-color);line-height:1;}
+.kpi-val.green{color:#22A06B;}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+
+/* ── View selector dropdown (admin only) ── */
+.view-selector-wrap{position:relative;display:inline-block;}
+.view-selector-btn{display:flex;align-items:center;gap:8px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--main-color);cursor:pointer;min-width:200px;transition:border-color .15s;}
+.view-selector-btn:hover{border-color:var(--gold);}
+.view-selector-btn .arrow{margin-left:auto;font-size:11px;color:var(--muted);transition:transform .2s;}
+.view-selector-btn.open .arrow{transform:rotate(180deg);}
+.view-dropdown{position:absolute;top:calc(100% + 6px);left:0;min-width:300px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.18);z-index:500;padding:8px;display:none;}
+.view-dropdown.open{display:block;}
+.vd-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 10px 4px;}
+.vd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--main-color);transition:background .12s;}
+.vd-item:hover{background:var(--table-row-hover);}
+.vd-item.active{background:rgba(34,160,107,.12);color:#22A06B;font-weight:700;}
+.vd-item .vi{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.vd-item .vd-name{font-weight:600;}
+.vd-item .vd-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+
+/* ── View tabs (non-admin) ── */
+.dash-tabs{display:flex;gap:0;border-bottom:2px solid var(--card-border);margin-bottom:22px;}
+.dash-tab{padding:10px 20px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:7px;text-decoration:none;transition:all .15s;}
+.dash-tab:hover{color:var(--main-color);text-decoration:none;}
+.dash-tab.active{color:#22A06B;border-bottom-color:#22A06B;}
+
+/* ── Kanban ── */
+.kanban-wrap{display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;}
+.kanban-wrap::-webkit-scrollbar{height:5px;}
+.kanban-wrap::-webkit-scrollbar-track{background:var(--card-border);border-radius:3px;}
+.kanban-wrap::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px;}
+.kan-col{min-width:220px;max-width:240px;flex-shrink:0;border-radius:12px;padding:12px;}
+.kan-col-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid;}
+.col-label{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;}
+.col-count{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;}
+.kan-card{background:var(--card-bg);border-radius:10px;padding:13px 14px 11px;margin-bottom:10px;border:1px solid var(--card-border);box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .15s,transform .1s;border-left:3px solid;}
+.kan-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.12);transform:translateY(-1px);}
+.kc-company{font-size:14px;font-weight:700;color:var(--main-color);margin-bottom:2px;}
+.kc-contact{font-size:12px;color:var(--muted);margin-bottom:5px;}
+.kc-meta{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.kc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.kc-date{font-size:11px;color:var(--muted);opacity:.7;margin-top:5px;}
+.plan-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.kan-empty{text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0;opacity:.6;}
+
+/* ── Swimlane ── */
+.swimlane-wrap{overflow-x:auto;padding-bottom:12px;}
+.swimlane-table{border-collapse:separate;border-spacing:0;min-width:max-content;width:100%;}
+.swimlane-table th.stage-th{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:10px 14px;border-bottom:2px solid var(--card-border);background:var(--card-bg);position:sticky;top:0;z-index:10;white-space:nowrap;min-width:200px;}
+.swimlane-table th.rep-th{font-size:12px;font-weight:700;padding:12px 14px;background:var(--card-bg);border-bottom:2px solid var(--card-border);position:sticky;left:0;z-index:20;white-space:nowrap;width:170px;}
+.swimlane-table td.rep-cell{padding:10px 12px;background:var(--card-bg);border-bottom:1px solid var(--card-border);position:sticky;left:0;z-index:5;vertical-align:top;}
+.swimlane-table td.stage-cell{padding:8px 10px;border-bottom:1px solid var(--card-border);border-left:1px solid var(--card-border);vertical-align:top;min-width:200px;max-width:240px;background:transparent;}
+.sw-rep-badge{display:flex;align-items:center;gap:8px;}
+.sw-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.sw-rep-name{font-size:13px;font-weight:700;color:var(--main-color);}
+.sw-rep-stats{font-size:11px;color:var(--muted);}
+.sw-card{background:var(--card-bg);border-radius:8px;padding:9px 11px;margin-bottom:7px;border:1px solid var(--card-border);border-left:3px solid;cursor:pointer;transition:box-shadow .12s,transform .1s;font-size:12px;}
+.sw-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.1);transform:translateY(-1px);}
+.sw-card .sw-co{font-weight:700;color:var(--main-color);margin-bottom:2px;}
+.sw-card .sw-ct{color:var(--muted);font-size:11px;}
+.sw-card .sw-ft{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.sw-empty{color:var(--muted);font-size:11.5px;opacity:.5;padding:8px 4px;}
+
+/* ── List / Table view ── */
+.list-table{width:100%;border-collapse:collapse;font-size:13px;}
+.list-table th{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:10px 14px;border-bottom:2px solid var(--card-border);text-align:left;background:var(--card-bg);}
+.list-table td{padding:12px 14px;border-bottom:1px solid var(--card-border);vertical-align:middle;color:var(--main-color);}
+.list-table tr:last-child td{border-bottom:none;}
+.list-table tr:hover td{background:var(--table-row-hover);}
+.s-pill{display:inline-block;padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;}
+
+/* ── Timeline view ── */
+.timeline-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--card-border);}
+.tl-info{width:200px;flex-shrink:0;}
+.tl-track{flex:1;position:relative;height:28px;}
+.tl-bar{position:absolute;height:22px;border-radius:6px;top:3px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;}
+
+/* ── Funnel view ── */
+.funnel-stage{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.funnel-bar-wrap{flex:1;position:relative;}
+.funnel-bar{height:36px;border-radius:0 8px 8px 0;display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:700;color:#fff;min-width:40px;transition:width .4s;}
+.funnel-label{width:150px;font-size:13px;font-weight:600;color:var(--main-color);text-align:right;}
+.funnel-count{width:80px;font-size:13px;font-weight:700;color:var(--main-color);}
+.funnel-pct{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── Calender view ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-hdr{text-align:center;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:6px 0;}
+.cal-day{min-height:80px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:6px;font-size:11px;}
+.cal-day.today{border-color:#22A06B;border-width:2px;}
+.cal-day.other-month{opacity:.4;}
+.cal-day-num{font-weight:700;color:var(--muted);margin-bottom:4px;}
+.cal-event{background:#22A06B22;color:#22A06B;border-radius:4px;padding:2px 5px;font-size:10.5px;font-weight:600;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── Matrix view ── */
+.matrix-table{border-collapse:collapse;width:100%;}
+.matrix-table th{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:10px 14px;border:1px solid var(--card-border);background:var(--card-bg);text-align:center;}
+.matrix-table td{padding:10px;border:1px solid var(--card-border);vertical-align:top;min-width:140px;}
+.matrix-cell-hdr{font-size:12px;font-weight:700;color:var(--main-color);margin-bottom:4px;text-align:left;}
+
+/* ── Dashboard / KPI view ── */
+.kpi-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.chart-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;}
+.chart-title{font-size:13px;font-weight:700;color:var(--main-color);margin-bottom:16px;}
+
+/* ── Workload view ── */
+.workload-row{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 18px;margin-bottom:10px;}
+.wl-rep{font-size:14px;font-weight:700;color:var(--main-color);}
+.wl-bar-wrap{background:var(--card-border);border-radius:6px;height:10px;margin:10px 0 6px;overflow:hidden;}
+.wl-bar{height:10px;border-radius:6px;transition:width .4s;}
+
+/* ── Activity feed ── */
+.feed-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--card-border);}
+.feed-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.feed-content{flex:1;}
+.feed-time{font-size:11px;color:var(--muted);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="dash-wrap">
+
+<!-- Top bar -->
+<div class="dash-topbar">
+  <div>
+    <div class="dash-title">🎯 Sales CRM</div>
+    <div class="dash-sub">Revfi subscription pipeline &amp; account management</div>
+  </div>
+  <div class="dash-controls">
+    <!-- Admin: view selector dropdown -->
+    {% if is_admin %}
+    <div>
+      <div class="ctrl-label">View</div>
+      <div class="view-selector-wrap">
+        <div class="view-selector-btn" id="view-btn" onclick="toggleViewMenu()">
+          <span id="view-icon">📋</span>
+          <span id="view-label">Pipeline Board</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="view-dropdown" id="view-dropdown">
+          <div class="vd-section">Board Views</div>
+          <div class="vd-item active" id="vdi-kanban"   onclick="setView('kanban')">  <div class="vi" style="background:#22A06B20;">📋</div><div><div class="vd-name">Pipeline Board</div><div class="vd-desc">Cards organized by stage</div></div></div>
+          <div class="vd-item"        id="vdi-swimlane" onclick="setView('swimlane')"><div class="vi" style="background:#4C9EEB20;">🏊</div><div><div class="vd-name">Swimlane Board</div><div class="vd-desc">Kanban split by sales rep</div></div></div>
+          <div class="vd-item"        id="vdi-matrix"   onclick="setView('matrix')">  <div class="vi" style="background:#9B6FEB20;">⊞</div><div><div class="vd-name">Matrix Board</div><div class="vd-desc">Stage × product grid</div></div></div>
+
+          <div class="vd-section">List &amp; Table</div>
+          <div class="vd-item" id="vdi-list"  onclick="setView('list')"> <div class="vi" style="background:#F0A03020;">📄</div><div><div class="vd-name">List View</div><div class="vd-desc">All leads in rows</div></div></div>
+          <div class="vd-item" id="vdi-table" onclick="setView('table')"><div class="vi" style="background:#3DB8CF20;">📊</div><div><div class="vd-name">Table / Grid</div><div class="vd-desc">Spreadsheet-style data</div></div></div>
+
+          <div class="vd-section">Analytics</div>
+          <div class="vd-item" id="vdi-funnel"    onclick="setView('funnel')">   <div class="vi" style="background:#E5535320;">🔻</div><div><div class="vd-name">Funnel View</div><div class="vd-desc">Conversion at each stage</div></div></div>
+          <div class="vd-item" id="vdi-kpidash"   onclick="setView('kpidash')">  <div class="vi" style="background:#22A06B20;">📈</div><div><div class="vd-name">Dashboard View</div><div class="vd-desc">KPIs, charts &amp; trends</div></div></div>
+          <div class="vd-item" id="vdi-workload"  onclick="setView('workload')"> <div class="vi" style="background:#C9A84C20;">⚖️</div><div><div class="vd-name">Workload View</div><div class="vd-desc">Work by rep &amp; capacity</div></div></div>
+
+          <div class="vd-section">Time &amp; Schedule</div>
+          <div class="vd-item" id="vdi-calendar"  onclick="setView('calendar')"> <div class="vi" style="background:#9B6FEB20;">📅</div><div><div class="vd-name">Calendar View</div><div class="vd-desc">Leads by follow-up date</div></div></div>
+          <div class="vd-item" id="vdi-timeline"  onclick="setView('timeline')"> <div class="vi" style="background:#F0A03020;">📆</div><div><div class="vd-name">Timeline View</div><div class="vd-desc">Duration along a time axis</div></div></div>
+
+          <div class="vd-section">Other</div>
+          <div class="vd-item" id="vdi-activity"  onclick="setView('activity')"> <div class="vi" style="background:#3DB8CF20;">📡</div><div><div class="vd-name">Activity Feed</div><div class="vd-desc">Chronological updates</div></div></div>
+          <div class="vd-item" id="vdi-subs"      onclick="setView('subs')">     <div class="vi" style="background:#22A06B20;">💳</div><div><div class="vd-name">Subscriptions</div><div class="vd-desc">Active paying customers</div></div></div>
+          <div class="vd-item" id="vdi-billing"   onclick="setView('billing')">  <div class="vi" style="background:#F0A03020;">🧾</div><div><div class="vd-name">Billing &amp; Collection</div><div class="vd-desc">Invoices and payments</div></div></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div>
+      <div class="ctrl-label">Filter Rep</div>
+      <form method="get" id="filter-form">
+        <select class="filter-sel" name="user_id" onchange="document.getElementById('filter-form').submit()">
+          <option value="">All salespeople</option>
+          {% for u in users %}<option value="{{ u.id }}" {% if filter_user==u.id|string %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
+        </select>
+      </form>
+    </div>
+    <a href="{{ url_for('lead_new') }}" class="btn-new"><i class="bi bi-plus-lg"></i> New Lead</a>
+  </div>
+</div>
+
+<!-- KPI Bar -->
+<div class="kpi-bar">
+  <div class="kpi-tile"><div class="kpi-lbl">Total Leads</div><div class="kpi-val">{{ leads|length }}</div><div class="kpi-sub">{{ active|length }} in pipeline</div></div>
+  <div class="kpi-tile"><div class="kpi-lbl">Active Subscriptions</div><div class="kpi-val">{{ won|length }}</div><div class="kpi-sub">paying customers</div></div>
+  <div class="kpi-tile"><div class="kpi-lbl">MRR</div><div class="kpi-val green">{{ fmt_usd(mrr) }}</div><div class="kpi-sub">monthly recurring</div></div>
+  <div class="kpi-tile"><div class="kpi-lbl">ARR</div><div class="kpi-val">{{ fmt_usd(arr) }}</div><div class="kpi-sub">annual recurring</div></div>
+  <div class="kpi-tile"><div class="kpi-lbl">Pipeline Value</div><div class="kpi-val">{{ fmt_usd(pipeline_val) }}</div><div class="kpi-sub">potential MRR</div></div>
+  <div class="kpi-tile"><div class="kpi-lbl">Won / Lost</div><div class="kpi-val">{{ won|length }} won</div><div class="kpi-sub">{{ lost|length }} lost</div></div>
+</div>
+
+<!-- Non-admin tabs -->
+{% if not is_admin %}
+<div class="dash-tabs">
+  <a class="dash-tab active" id="tab-kanban"  onclick="showPane('kanban');return false;"  href="#">📋 Pipeline Board</a>
+  <a class="dash-tab"        id="tab-list"    onclick="showPane('list');return false;"    href="#">📄 Lead List</a>
+  <a class="dash-tab"        id="tab-subs"    onclick="showPane('subs');return false;"    href="#">💳 Subscriptions</a>
+  <a class="dash-tab"        id="tab-billing" onclick="showPane('billing');return false;" href="#">🧾 Billing</a>
+</div>
+{% endif %}
+
+{% set SC = {
+  'New':            {'b':'#B0B8C8','l':'#8892A4','bg':'rgba(176,184,200,.12)'},
+  'Contacted':      {'b':'#4C9EEB','l':'#1E6FBF','bg':'rgba(76,158,235,.10)'},
+  'Demo Scheduled': {'b':'#9B6FEB','l':'#6B3FBF','bg':'rgba(155,111,235,.10)'},
+  'Proposal Sent':  {'b':'#F0A030','l':'#B07010','bg':'rgba(240,160,48,.10)'},
+  'Agreement Sent': {'b':'#3DB8CF','l':'#1A8899','bg':'rgba(61,184,207,.10)'},
+  'Closed Won':     {'b':'#22A06B','l':'#167A4F','bg':'rgba(34,160,107,.10)'},
+  'Closed Lost':    {'b':'#E55353','l':'#B03030','bg':'rgba(229,83,83,.10)'},
+} %}
+{% set SC2 = {'New':'#8892A4','Contacted':'#1E6FBF','Demo Scheduled':'#6B3FBF','Proposal Sent':'#B07010','Agreement Sent':'#1A8899','Closed Won':'#167A4F','Closed Lost':'#B03030'} %}
+{% set REP_COLORS = ['#22A06B','#4C9EEB','#9B6FEB','#F0A030','#E55353','#3DB8CF','#C9A84C','#EC6EA8'] %}
+
+<!-- ══════════════════ PANE: KANBAN ══════════════════ -->
+<div id="pane-kanban" class="view-pane">
+  <div class="kanban-wrap">
+    {% for stage in PIPELINE_STAGES %}
+    {% set sc = SC.get(stage,{'b':'#B0B8C8','l':'#8892A4','bg':'rgba(176,184,200,.1)'}) %}
+    {% set col = kanban.get(stage,[]) %}
+    <div class="kan-col" style="background:{{ sc.bg }};">
+      <div class="kan-col-head" style="border-color:{{ sc.b }};">
+        <span class="col-label" style="color:{{ sc.l }};">{{ stage }}</span>
+        <span class="col-count" style="color:{{ sc.l }};background:var(--card-bg);border:2px solid {{ sc.b }};">{{ col|length }}</span>
+      </div>
+      {% for l in col %}
+      <div class="kan-card" style="border-left-color:{{ sc.b }};" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'">
+        <div class="kc-company">{{ l.company }}</div>
+        <div class="kc-contact">{{ l.contact or '—' }}</div>
+        {% if l.phone %}<div class="kc-meta"><i class="bi bi-geo-alt-fill" style="color:#E55353;font-size:10px;"></i>{{ l.phone }}</div>{% endif %}
+        {% if l.assignee %}<div class="kc-meta"><i class="bi bi-person-fill" style="color:#4C9EEB;font-size:10px;"></i>{{ l.assignee.name }}</div>{% endif %}
+        <div class="kc-footer">
+          <div>
+            {% if l.plan %}<span class="plan-badge" style="background:{{ sc.b }}22;color:{{ sc.l }};">{{ l.plan.name }}</span>{% endif %}
+            {% if l.discount_type and l.discount_type!='none' %}<span class="plan-badge ms-1" style="background:rgba(240,160,48,.15);color:#B07010;">Disc.</span>{% endif %}
+          </div>
+          <span style="font-size:13px;font-weight:700;color:var(--main-color);">{{ fmt_usd(l.value) }}</span>
+        </div>
+        <div class="kc-date"><i class="bi bi-calendar3" style="font-size:10px;"></i> {{ l.created_at.strftime('%Y-%m-%d') }}</div>
+      </div>
+      {% else %}<div class="kan-empty">No leads</div>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: SWIMLANE ══════════════════ -->
+<div id="pane-swimlane" class="view-pane" style="display:none;">
+  <div class="swimlane-wrap">
+    <table class="swimlane-table">
+      <thead>
+        <tr>
+          <th class="rep-th" style="color:var(--muted);">Rep / Stage</th>
+          {% for stage in PIPELINE_STAGES %}
+          {% set sc = SC.get(stage,{'b':'#B0B8C8','l':'#8892A4'}) %}
+          <th class="stage-th" style="color:{{ sc.l }};border-top:3px solid {{ sc.b }};">
+            {{ stage }}
+            <span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:{{ sc.b }}22;color:{{ sc.l }};font-size:11px;line-height:20px;text-align:center;font-weight:800;margin-left:6px;">
+              {{ swimlane_col_totals.get(stage, 0) }}
+            </span>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for u in swimlane_users %}
+      {% set uid = u.id %}
+      {% set rc = REP_COLORS[loop.index0 % REP_COLORS|length] %}
+      {% set stats = rep_stats.get(uid,{}) %}
+      <tr>
+        <td class="rep-cell">
+          <div class="sw-rep-badge">
+            <div class="sw-avatar" style="background:{{ rc }};">{{ u.name[0] }}</div>
+            <div>
+              <div class="sw-rep-name">{{ u.name }}</div>
+              <div class="sw-rep-stats">{{ stats.get('pipeline',0) }} open · {{ stats.get('won',0) }} won · {{ fmt_usd(stats.get('mrr',0)) }}/mo</div>
+            </div>
+          </div>
+        </td>
+        {% for stage in PIPELINE_STAGES %}
+        {% set sc = SC.get(stage,{'b':'#B0B8C8','l':'#8892A4'}) %}
+        {% set cell_leads = swimlane.get(uid,{}).get(stage,[]) %}
+        <td class="stage-cell">
+          {% for l in cell_leads %}
+          <div class="sw-card" style="border-left-color:{{ rc }};" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'">
+            <div class="sw-co">{{ l.company }}</div>
+            <div class="sw-ct">{{ l.contact or '' }}</div>
+            <div class="sw-ft">
+              {% if l.plan %}<span class="plan-badge" style="background:{{ sc.b }}22;color:{{ sc.l }};font-size:10px;">{{ l.plan.name }}</span>{% endif %}
+              <span style="font-size:12px;font-weight:700;color:var(--main-color);">{{ fmt_usd(l.value) }}</span>
+            </div>
+          </div>
+          {% else %}<div class="sw-empty">—</div>{% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% else %}
+      <tr><td colspan="{{ PIPELINE_STAGES|length + 1 }}" style="text-align:center;color:var(--muted);padding:40px;">No assigned leads.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: MATRIX (Stage × Product) ══════════════════ -->
+<div id="pane-matrix" class="view-pane" style="display:none;">
+  {% set products_list = products %}
+  <div style="overflow-x:auto;">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th style="min-width:130px;">Stage \ Product</th>
+          {% for p in products_list %}<th>{{ p.icon }} {{ p.name }}</th>{% endfor %}
+          <th>Unassigned</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for stage in PIPELINE_STAGES %}
+      {% set sc = SC.get(stage,{'b':'#B0B8C8','l':'#8892A4'}) %}
+      <tr>
+        <td style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:{{ sc.l }};border-left:3px solid {{ sc.b }};padding-left:12px;">{{ stage }}</td>
+        {% for p in products_list %}
+        {% set cell = [] %}{% for l in leads %}{% if l.status==stage and l.product_id==p.id %}{% set _ = cell.append(l) %}{% endif %}{% endfor %}
+        <td>
+          {% for l in cell %}
+          <div class="sw-card" style="border-left-color:{{ p.color }};" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'">
+            <div class="sw-co" style="font-size:12px;">{{ l.company }}</div>
+            <div class="sw-ft"><span style="font-size:11px;color:var(--muted);">{{ l.contact }}</span><span style="font-size:12px;font-weight:700;">{{ fmt_usd(l.value) }}</span></div>
+          </div>
+          {% else %}<div class="sw-empty">—</div>{% endfor %}
+        </td>
+        {% endfor %}
+        <td>
+          {% set unassigned = [] %}{% for l in leads %}{% if l.status==stage and not l.product_id %}{% set _ = unassigned.append(l) %}{% endif %}{% endfor %}
+          {% for l in unassigned %}<div class="sw-card" style="border-left-color:#B0B8C8;" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'"><div class="sw-co" style="font-size:12px;">{{ l.company }}</div></div>{% else %}<div class="sw-empty">—</div>{% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: LIST ══════════════════ -->
+<div id="pane-list" class="view-pane" style="display:none;">
+  <div style="background:var(--card-bg);border-radius:12px;border:1px solid var(--card-border);overflow:hidden;">
+    <table class="list-table">
+      <thead><tr><th>Company</th><th>Contact</th><th>Product</th><th>Stage</th><th>Rep</th><th>Value</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+      {% for l in leads %}
+      <tr>
+        <td><div style="font-weight:700;">{{ l.company }}</div><div style="font-size:11px;color:var(--muted);">{{ l.email }}</div></td>
+        <td style="color:var(--muted);">{{ l.contact or '—' }}</td>
+        <td>{% if l.product %}<span style="color:{{ l.product.color }};font-weight:700;">{{ l.product.icon }} {{ l.product.name }}</span>{% endif %}{% if l.plan %}<div style="font-size:11px;color:var(--muted);">{{ l.plan.name }}</div>{% endif %}</td>
+        <td><span class="s-pill" style="background:{{ SC2.get(l.status,'#8892A4') }}20;color:{{ SC2.get(l.status,'#8892A4') }};">{{ l.status }}</span></td>
+        <td style="font-size:12.5px;color:var(--muted);">{{ l.assignee.name if l.assignee else '—' }}</td>
+        <td style="font-weight:700;">{{ fmt_usd(l.value) }}</td>
+        <td style="font-size:11.5px;color:var(--muted);">{{ l.created_at.strftime('%Y-%m-%d') }}</td>
+        <td><a href="{{ url_for('lead_edit',lid=l.id) }}" style="font-size:12px;color:#4C9EEB;font-weight:600;text-decoration:none;">Edit</a></td>
+      </tr>
+      {% else %}<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No leads.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: TABLE / GRID ══════════════════ -->
+<div id="pane-table" class="view-pane" style="display:none;">
+  <div style="background:var(--card-bg);border-radius:12px;border:1px solid var(--card-border);overflow:hidden;">
+    <table class="list-table">
+      <thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Product</th><th>Plan</th><th>Stage</th><th>Rep</th><th>Base $</th><th>Discount</th><th>Final $/mo</th><th>Setup $</th><th>Referral</th><th>Date</th></tr></thead>
+      <tbody>
+      {% for l in leads %}
+      <tr onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'" style="cursor:pointer;">
+        <td style="font-weight:700;white-space:nowrap;">{{ l.company }}</td>
+        <td style="white-space:nowrap;">{{ l.contact or '—' }}</td>
+        <td style="font-size:11.5px;color:var(--muted);">{{ l.email or '—' }}</td>
+        <td style="font-size:11.5px;color:var(--muted);">{{ l.phone or '—' }}</td>
+        <td>{% if l.product %}{{ l.product.icon }} {{ l.product.name }}{% else %}—{% endif %}</td>
+        <td>{% if l.plan %}{{ l.plan.name }}{% else %}—{% endif %}</td>
+        <td><span class="s-pill" style="background:{{ SC2.get(l.status,'#8892A4') }}20;color:{{ SC2.get(l.status,'#8892A4') }};white-space:nowrap;">{{ l.status }}</span></td>
+        <td style="white-space:nowrap;">{{ l.assignee.name if l.assignee else '—' }}</td>
+        <td style="font-weight:600;">{{ fmt_usd(l.value) }}</td>
+        <td style="font-size:11.5px;color:#B07010;">{% if l.discount_type and l.discount_type!='none' %}{{ l.discount_value|int }}{% if l.discount_type=='pct' %}%{% elif l.discount_type=='fixed' %}$ off{% else %} {{ l.discount_type }}{% endif %}{% else %}—{% endif %}</td>
+        <td style="font-weight:700;color:#22A06B;">{{ fmt_usd(l.value) }}</td>
+        <td>{{ fmt_usd(l.setup_fee) if l.setup_fee else '—' }}</td>
+        <td style="font-size:11.5px;">{% if l.referral %}{{ l.referral.name }} ({{ l.referral_pct|int }}%){% else %}—{% endif %}</td>
+        <td style="font-size:11px;color:var(--muted);white-space:nowrap;">{{ l.created_at.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% else %}<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:40px;">No leads.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: FUNNEL ══════════════════ -->
+<div id="pane-funnel" class="view-pane" style="display:none;">
+  {% set funnel_colors = ['#B0B8C8','#4C9EEB','#9B6FEB','#F0A030','#3DB8CF','#22A06B','#E55353'] %}
+  {% set total_all = leads|length or 1 %}
+  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:28px 32px;">
+    <div style="font-size:16px;font-weight:800;color:var(--main-color);margin-bottom:24px;">Pipeline Funnel — {{ leads|length }} total leads</div>
+    {% for stage in PIPELINE_STAGES %}
+    {% set cnt = leads|selectattr('status','eq',stage)|list|length %}
+    {% set val = namespace(total=0) %}{% for l in leads %}{% if l.status==stage %}{% set val.total = val.total + l.value %}{% endif %}{% endfor %}
+    {% set pct = (cnt / total_all * 100)|round(1) %}
+    {% set bar_w = [pct * 1.4, 100]|min %}
+    {% set fc = funnel_colors[loop.index0 % funnel_colors|length] %}
+    <div class="funnel-stage">
+      <div class="funnel-label" style="color:var(--main-color);">{{ stage }}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:{{ bar_w }}%;background:{{ fc }};max-width:100%;">
+          {% if cnt > 0 %}{{ cnt }} lead{{ 's' if cnt!=1 else '' }} · {{ fmt_usd(val.total) }}{% endif %}
+        </div>
+      </div>
+      <div class="funnel-count">
+        <div style="font-weight:700;">{{ cnt }}</div>
+        <div class="funnel-pct">{{ pct }}%</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: KPI DASHBOARD ══════════════════ -->
+<div id="pane-kpidash" class="view-pane" style="display:none;">
+  <div class="kpi-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Revenue by Product</div>
+      <canvas id="chart-product" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Pipeline by Stage (Count)</div>
+      <canvas id="chart-stage" height="200"></canvas>
+    </div>
+  </div>
+  <div class="kpi-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Rep Performance — MRR Won</div>
+      <canvas id="chart-rep" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Win Rate by Rep</div>
+      <canvas id="chart-winrate" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: WORKLOAD ══════════════════ -->
+<div id="pane-workload" class="view-pane" style="display:none;">
+  <div style="margin-bottom:12px;font-size:13px;color:var(--muted);">Open leads per rep — capacity guide: 🟢 &lt;5 · 🟡 5–10 · 🔴 &gt;10</div>
+  {% for u in swimlane_users %}
+  {% set stats = rep_stats.get(u.id,{}) %}
+  {% set open = stats.get('pipeline',0) %}
+  {% set won = stats.get('won',0) %}
+  {% set total = stats.get('total',0) %}
+  {% set cap_pct = [open / 15 * 100, 100]|min %}
+  {% set rc = REP_COLORS[loop.index0 % REP_COLORS|length] %}
+  <div class="workload-row">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="sw-avatar" style="background:{{ rc }};width:36px;height:36px;font-size:13px;">{{ u.name[0] }}</div>
+        <div>
+          <div class="wl-rep">{{ u.name }}</div>
+          <div style="font-size:12px;color:var(--muted);">{{ open }} open · {{ won }} won · {{ fmt_usd(stats.get('mrr',0)) }}/mo MRR</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:20px;">{% if open < 5 %}🟢{% elif open <= 10 %}🟡{% else %}🔴{% endif %}</span>
+      </div>
+    </div>
+    <div class="wl-bar-wrap">
+      <div class="wl-bar" style="width:{{ cap_pct }}%;background:{% if open<5 %}#22A06B{% elif open<=10 %}#F0A030{% else %}#E55353{% endif %};"></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--muted);">{{ open }} / 15 recommended capacity</div>
+    <!-- Stage breakdown mini -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+      {% for stage in PIPELINE_STAGES %}
+      {% set sc = SC.get(stage,{'b':'#B0B8C8','l':'#8892A4'}) %}
+      {% set cnt = swimlane.get(u.id,{}).get(stage,[])|length %}
+      {% if cnt > 0 %}
+      <span style="background:{{ sc.b }}20;color:{{ sc.l }};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">{{ stage }}: {{ cnt }}</span>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div style="text-align:center;color:var(--muted);padding:60px;background:var(--card-bg);border-radius:12px;border:1px solid var(--card-border);">No reps with assigned leads.</div>
+  {% endfor %}
+</div>
+
+<!-- ══════════════════ PANE: CALENDAR ══════════════════ -->
+<div id="pane-calendar" class="view-pane" style="display:none;">
+  {% set today_d = date.today() %}
+  {% set year = today_d.year %}
+  {% set month = today_d.month %}
+  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;">
+    <div style="font-size:16px;font-weight:800;color:var(--main-color);margin-bottom:16px;">
+      {{ today_d.strftime('%B %Y') }} — Lead Dates
+    </div>
+    <div class="cal-grid" style="margin-bottom:8px;">
+      {% for d in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] %}
+      <div class="cal-day-hdr">{{ d }}</div>
+      {% endfor %}
+    </div>
+    <!-- Build calendar: first get day-of-week offset -->
+    {% set import_dt = namespace(val=0) %}
+    {% set first_dow = today_d.replace(day=1).weekday() %}
+    {% set first_dow_sun = (first_dow + 1) % 7 %}
+    <!-- leads indexed by day -->
+    {% set cal_leads = namespace(data={}) %}
+    {% for l in leads %}
+      {% set d = l.created_at.day %}
+      {% if l.created_at.month == month and l.created_at.year == year %}
+        {# Jinja doesn't support dict mutation easily — render inline #}
+      {% endif %}
+    {% endfor %}
+    <div class="cal-grid">
+      {% for i in range(first_dow_sun) %}
+      <div class="cal-day other-month"><div class="cal-day-num">—</div></div>
+      {% endfor %}
+      {% for day in range(1, 32) %}
+        {% if day <= 31 %}
+        {% set is_today = (day == today_d.day) %}
+        <div class="cal-day {% if is_today %}today{% endif %}">
+          <div class="cal-day-num" style="color:{% if is_today %}#22A06B{% else %}var(--muted){% endif %};">{{ day }}</div>
+          {% for l in leads %}
+            {% if l.created_at.month == month and l.created_at.year == year and l.created_at.day == day %}
+            <div class="cal-event" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'" title="{{ l.company }}">
+              {{ l.company[:15] }}{% if l.company|length > 15 %}…{% endif %}
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: TIMELINE ══════════════════ -->
+<div id="pane-timeline" class="view-pane" style="display:none;">
+  {% set tl_colors = ['#22A06B','#4C9EEB','#9B6FEB','#F0A030','#E55353','#3DB8CF','#C9A84C','#EC6EA8'] %}
+  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;">
+    <div style="font-size:16px;font-weight:800;color:var(--main-color);margin-bottom:4px;">Timeline View — Leads by Created Date</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Bar width = days since creation</div>
+    <!-- Header: date axis labels -->
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--card-border);">
+      <div style="width:200px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);">Lead</div>
+      <div style="flex:1;display:flex;justify-content:space-between;">
+        <span style="font-size:11px;color:var(--muted);">Older →</span>
+        <span style="font-size:11px;color:var(--muted);">→ Today</span>
+      </div>
+    </div>
+    {% set today_ts = date.today() %}
+    {% set max_days = namespace(val=1) %}
+    {% for l in leads %}{% set d = (today_ts - l.created_at.date()).days %}{% if d > max_days.val %}{% set max_days.val = d %}{% endif %}{% endfor %}
+    {% for l in leads %}
+    {% set days_old = (today_ts - l.created_at.date()).days %}
+    {% set bar_pct = [days_old / max_days.val * 100, 100]|min if max_days.val > 0 else 5 %}
+    {% set sc = SC.get(l.status,{'b':'#B0B8C8','l':'#8892A4'}) %}
+    {% set tc = tl_colors[loop.index0 % tl_colors|length] %}
+    <div class="timeline-row" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'" style="cursor:pointer;">
+      <div class="tl-info">
+        <div style="font-weight:700;font-size:13px;color:var(--main-color);">{{ l.company }}</div>
+        <div style="font-size:11px;color:var(--muted);">{{ l.contact }} · {{ l.created_at.strftime('%b %d') }}</div>
+        <span class="s-pill" style="background:{{ sc.b }}20;color:{{ sc.l }};font-size:10px;margin-top:3px;">{{ l.status }}</span>
+      </div>
+      <div class="tl-track">
+        <div class="tl-bar" style="right:0;width:{{ [bar_pct, 8]|max }}%;background:{{ tc }};">
+          {{ fmt_usd(l.value) }}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:var(--muted);padding:40px;">No leads.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: ACTIVITY FEED ══════════════════ -->
+<div id="pane-activity" class="view-pane" style="display:none;">
+  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;padding:20px;">
+    <div style="font-size:16px;font-weight:800;color:var(--main-color);margin-bottom:20px;">Activity Feed — Recent Lead Changes</div>
+    {% set all_sorted = leads|sort(attribute='created_at',reverse=true) %}
+    {% for l in all_sorted %}
+    {% set sc = SC.get(l.status,{'b':'#B0B8C8','l':'#8892A4'}) %}
+    <div class="feed-item" onclick="window.location='{{ url_for('lead_edit',lid=l.id) }}'" style="cursor:pointer;">
+      <div class="feed-dot" style="background:{{ sc.b }};margin-top:6px;"></div>
+      <div class="feed-content">
+        <div style="font-size:13.5px;font-weight:700;color:var(--main-color);">{{ l.company }}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:2px;">
+          {{ l.contact or '' }}
+          {% if l.assignee %} · <strong>{{ l.assignee.name }}</strong>{% endif %}
+          · <span class="s-pill" style="background:{{ sc.b }}20;color:{{ sc.l }};font-size:11px;">{{ l.status }}</span>
+        </div>
+        {% if l.notes %}<div style="font-size:12px;color:var(--muted);margin-top:4px;font-style:italic;">{{ l.notes[:100] }}{% if l.notes|length>100 %}…{% endif %}</div>{% endif %}
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-weight:700;font-size:13px;color:var(--main-color);">{{ fmt_usd(l.value) }}</div>
+        <div class="feed-time">{{ l.created_at.strftime('%b %d, %Y') }}</div>
+      </div>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:var(--muted);padding:40px;">No activity.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══════════════════ PANE: SUBSCRIPTIONS ══════════════════ -->
+<div id="pane-subs" class="view-pane" style="display:none;">
+  <div style="margin-bottom:14px;font-size:14px;font-weight:700;color:var(--main-color);">
+    {{ subscribers|length }} subscriber{{ 's' if subscribers|length!=1 else '' }} · <span style="color:#22A06B;">{{ fmt_usd(mrr) }} MRR</span>
+  </div>
+  {% for s in subscribers %}
+  <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;">
+    <div style="width:42px;height:42px;border-radius:10px;background:{{ s.product.color if s.product else '#22A06B' }}20;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">{{ s.product.icon if s.product else '📦' }}</div>
+    <div style="flex:1;">
+      <div style="font-size:14px;font-weight:700;color:var(--main-color);">{{ s.company }}</div>
+      <div style="font-size:12px;color:var(--muted);">{{ s.contact }} · {{ s.email }}{% if s.plan %} · <strong>{{ s.plan.name }}</strong>{% endif %}{% if s.assignee %} · Rep: {{ s.assignee.name }}{% endif %}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:18px;font-weight:800;color:#22A06B;">{{ fmt_usd(sub_prices[s.id]) }}/mo</div>
+      <form method="post" action="{{ url_for('invoice_new') }}" style="margin-top:6px;">
+        <input type="hidden" name="lead_id" value="{{ s.id }}"><input type="hidden" name="amount" value="{{ sub_prices[s.id] }}">
+        <input type="hidden" name="cadence" value="{{ s.plan.cadence if s.plan else 'monthly' }}">
+        <input type="hidden" name="due_date" value="{{ date.today().strftime('%Y-%m-%d') }}"><input type="hidden" name="send_via" value="square">
+        <button style="background:#22A06B;color:#fff;border:none;border-radius:6px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;"><i class="bi bi-square"></i> Invoice</button>
+      </form>
+    </div>
+  </div>
+  {% else %}<div style="text-align:center;color:var(--muted);padding:60px;background:var(--card-bg);border-radius:12px;border:1px solid var(--card-border);">No subscribers yet.</div>{% endfor %}
+</div>
+
+<!-- ══════════════════ PANE: BILLING ══════════════════ -->
+<div id="pane-billing" class="view-pane" style="display:none;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:16px 18px;"><div class="kpi-lbl">Sent</div><div style="font-size:22px;font-weight:800;color:#B07010;">{{ fmt_usd(sent_invoices) }}</div></div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:16px 18px;"><div class="kpi-lbl">Collected</div><div style="font-size:22px;font-weight:800;color:#167A4F;">{{ fmt_usd(paid_invoices) }}</div></div>
+    <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:16px 18px;"><div class="kpi-lbl">Outstanding</div><div style="font-size:22px;font-weight:800;color:#E55353;">{{ fmt_usd(sent_invoices) }}</div></div>
+  </div>
+  <div style="background:var(--card-bg);border-radius:12px;border:1px solid var(--card-border);overflow:hidden;">
+    <table class="list-table">
+      <thead><tr><th>Invoice</th><th>Company</th><th>Product</th><th>Amount</th><th>Due</th><th>Status</th><th>Pay Link</th></tr></thead>
+      <tbody>
+      {% for i in invoices_all %}
+      <tr>
+        <td style="font-family:monospace;font-size:12px;color:#4C9EEB;">{{ i.ref }}</td>
+        <td style="font-weight:600;">{{ i.lead.company if i.lead else '—' }}</td>
+        <td style="font-size:12px;color:var(--muted);">{% if i.lead and i.lead.product %}{{ i.lead.product.icon }} {{ i.lead.product.name }}{% endif %}{% if i.lead and i.lead.plan %} · {{ i.lead.plan.name }}{% endif %}</td>
+        <td style="font-weight:700;">{{ fmt_usd(i.amount) }}</td>
+        <td style="font-size:12px;color:var(--muted);">{{ i.due_date.strftime('%b %d, %Y') }}</td>
+        <td><span class="s-pill" style="background:{% if i.status=='Paid' %}rgba(34,160,107,.15);color:#167A4F{% elif i.status=='Void' %}rgba(176,184,200,.15);color:var(--muted){% else %}rgba(240,160,48,.15);color:#B07010{% endif %};">{{ i.status }}</span></td>
+        <td>{% if i.square_public_url %}<a href="{{ i.square_public_url }}" target="_blank" style="font-size:12px;color:#4C9EEB;font-weight:600;text-decoration:none;">Pay ↗</a>{% else %}—{% endif %}</td>
+      </tr>
+      {% else %}<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;">No invoices.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /dash-wrap -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── All pane IDs ── */
+const ALL_PANES = ['kanban','swimlane','matrix','list','table','funnel','kpidash','workload','calendar','timeline','activity','subs','billing'];
+const VIEW_META = {
+  kanban:   {icon:'📋', label:'Pipeline Board'},
+  swimlane: {icon:'🏊', label:'Swimlane Board'},
+  matrix:   {icon:'⊞',  label:'Matrix Board'},
+  list:     {icon:'📄', label:'List View'},
+  table:    {icon:'📊', label:'Table / Grid'},
+  funnel:   {icon:'🔻', label:'Funnel View'},
+  kpidash:  {icon:'📈', label:'Dashboard View'},
+  workload: {icon:'⚖️', label:'Workload View'},
+  calendar: {icon:'📅', label:'Calendar View'},
+  timeline: {icon:'📆', label:'Timeline View'},
+  activity: {icon:'📡', label:'Activity Feed'},
+  subs:     {icon:'💳', label:'Subscriptions'},
+  billing:  {icon:'🧾', label:'Billing & Collection'},
+};
+
+const isAdmin = {{ 'true' if is_admin else 'false' }};
+let chartsInitialised = false;
+
+function showPane(name) {
+  ALL_PANES.forEach(p => {
+    const el = document.getElementById('pane-' + p);
+    if (el) el.style.display = p === name ? '' : 'none';
+  });
+  // Non-admin tabs
+  document.querySelectorAll('.dash-tab').forEach(t => {
+    t.classList.toggle('active', t.id === 'tab-' + name);
+  });
+  if (name === 'kpidash' && !chartsInitialised) initCharts();
+  localStorage.setItem('revfi_view', name);
+}
+
+function setView(name) {
+  showPane(name);
+  const meta = VIEW_META[name] || {icon:'📋', label: name};
+  const btn = document.getElementById('view-btn');
+  if (btn) {
+    document.getElementById('view-icon').textContent  = meta.icon;
+    document.getElementById('view-label').textContent = meta.label;
+  }
+  // Update active item
+  ALL_PANES.forEach(p => {
+    const el = document.getElementById('vdi-' + p);
+    if (el) el.classList.toggle('active', p === name);
+  });
+  document.getElementById('view-dropdown').classList.remove('open');
+  document.getElementById('view-btn').classList.remove('open');
+}
+
+function toggleViewMenu() {
+  const dd  = document.getElementById('view-dropdown');
+  const btn = document.getElementById('view-btn');
+  dd.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.view-selector-wrap')) {
+    const dd = document.getElementById('view-dropdown');
+    const btn = document.getElementById('view-btn');
+    if (dd) dd.classList.remove('open');
+    if (btn) btn.classList.remove('open');
+  }
+});
+
+/* ── Chart.js KPI dashboard ── */
+function initCharts() {
+  chartsInitialised = true;
+  const getCSS = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const textColor = getCSS('--main-color') || '#1a1a2e';
+  const gridColor = getCSS('--card-border') || '#E5E8EF';
+  const defaults = { plugins:{legend:{labels:{color:textColor}}}, scales:{x:{ticks:{color:textColor},grid:{color:gridColor}},y:{ticks:{color:textColor},grid:{color:gridColor}}} };
+
+  // Product MRR
+  new Chart(document.getElementById('chart-product'), { type:'bar', data:{
+    labels: [{% for p in products %}'{{ p.name }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets:[{label:'Won MRR',
+      backgroundColor:['#22A06B','#4C9EEB','#9B6FEB','#F0A030','#E55353'],
+      data:[{% for p in products %}{{ prod_mrr.get(p.id, 0) }}{% if not loop.last %},{% endif %}{% endfor %}]
+    }]}, options:{...defaults, plugins:{legend:{display:false}}} });
+
+  // Stage counts
+  new Chart(document.getElementById('chart-stage'), { type:'doughnut', data:{
+    labels:[{% for s in PIPELINE_STAGES %}'{{ s }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets:[{data:[{% for s in PIPELINE_STAGES %}{{ stage_counts.get(s, 0) }}{% if not loop.last %},{% endif %}{% endfor %}],
+      backgroundColor:['#B0B8C8','#4C9EEB','#9B6FEB','#F0A030','#3DB8CF','#22A06B','#E55353']
+    }]}, options:{plugins:{legend:{labels:{color:textColor}}}} });
+
+  // Rep MRR
+  {% if swimlane_users %}
+  new Chart(document.getElementById('chart-rep'), { type:'bar', data:{
+    labels:[{% for u in swimlane_users %}'{{ u.name }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets:[{label:'MRR Won',
+      backgroundColor:['#22A06B','#4C9EEB','#9B6FEB','#F0A030','#E55353','#3DB8CF','#C9A84C'],
+      data:[{% for u in swimlane_users %}{{ rep_stats.get(u.id,{}).get('mrr',0) }}{% if not loop.last %},{% endif %}{% endfor %}]
+    }]}, options:{...defaults, plugins:{legend:{display:false}}} });
+
+  // Win rate
+  new Chart(document.getElementById('chart-winrate'), { type:'bar', data:{
+    labels:[{% for u in swimlane_users %}'{{ u.name }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    datasets:[{label:'Win Rate %',
+      backgroundColor:'#22A06B80',
+      data:[{% for u in swimlane_users %}{% set s=rep_stats.get(u.id,{}) %}{% set t=s.get('total',0) %}{{ ((s.get('won',0)/t*100)|round(1)) if t>0 else 0 }}{% if not loop.last %},{% endif %}{% endfor %}]
+    }]}, options:{...defaults, plugins:{legend:{display:false}},scales:{x:{ticks:{color:textColor},grid:{color:gridColor}},y:{max:100,ticks:{color:textColor,callback:v=>v+'%'},grid:{color:gridColor}}}} });
+  {% endif %}
+}
+
+/* ── Init on load ── */
+(function() {
+  const saved = localStorage.getItem('revfi_view') || 'kanban';
+  if (isAdmin) {
+    setView(saved);
+  } else {
+    showPane(saved in ['kanban','list','subs','billing'] ? saved : 'kanban');
+  }
+})();
+</script>
+{% endblock %}

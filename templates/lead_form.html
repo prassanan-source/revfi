@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Lead' if lead else 'New Lead' }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">{{ 'Edit Lead' if lead else 'New Lead' }}</div>
+  <div class="page-sub">{{ lead.company if lead else 'Enter lead details below' }}</div>
+</div>
+
+<div class="card" style="max-width:860px;">
+  <div class="card-body p-4">
+    <form method="post">
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Contact Details</div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6"><label class="form-label">Company Name *</label><input type="text" name="company" class="form-control" value="{{ lead.company if lead else '' }}" required></div>
+        <div class="col-md-6"><label class="form-label">Contact Name</label><input type="text" name="contact" class="form-control" value="{{ lead.contact if lead else '' }}"></div>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ lead.email if lead else '' }}"></div>
+        <div class="col-md-6"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ lead.phone if lead else '' }}"></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Product & Pricing</div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Product</label>
+          <select name="product_id" class="form-select" id="product-select">
+            <option value="">Select product…</option>
+            {% for p in products %}
+            <option value="{{ p.id }}" {% if lead and lead.product_id==p.id %}selected{% endif %}>{{ p.icon }} {{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Plan</label>
+          <select name="plan_id" class="form-select" id="plan-select">
+            <option value="">Select plan…</option>
+            {% for p in plans %}
+            <option value="{{ p.id }}" data-price="{{ p.price }}" data-product="{{ p.product_id }}"
+              {% if lead and lead.plan_id==p.id %}selected{% endif %}>
+              {{ p.name }} — ${{ '{:,.0f}'.format(p.price) }}/{{ p.cadence }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Base Monthly Fee ($)</label>
+          <input type="number" name="value" class="form-control" id="value-input" step="0.01" value="{{ lead.value if lead else '0' }}">
+        </div>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label">One-time Setup Fee ($)</label>
+          <input type="number" name="setup_fee" class="form-control" step="0.01" min="0" value="{{ lead.setup_fee if lead else '300' }}" placeholder="0 = waived">
+          <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:3px;">Enter 0 if waived</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Discount / Promotion</div>
+      <div class="row g-3 mb-2">
+        <div class="col-md-3">
+          <label class="form-label">Discount Type</label>
+          <select name="discount_type" class="form-select" id="discount-type">
+            <option value="none"        {% if not lead or lead.discount_type=='none'     %}selected{% endif %}>None</option>
+            <option value="pct"         {% if lead and lead.discount_type=='pct'         %}selected{% endif %}>% off monthly</option>
+            <option value="fixed"       {% if lead and lead.discount_type=='fixed'       %}selected{% endif %}>$ off monthly</option>
+            <option value="waive_setup" {% if lead and lead.discount_type=='waive_setup' %}selected{% endif %}>Waive setup fee</option>
+            <option value="free_months" {% if lead and lead.discount_type=='free_months' %}selected{% endif %}>Free months</option>
+          </select>
+        </div>
+        <div class="col-md-2" id="discount-value-wrap" style="display:none;">
+          <label class="form-label" id="discount-value-label">Amount</label>
+          <input type="number" name="discount_value" class="form-control" step="0.1" min="0" value="{{ lead.discount_value if lead else '0' }}" id="discount-value-input">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Reason <span style="font-size:10px;color:var(--karyva-muted,#8A9BB0);">(shown on agreement)</span></label>
+          <input type="text" name="discount_reason" class="form-control" value="{{ lead.discount_reason if lead else '' }}" placeholder="e.g. Early adopter, Launch pricing">
+        </div>
+      </div>
+      <div id="pricing-preview" class="mb-4 p-3 rounded" style="background:#0d1117;border:1px solid #1f2d3d;font-size:13px;display:none;">
+        <div style="color:var(--karyva-muted,#8A9BB0);margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Pricing Preview</div>
+        <div id="preview-text"></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Pipeline</div>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label">Stage</label>
+          <select name="status" class="form-select">
+            {% for s in PIPELINE_STAGES %}
+            <option value="{{ s }}" {% if lead and lead.status==s %}selected{% elif not lead and s=='New' %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Assigned To</label>
+          <select name="assignee_id" class="form-select">
+            <option value="">Unassigned</option>
+            {% for u in users %}
+            <option value="{{ u.id }}" {% if lead and lead.assignee_id==u.id %}selected{% endif %}>{{ u.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Referral Commission</div>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Referred By</label>
+          <select name="referral_id" class="form-select">
+            <option value="">None</option>
+            {% for u in users %}
+            <option value="{{ u.id }}" {% if lead and lead.referral_id==u.id %}selected{% endif %}>{{ u.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Commission % <span style="font-size:10px;color:var(--karyva-muted,#8A9BB0);">(0–100 of 1st month fee)</span></label>
+          <div class="input-group">
+            <input type="number" name="referral_pct" class="form-control" step="1" min="0" max="100" value="{{ lead.referral_pct|int if lead else '0' }}" id="ref-pct">
+            <span class="input-group-text" style="background:#1f2d3d;border-color:#2a3f58;color:#8A9BB0;">%</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Pays Out After <span style="font-size:10px;color:var(--karyva-muted,#8A9BB0);">(consecutive paid months)</span></label>
+          <div class="input-group">
+            <input type="number" name="referral_months" class="form-control" step="1" min="1" max="24" value="{{ lead.referral_months if lead else '6' }}" id="ref-months">
+            <span class="input-group-text" style="background:#1f2d3d;border-color:#2a3f58;color:#8A9BB0;">mo</span>
+          </div>
+        </div>
+      </div>
+      <div id="referral-preview" class="mb-4" style="font-size:12px;color:var(--karyva-muted,#8A9BB0);padding-left:2px;min-height:18px;"></div>
+
+      <div class="mb-4"><label class="form-label">Notes</label><textarea name="notes" class="form-control" rows="3">{{ lead.notes if lead else '' }}</textarea></div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-gold px-4">{{ 'Update Lead' if lead else 'Create Lead' }}</button>
+        <a href="{{ url_for('leads') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('plan-select').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (opt.dataset.price) { document.getElementById('value-input').value = opt.dataset.price; }
+  updatePreviews();
+});
+document.getElementById('product-select').addEventListener('change', function() {
+  const pid = this.value;
+  const planSel = document.getElementById('plan-select');
+  Array.from(planSel.options).forEach(o => {
+    o.style.display = (!pid || o.dataset.product === pid || o.value === '') ? '' : 'none';
+  });
+  planSel.value = '';
+  document.getElementById('value-input').value = '0';
+  updatePreviews();
+});
+['discount-type','discount-value-input','value-input'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreviews);
+});
+['ref-pct','ref-months'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreviews);
+});
+document.querySelector('[name=setup_fee]').addEventListener('input', updatePreviews);
+
+function updatePreviews() {
+  const base   = parseFloat(document.getElementById('value-input').value) || 0;
+  const dtype  = document.getElementById('discount-type').value;
+  const dval   = parseFloat(document.getElementById('discount-value-input').value) || 0;
+  const setup  = parseFloat(document.querySelector('[name=setup_fee]').value) || 0;
+  const refPct = parseFloat(document.getElementById('ref-pct').value) || 0;
+  const refMo  = parseInt(document.getElementById('ref-months').value) || 6;
+  const wrap   = document.getElementById('discount-value-wrap');
+  const lbl    = document.getElementById('discount-value-label');
+
+  // Discount value input visibility
+  if (dtype === 'none' || dtype === 'waive_setup') { wrap.style.display = 'none'; }
+  else {
+    wrap.style.display = '';
+    lbl.textContent = dtype === 'pct' ? 'Discount %' : dtype === 'fixed' ? '$ Amount' : '# Months';
+  }
+
+  // Calc final price
+  let final = base, discountLabel = '';
+  if (dtype === 'pct')          { final = base * (1 - dval/100); discountLabel = dval + '% off'; }
+  else if (dtype === 'fixed')   { final = Math.max(base - dval, 0); discountLabel = '$' + dval.toFixed(0) + ' off/mo'; }
+  else if (dtype === 'waive_setup') { discountLabel = 'Setup fee waived'; }
+  else if (dtype === 'free_months') { discountLabel = 'First ' + Math.round(dval) + ' month(s) free'; }
+
+  const preview = document.getElementById('pricing-preview');
+  const previewTxt = document.getElementById('preview-text');
+  if (base > 0) {
+    preview.style.display = 'block';
+    let txt = '';
+    if (dtype !== 'none' && base !== final) {
+      txt += `<span style="text-decoration:line-through;color:#6B7280;margin-right:6px;">$${base.toFixed(2)}/mo</span>`;
+      txt += `<span style="color:#10B981;font-weight:700;">$${final.toFixed(2)}/mo</span>`;
+      txt += ` <span style="color:#F59E0B;font-size:12px;margin-left:4px;">(${discountLabel})</span>`;
+    } else {
+      txt = `<span style="color:#10B981;font-weight:700;">$${final.toFixed(2)}/mo</span>`;
+      if (discountLabel) txt += ` <span style="color:#F59E0B;font-size:12px;margin-left:4px;">(${discountLabel})</span>`;
+    }
+    if (setup > 0) txt += ` &nbsp;+&nbsp; <span style="color:#8A9BB0;font-size:12px;">$${setup.toFixed(2)} one-time setup</span>`;
+    else if (dtype === 'waive_setup') txt += ` <span style="color:#10B981;font-size:12px;">(setup fee waived)</span>`;
+    previewTxt.innerHTML = txt;
+  } else {
+    preview.style.display = 'none';
+  }
+
+  // Referral preview
+  const refDiv = document.getElementById('referral-preview');
+  if (refPct > 0 && base > 0) {
+    const comm = (final * refPct / 100).toFixed(2);
+    refDiv.innerHTML = `Referral payout: <strong style="color:#C9A84C;">$${comm}</strong> &nbsp;(${refPct}% of $${final.toFixed(2)} first month fee) — paid after <strong style="color:#fff;">${refMo} consecutive paid months</strong>`;
+  } else {
+    refDiv.innerHTML = '';
+  }
+}
+
+// Init
+document.getElementById('product-select').dispatchEvent(new Event('change'));
+updatePreviews();
+</script>
+{% endblock %}

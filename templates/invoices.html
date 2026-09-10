@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <div class="page-title">Invoices</div>
+    <div class="page-sub">
+      Sent: {{ fmt_usd(invoices|selectattr('status','eq','Sent')|sum(attribute='amount')) }} ·
+      Collected: {{ fmt_usd(invoices|selectattr('status','eq','Paid')|sum(attribute='amount')) }}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <form method="post" action="{{ url_for('invoice_generate_bulk') }}" class="d-inline">
+      <button class="btn btn-navy"><i class="bi bi-lightning me-1"></i>Generate Monthly</button>
+    </form>
+    <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#newInvModal">
+      <i class="bi bi-plus-lg me-1"></i> New Invoice
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr><th>Invoice</th><th>Company</th><th>Product</th><th>Amount</th><th>Schedule</th><th>Due</th><th>Status</th><th>Square</th><th>Paid</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for i in invoices %}
+      <tr>
+        <td style="font-family:monospace;font-size:12px;color:#C9A84C;">{{ i.ref }}</td>
+        <td>
+          <strong>{{ i.lead.company if i.lead else '—' }}</strong>
+          {% if i.lead %}<div style="font-size:11px;color:#8A9BB0;">{{ i.lead.email }}</div>{% endif %}
+        </td>
+        <td style="font-size:12.5px;">
+          {% if i.lead and i.lead.product %}
+            <span style="color:{{ i.lead.product.color }};font-weight:700;">{{ i.lead.product.icon }} {{ i.lead.product.name }}</span>
+          {% endif %}
+          {% if i.lead and i.lead.plan %}<div style="font-size:11px;color:#8A9BB0;">{{ i.lead.plan.name }}</div>{% endif %}
+        </td>
+        <td style="font-weight:700;font-size:14px;">{{ fmt_usd(i.amount) }}</td>
+        <td>
+          <span class="badge rounded-pill px-3" style="background:rgba(99,102,241,.15);color:#818CF8;font-size:11px;font-weight:700;">
+            {{ i.cadence|capitalize }}
+          </span>
+        </td>
+        <td style="font-size:12.5px;">
+          {{ i.due_date.strftime('%b %d, %Y') }}
+          {% if i.status == 'Sent' and i.due_date < date.today() %}
+          <span class="badge ms-1" style="background:rgba(239,68,68,.15);color:#EF4444;font-size:10px;">Overdue</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge rounded-pill px-3" style="font-size:11px;font-weight:700;background:
+            {% if i.status=='Paid' %}rgba(16,185,129,.15);color:#10B981
+            {% elif i.status=='Void' %}rgba(107,114,128,.15);color:#9CA3AF
+            {% else %}rgba(245,158,11,.15);color:#F59E0B{% endif %};">
+            {{ i.status }}
+          </span>
+        </td>
+        <td style="font-size:11px;">
+          {% if i.square_public_url %}
+          <a href="{{ i.square_public_url }}" target="_blank" class="btn btn-sm mb-1"
+            style="background:rgba(201,168,76,.15);color:#C9A84C;font-size:11px;">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Pay Link
+          </a>
+          {% elif i.square_invoice_id %}
+          <span style="color:#8A9BB0;font-size:10px;font-family:monospace;">{{ i.square_invoice_id[-10:] }}…</span>
+          {% else %}—{% endif %}
+        </td>
+        <td style="font-size:12px;color:#8A9BB0;">{{ i.paid_at.strftime('%b %d') if i.paid_at else '—' }}</td>
+        <td>
+          {% if i.status == 'Sent' %}
+          <div class="d-flex gap-1 flex-wrap">
+            <form method="post" action="{{ url_for('invoice_mark_paid', iid=i.id) }}" class="d-inline">
+              <button class="btn btn-sm" style="background:rgba(16,185,129,.15);color:#10B981;font-size:12px;">Mark Paid</button>
+            </form>
+            {% if not i.square_invoice_id %}
+            <form method="post" action="{{ url_for('invoice_send_square', iid=i.id) }}" class="d-inline">
+              <button class="btn btn-sm btn-navy" style="font-size:12px;"><i class="bi bi-square me-1"></i>Send via Square</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('invoice_void', iid=i.id) }}" class="d-inline">
+              <button class="btn btn-sm btn-outline-secondary" style="font-size:12px;">Void</button>
+            </form>
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" class="text-center py-5" style="color:#8A9BB0;">No invoices yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- New Invoice Modal -->
+<div class="modal fade" id="newInvModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-size:15px;font-weight:700;">Create Invoice</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('invoice_new') }}">
+        <!-- Default to Square -->
+        <input type="hidden" name="send_via" id="send-via-hidden" value="square">
+        <div class="modal-body">
+
+          <!-- Subscriber selector -->
+          <div class="mb-3">
+            <label class="form-label">Subscriber (auto-fill)</label>
+            <select class="form-select" id="inv-sub-sel">
+              <option value="">Select subscriber…</option>
+              {% for s in subscribers %}
+              <option value="{{ s.id }}"
+                data-val="{{ sub_prices[s.id].final }}"
+                data-setup="{{ s.setup_fee or 0 }}"
+                data-cad="{{ s.plan.cadence if s.plan else 'monthly' }}"
+                data-company="{{ s.company }}">
+                {{ s.company }} — {{ fmt_usd(sub_prices[s.id].final) }}/mo
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <input type="hidden" name="lead_id" id="inv-lead-id">
+
+          <!-- Pricing summary -->
+          <div id="inv-pricing-summary" class="mb-3 p-3 rounded" style="background:#0d1117;border:1px solid #1f2d3d;font-size:13px;display:none;">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="color:#8A9BB0;">Subscription fee</span>
+              <span id="sum-sub" style="color:#fff;font-weight:700;"></span>
+            </div>
+            <div id="sum-setup-row" class="d-flex justify-content-between mb-1" style="display:none!important;">
+              <span style="color:#8A9BB0;">One-time setup fee</span>
+              <span id="sum-setup" style="color:#C9A84C;font-weight:700;"></span>
+            </div>
+            <div class="d-flex justify-content-between pt-2" style="border-top:1px solid #1f2d3d;margin-top:4px;">
+              <span style="color:#fff;font-weight:700;">Total this invoice</span>
+              <span id="sum-total" style="color:#10B981;font-weight:800;font-size:15px;"></span>
+            </div>
+          </div>
+
+          <!-- Include setup fee checkbox -->
+          <div id="setup-fee-row" class="mb-3 form-check" style="display:none;">
+            <input type="checkbox" class="form-check-input" id="include-setup" checked>
+            <label class="form-check-label" for="include-setup" style="font-size:13.5px;color:#cdd5e0;">
+              Include one-time setup fee
+              <span id="setup-fee-label" style="color:#C9A84C;font-weight:700;"></span>
+            </label>
+          </div>
+
+          <input type="hidden" name="amount" id="inv-amount">
+          <input type="hidden" name="include_setup_fee" id="inv-include-setup" value="0">
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">Pay Schedule</label>
+              <select name="cadence" class="form-select" id="inv-cadence">
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="annual">Annual</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Due Date</label>
+              <input type="date" name="due_date" class="form-control" required
+                value="{{ date.today().strftime('%Y-%m-%d') }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2"></textarea>
+          </div>
+
+          <!-- Send via toggle — Square default -->
+          <div>
+            <label class="form-label">Send Via</label>
+            <div class="d-flex gap-2">
+              <button type="button" id="btn-via-square" onclick="setSendVia('square')"
+                class="btn btn-sm flex-grow-1"
+                style="background:rgba(201,168,76,.2);color:#C9A84C;border:2px solid #C9A84C;font-weight:700;">
+                <i class="bi bi-square me-1"></i>Square <span style="font-size:10px;opacity:.8;">(default)</span>
+              </button>
+              <button type="button" id="btn-via-email" onclick="setSendVia('email')"
+                class="btn btn-sm flex-grow-1 btn-outline-secondary">
+                <i class="bi bi-envelope me-1"></i>Email only
+              </button>
+            </div>
+            <div style="font-size:11px;color:#8A9BB0;margin-top:5px;" id="send-via-note">
+              Square sends the client a branded payment page — they can pay by card, ACH or Cash App.
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm px-4" id="send-btn">
+            <i class="bi bi-square me-1" id="send-icon"></i><span id="send-label">Send via Square</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let currentSubVal = 0, currentSetup = 0;
+
+document.getElementById('inv-sub-sel').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (!opt.value) return;
+  document.getElementById('inv-lead-id').value = opt.value;
+  document.getElementById('inv-cadence').value = opt.dataset.cad;
+  currentSubVal = parseFloat(opt.dataset.val) || 0;
+  currentSetup  = parseFloat(opt.dataset.setup) || 0;
+  updateInvoiceSummary();
+});
+
+document.getElementById('include-setup').addEventListener('change', updateInvoiceSummary);
+
+function updateInvoiceSummary() {
+  const includeSetup = document.getElementById('include-setup').checked && currentSetup > 0;
+  const total = currentSubVal + (includeSetup ? currentSetup : 0);
+
+  document.getElementById('inv-amount').value = total.toFixed(2);
+  document.getElementById('inv-include-setup').value = includeSetup ? '1' : '0';
+
+  // Show pricing summary
+  const summary = document.getElementById('inv-pricing-summary');
+  const setupRow = document.getElementById('setup-fee-row');
+  const sumSetupRow = document.getElementById('sum-setup-row');
+
+  if (currentSubVal > 0) {
+    summary.style.display = 'block';
+    document.getElementById('sum-sub').textContent = '$' + currentSubVal.toFixed(2) + '/mo';
+    document.getElementById('sum-total').textContent = '$' + total.toFixed(2);
+
+    if (currentSetup > 0) {
+      setupRow.style.display = 'block';
+      document.getElementById('setup-fee-label').textContent = '($' + currentSetup.toFixed(2) + ')';
+      sumSetupRow.style.removeProperty('display');
+      document.getElementById('sum-setup').textContent = includeSetup ? '$' + currentSetup.toFixed(2) : 'Not included';
+      sumSetupRow.style.display = includeSetup ? '' : 'none';
+    } else {
+      setupRow.style.display = 'none';
+      sumSetupRow.style.display = 'none';
+    }
+  } else {
+    summary.style.display = 'none';
+  }
+}
+
+function setSendVia(via) {
+  document.getElementById('send-via-hidden').value = via;
+  const btnSquare = document.getElementById('btn-via-square');
+  const btnEmail  = document.getElementById('btn-via-email');
+  const note      = document.getElementById('send-via-note');
+  const icon      = document.getElementById('send-icon');
+  const label     = document.getElementById('send-label');
+
+  if (via === 'square') {
+    btnSquare.style.cssText = 'background:rgba(201,168,76,.2);color:#C9A84C;border:2px solid #C9A84C;font-weight:700;';
+    btnEmail.className  = 'btn btn-sm flex-grow-1 btn-outline-secondary';
+    btnEmail.style.cssText = '';
+    note.textContent = 'Square sends the client a branded payment page — they can pay by card, ACH or Cash App.';
+    icon.className = 'bi bi-square me-1';
+    label.textContent = 'Send via Square';
+  } else {
+    btnEmail.style.cssText = 'background:rgba(59,130,246,.2);color:#60A5FA;border:2px solid #3B82F6;font-weight:700;';
+    btnSquare.className = 'btn btn-sm flex-grow-1 btn-outline-secondary';
+    btnSquare.style.cssText = '';
+    note.textContent = 'Sends an HTML invoice email directly to the client.';
+    icon.className = 'bi bi-envelope me-1';
+    label.textContent = 'Send via Email';
+  }
+}
+
+// Init
+setSendVia('square');
+</script>
+{% endblock %}
