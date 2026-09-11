@@ -575,6 +575,15 @@ case "$CMD" in
     ;;
   pull)
     ensure_live_db_writable
+    # Never `git pull` / `git pull --rebase` on this host. Logs, pid files, and
+    # leftover rebase state make pull conflict; this path is the only update.
+    git rebase --abort >/dev/null 2>&1 || true
+    git merge --abort >/dev/null 2>&1 || true
+    git cherry-pick --abort >/dev/null 2>&1 || true
+    rm -rf .git/rebase-merge .git/rebase-apply .git/MERGE_HEAD
+    git config --local pull.rebase false
+    git config --local rebase.autoStash false
+    git config --local pull.ff only
     git fetch origin
     origin_dbs="$(git ls-tree -r --name-only origin/master | grep -E '(^data/.*\.db$|\.db-wal$|\.db-shm$)' || true)"
     if [[ -n "$origin_dbs" ]]; then
@@ -582,11 +591,12 @@ case "$CMD" in
       printf '%s\n' "$origin_dbs" >&2
       exit 1
     fi
-    git checkout master
+    git checkout -B master origin/master
     git reset --hard origin/master
+    mkdir -p "$APPDIR/tmp" "$LOG_DIR" "$APPDIR/data" "$APPDIR/backups"
     ensure_live_db_writable
     echo "Updated to origin/master. Live sqlite in data/ is untracked and was not replaced."
-    echo "Then: $0 deps && $0 start"
+    echo "Do not run git pull on this host. Next: $0 deps && $0 start"
     exit 0
     ;;
   deps)

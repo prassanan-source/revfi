@@ -10,8 +10,10 @@ __pycache__/
 venv/
 logs/
 tmp/
+backups/
 *.pid
 *.log
+*.bind
 gunicorn.log
 .htaccess
 revfi/

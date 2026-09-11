@@ -23,8 +23,19 @@ Sales reps default: `Sales@123`
 
 ## TMDHosting Deploy
 
+On the host **never** run `git pull` or `git pull --rebase` (runtime logs/pid files and leftover rebases break the tree). Update with:
+
 ```bash
-# Upload the revfi/ folder to ~/revfi on TMDHosting
+cd ~/revfi
+./start.sh pull
+./start.sh deps
+./start.sh start
+```
+
+That fetches `origin/master`, aborts any stuck rebase, hard-resets code, and leaves `data/revfi.db` alone.
+
+```bash
+# First-time process start (local gunicorn helper)
 bash deploy.sh
 ```
 
