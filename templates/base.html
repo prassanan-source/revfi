@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" id="html-root">
+<html lang="en" id="html-root" data-theme="dark" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}Revfi{% endblock %} — SubsManager</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -131,28 +131,46 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); font-family: 'Inter', system-ui, sans-serif; color: var(--main-color); transition: background .2s, color .2s; }
+    html, body { max-width: 100%; }
+    body { background: var(--bg); font-family: 'Inter', system-ui, sans-serif; color: var(--main-color); transition: background .2s, color .2s; min-height: 100dvh; }
     button { cursor: pointer; font-family: inherit; }
     input, select, textarea { font-family: inherit; }
+    img, video, canvas { max-width: 100%; height: auto; }
+    a, button, .sidebar-link, .btn { touch-action: manipulation; }
+
+    .mobile-topbar {
+      display: none;
+      position: sticky; top: 0; z-index: 250;
+      height: 52px; padding: 0 12px;
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+      background: var(--sidebar-bg); border-bottom: 1px solid var(--sidebar-border);
+      align-items: center; gap: 10px;
+    }
+    .mobile-menu-btn {
+      width: 42px; height: 42px; border: none; border-radius: 10px;
+      background: transparent; color: var(--brand-name-color); font-size: 22px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .mobile-menu-btn:hover { background: var(--sidebar-hover-bg); }
+    .mobile-topbar .brand-name { font-size: 16px; }
+    .nav-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(8,12,20,.5);
+      z-index: 199; opacity: 0; pointer-events: none;
+    }
+    .nav-overlay.open { display: block; opacity: 1; pointer-events: auto; }
 
     /* ── Sidebar ── */
     #sidebar {
       width: var(--sidebar-w);
-<<<<<<< HEAD
-      min-height: 100vh;
-=======
       height: 100vh;
->>>>>>> 75952c0 (second)
       background: var(--sidebar-bg);
       position: fixed; top:0; left:0; z-index:100;
       display: flex; flex-direction: column;
       border-right: 1px solid var(--sidebar-border);
       transition: background .2s;
-<<<<<<< HEAD
-=======
       overflow-y: auto;
       overflow-x: hidden;
->>>>>>> 75952c0 (second)
     }
     .sidebar-brand { padding: 20px 18px 14px; border-bottom: 1px solid var(--sidebar-border); }
     .brand-tag  { font-size: 10px; font-weight:700; color: var(--brand-tag-color); letter-spacing:2px; text-transform:uppercase; }
@@ -234,23 +252,10 @@
     }
     .theme-btn:hover { border-color: var(--gold); }
     .theme-menu {
-<<<<<<< HEAD
-<<<<<<< HEAD
-      position:absolute; right:0; top:46px; background: var(--card-bg);
-      border:1px solid var(--card-border); border-radius:12px; min-width:170px;
-      box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
-      display:none;
-=======
-      position:absolute; left:0; right:0; background: var(--card-bg);
-      border:1px solid var(--card-border); border-radius:12px; min-width:170px;
-      box-shadow:0 -8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
-=======
       position:absolute; left:0; right:auto; background: var(--card-bg);
       border:1px solid var(--card-border); border-radius:12px; min-width:220px;
       box-shadow:0 -8px 24px rgba(0,0,0,.25); z-index:999; padding:6px;
->>>>>>> 54a3d53 (dash)
       display:none; bottom:calc(100% + 4px);
->>>>>>> 75952c0 (second)
     }
     .theme-menu.open { display:block; }
     .theme-option {
@@ -262,11 +267,91 @@
     .theme-option.selected { background: var(--sidebar-active-bg); color: var(--sidebar-active-color); font-weight:700; }
     .theme-dot { width:22px; height:22px; border-radius:50%; border:2px solid var(--card-border); flex-shrink:0; }
 
-    @media(max-width:768px){ #sidebar{display:none;} #main{margin-left:0;} }
+    @media (max-width: 900px) {
+      .mobile-topbar { display: flex; }
+      body.nav-open { overflow: hidden; }
+
+      #sidebar {
+        display: flex !important;
+        position: fixed !important;
+        top: 0; left: 0;
+        width: min(280px, 88vw) !important;
+        height: 100dvh !important;
+        z-index: 300;
+        transform: translateX(-110%) !important;
+        transition: transform .25s ease;
+        box-shadow: 8px 0 32px rgba(0,0,0,.28);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      #sidebar.mobile-open { transform: translateX(0) !important; }
+
+      .sidebar-link { padding: 12px 18px; font-size: 14px; min-height: 44px; }
+      .nav-section-label { padding: 14px 18px 6px; }
+
+      #main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 16px 14px;
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        min-height: calc(100dvh - 52px);
+        position: relative;
+        z-index: 1;
+      }
+
+      .page-header { margin-bottom: 16px; }
+      .page-header.d-flex, .page-header.d-flex.justify-content-between {
+        flex-wrap: wrap !important; gap: 10px;
+      }
+      .page-title { font-size: 18px; }
+      .page-header .btn, .page-header .btn-gold { min-height: 42px; }
+
+      .kpi-card, .kpi-tile { padding: 14px 16px; }
+      .kpi-value, .kpi-val { font-size: 22px !important; }
+
+      .table-responsive { -webkit-overflow-scrolling: touch; }
+      .table { font-size: 12.5px; }
+      .table td, .table th { white-space: nowrap; }
+
+      .form-control, .form-select { font-size: 16px !important; min-height: 44px; }
+      form.row .col-auto { flex: 1 1 140px; max-width: 100%; }
+      form.row .form-select, form.row .form-control { width: 100%; }
+      .btn { min-height: 42px; }
+      .btn-sm { min-height: 36px; }
+
+      .card-body.p-4 { padding: 1rem !important; }
+      .modal-dialog { margin: 12px; }
+      .modal-footer { flex-wrap: wrap; }
+      .modal-footer .btn { flex: 1 1 auto; }
+
+      .dash-topbar, .dash-controls { flex-wrap: wrap; gap: 10px; }
+      .dash-controls { width: 100%; }
+      .filter-sel, .view-selector-btn { min-width: 0; width: 100%; }
+      .btn-new { width: 100%; justify-content: center; }
+      .dash-tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+      .dash-tab { white-space: nowrap; flex-shrink: 0; padding: 10px 14px; }
+      .kanban-wrap { scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; gap: 10px; }
+      .kan-col { min-width: min(280px, 82vw); max-width: min(280px, 82vw); scroll-snap-align: start; }
+      .view-dropdown { left: 0; right: 0; min-width: 0; width: 100%; }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-bar { flex-direction: column; }
+      .kpi-tile { min-width: 0; }
+    }
   </style>
   {% block head %}{% endblock %}
 </head>
 <body>
+
+<div class="mobile-topbar">
+  <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">☰</button>
+  <div>
+    <div class="brand-tag">Revfi</div>
+    <div class="brand-name">SubsManager</div>
+  </div>
+</div>
+<div class="nav-overlay" id="nav-overlay"></div>
 
 <!-- Sidebar -->
 <div id="sidebar">
@@ -288,18 +373,6 @@
     <a href="{{ url_for('invoices') }}"    class="sidebar-link {% if 'invoice' in request.endpoint %}active{% endif %}"><i class="bi bi-receipt"></i> Invoices</a>
     <a href="{{ url_for('commissions') }}" class="sidebar-link {% if request.endpoint=='commissions' %}active{% endif %}"><i class="bi bi-cash-coin"></i> Commissions</a>
 
-<<<<<<< HEAD
-    <div class="nav-section-label">Admin</div>
-    <a href="{{ url_for('products') }}"      class="sidebar-link {% if 'product' in request.endpoint or 'plan' in request.endpoint %}active{% endif %}"><i class="bi bi-box-seam"></i> Products &amp; Plans</a>
-    <a href="{{ url_for('users') }}"         class="sidebar-link {% if 'user' in request.endpoint %}active{% endif %}"><i class="bi bi-people"></i> Users</a>
-    <a href="{{ url_for('email_settings') }}" class="sidebar-link {% if 'email_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-envelope-gear"></i> Email Settings</a>
-    <a href="{{ url_for('square_settings') }}" class="sidebar-link {% if 'square_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-square"></i> Square Settings</a>
-  </nav>
-  <div id="sidebar-footer">
-    <div style="font-size:10.5px;color:var(--muted);opacity:.7;">Logged in as</div>
-    <div style="font-size:13px;font-weight:600;color:var(--sidebar-text);">{{ session.get('user_name','—') }}</div>
-    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary mt-2 w-100" style="font-size:12px;color:var(--muted);border-color:var(--card-border);">Sign out</a>
-=======
     {% if session.get('user_role') == 'admin' %}
     <div class="nav-section-label">Admin</div>
     <a href="{{ url_for('products') }}"       class="sidebar-link {% if 'product' in request.endpoint or 'plan' in request.endpoint %}active{% endif %}"><i class="bi bi-box-seam"></i> Products &amp; Plans</a>
@@ -372,39 +445,12 @@
     <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary w-100" style="font-size:12px;color:var(--muted);border-color:var(--sidebar-border);">
       <i class="bi bi-box-arrow-left me-1"></i>Sign out
     </a>
->>>>>>> 75952c0 (second)
   </div>
 </div>
 
 <!-- Main -->
 <div id="main">
-<<<<<<< HEAD
-  <!-- Theme switcher in top-right corner -->
-  <div style="position:fixed;top:18px;right:24px;z-index:200;">
-    <div style="position:relative;">
-      <div class="theme-btn" id="theme-toggle-btn" onclick="toggleThemeMenu()" title="Change theme">
-        <span id="theme-icon">🌤️</span>
-      </div>
-      <div class="theme-menu" id="theme-menu">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 12px 8px;">Theme</div>
-        <div class="theme-option" id="opt-light"  onclick="setTheme('light')">
-          <div class="theme-dot" style="background:radial-gradient(circle at 40% 40%,#FFD700 30%,#FFA500 100%);"></div> Light
-        </div>
-        <div class="theme-option" id="opt-medium" onclick="setTheme('medium')">
-          <div class="theme-dot" style="background:#2E3A50;"></div> Medium
-        </div>
-        <div class="theme-option" id="opt-modern" onclick="setTheme('modern')">
-          <div class="theme-dot" style="background:#F7F5F2;border-color:#C9A84C;"></div> Modern
-        </div>
-        <div class="theme-option" id="opt-dark"   onclick="setTheme('dark')">
-          <div class="theme-dot" style="background:#0F1C2E;"></div> Dark
-        </div>
-      </div>
-    </div>
-  </div>
-=======
 
->>>>>>> 75952c0 (second)
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for cat, msg in messages %}
@@ -428,49 +474,30 @@ const LIGHT_THEMES = new Set(['light','rose','slate']);
 
 function setTheme(t) {
   document.getElementById('html-root').setAttribute('data-theme', t);
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // Bootstrap theme
-  document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
-  localStorage.setItem('revfi_theme', t);
-  document.getElementById('theme-icon').textContent = THEME_ICONS[t] || '🌤️';
-  // Update selected state
-=======
-  document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
-=======
   document.getElementById('html-root').setAttribute('data-bs-theme', LIGHT_THEMES.has(t) ? 'light' : 'dark');
->>>>>>> 54a3d53 (dash)
   localStorage.setItem('revfi_theme', t);
   const iconEl = document.getElementById('theme-icon');
   const lblEl  = document.getElementById('theme-label-txt');
   if (iconEl) iconEl.textContent = THEME_ICONS[t] || '🌤️';
   if (lblEl)  lblEl.textContent  = THEME_LABELS[t] || 'Theme';
-<<<<<<< HEAD
->>>>>>> 75952c0 (second)
-  ['light','medium','modern','dark'].forEach(opt => {
-=======
   ['light','rose','slate','dark','midnight','aurora','ocean','forest'].forEach(opt => {
->>>>>>> 54a3d53 (dash)
     const el = document.getElementById('opt-' + opt);
     if (el) el.classList.toggle('selected', opt === t);
   });
-  document.getElementById('theme-menu').classList.remove('open');
+  const menu = document.getElementById('theme-menu');
+  if (menu) menu.classList.remove('open');
 }
 
 function toggleThemeMenu() {
-  document.getElementById('theme-menu').classList.toggle('open');
+  var m = document.getElementById('theme-menu');
+  if (m) m.classList.toggle('open');
 }
 
 // Close menu when clicking outside
 document.addEventListener('click', function(e) {
-<<<<<<< HEAD
-  if (!e.target.closest('#theme-toggle-btn') && !e.target.closest('#theme-menu')) {
-    document.getElementById('theme-menu').classList.remove('open');
-=======
   if (!e.target.closest('#sidebar-footer')) {
     const m = document.getElementById('theme-menu');
     if (m) m.classList.remove('open');
->>>>>>> 75952c0 (second)
   }
 });
 
@@ -479,6 +506,35 @@ document.addEventListener('click', function(e) {
   const validThemes = ['light','rose','slate','dark','midnight','aurora','ocean','forest'];
   const saved = localStorage.getItem('revfi_theme') || 'dark';
   setTheme(validThemes.includes(saved) ? saved : 'dark');
+})();
+
+(function() {
+  var nav = document.getElementById('sidebar');
+  var overlay = document.getElementById('nav-overlay');
+  var btn = document.getElementById('mobile-menu-btn');
+  function closeNav() {
+    if (nav) nav.classList.remove('mobile-open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.classList.remove('nav-open');
+  }
+  function openNav() {
+    if (nav) nav.classList.add('mobile-open');
+    if (overlay) overlay.classList.add('open');
+    document.body.classList.add('nav-open');
+  }
+  if (btn) btn.addEventListener('click', function() {
+    if (nav && nav.classList.contains('mobile-open')) closeNav();
+    else openNav();
+  });
+  if (overlay) overlay.addEventListener('click', closeNav);
+  if (nav) nav.querySelectorAll('a.sidebar-link').forEach(function(a) {
+    a.addEventListener('click', function() {
+      if (window.innerWidth <= 900) closeNav();
+    });
+  });
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 900) closeNav();
+  });
 })();
 </script>
 
