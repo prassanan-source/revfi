@@ -150,8 +150,7 @@
     <div class="dash-sub">Revfi subscription pipeline &amp; account management</div>
   </div>
   <div class="dash-controls">
-    <!-- Admin: view selector dropdown -->
-    {% if is_admin %}
+    <!-- View selector — available to ALL users -->
     <div>
       <div class="ctrl-label">View</div>
       <div class="view-selector-wrap">
@@ -163,31 +162,36 @@
         <div class="view-dropdown" id="view-dropdown">
           <div class="vd-section">Board Views</div>
           <div class="vd-item active" id="vdi-kanban"   onclick="setView('kanban')">  <div class="vi" style="background:#22A06B20;">📋</div><div><div class="vd-name">Pipeline Board</div><div class="vd-desc">Cards organized by stage</div></div></div>
-          <div class="vd-item"        id="vdi-swimlane" onclick="setView('swimlane')"><div class="vi" style="background:#4C9EEB20;">🏊</div><div><div class="vd-name">Swimlane Board</div><div class="vd-desc">Kanban split by sales rep</div></div></div>
-          <div class="vd-item"        id="vdi-matrix"   onclick="setView('matrix')">  <div class="vi" style="background:#9B6FEB20;">⊞</div><div><div class="vd-name">Matrix Board</div><div class="vd-desc">Stage × product grid</div></div></div>
+          {% if is_admin %}
+          <div class="vd-item" id="vdi-swimlane" onclick="setView('swimlane')"><div class="vi" style="background:#4C9EEB20;">🏊</div><div><div class="vd-name">Swimlane Board</div><div class="vd-desc">Kanban split by sales rep</div></div></div>
+          <div class="vd-item" id="vdi-matrix"   onclick="setView('matrix')">  <div class="vi" style="background:#9B6FEB20;">⊞</div><div><div class="vd-name">Matrix Board</div><div class="vd-desc">Stage × product grid</div></div></div>
+          {% endif %}
 
           <div class="vd-section">List &amp; Table</div>
           <div class="vd-item" id="vdi-list"  onclick="setView('list')"> <div class="vi" style="background:#F0A03020;">📄</div><div><div class="vd-name">List View</div><div class="vd-desc">All leads in rows</div></div></div>
           <div class="vd-item" id="vdi-table" onclick="setView('table')"><div class="vi" style="background:#3DB8CF20;">📊</div><div><div class="vd-name">Table / Grid</div><div class="vd-desc">Spreadsheet-style data</div></div></div>
 
+          {% if is_admin %}
           <div class="vd-section">Analytics</div>
-          <div class="vd-item" id="vdi-funnel"    onclick="setView('funnel')">   <div class="vi" style="background:#E5535320;">🔻</div><div><div class="vd-name">Funnel View</div><div class="vd-desc">Conversion at each stage</div></div></div>
-          <div class="vd-item" id="vdi-kpidash"   onclick="setView('kpidash')">  <div class="vi" style="background:#22A06B20;">📈</div><div><div class="vd-name">Dashboard View</div><div class="vd-desc">KPIs, charts &amp; trends</div></div></div>
-          <div class="vd-item" id="vdi-workload"  onclick="setView('workload')"> <div class="vi" style="background:#C9A84C20;">⚖️</div><div><div class="vd-name">Workload View</div><div class="vd-desc">Work by rep &amp; capacity</div></div></div>
+          <div class="vd-item" id="vdi-funnel"   onclick="setView('funnel')">  <div class="vi" style="background:#E5535320;">🔻</div><div><div class="vd-name">Funnel View</div><div class="vd-desc">Conversion at each stage</div></div></div>
+          <div class="vd-item" id="vdi-kpidash"  onclick="setView('kpidash')"> <div class="vi" style="background:#22A06B20;">📈</div><div><div class="vd-name">Dashboard View</div><div class="vd-desc">KPIs, charts &amp; trends</div></div></div>
+          <div class="vd-item" id="vdi-workload" onclick="setView('workload')"><div class="vi" style="background:#C9A84C20;">⚖️</div><div><div class="vd-name">Workload View</div><div class="vd-desc">Work by rep &amp; capacity</div></div></div>
+          {% endif %}
 
           <div class="vd-section">Time &amp; Schedule</div>
-          <div class="vd-item" id="vdi-calendar"  onclick="setView('calendar')"> <div class="vi" style="background:#9B6FEB20;">📅</div><div><div class="vd-name">Calendar View</div><div class="vd-desc">Leads by follow-up date</div></div></div>
-          <div class="vd-item" id="vdi-timeline"  onclick="setView('timeline')"> <div class="vi" style="background:#F0A03020;">📆</div><div><div class="vd-name">Timeline View</div><div class="vd-desc">Duration along a time axis</div></div></div>
+          <div class="vd-item" id="vdi-calendar" onclick="setView('calendar')"><div class="vi" style="background:#9B6FEB20;">📅</div><div><div class="vd-name">Calendar View</div><div class="vd-desc">Leads by follow-up date</div></div></div>
+          <div class="vd-item" id="vdi-timeline" onclick="setView('timeline')"><div class="vi" style="background:#F0A03020;">📆</div><div><div class="vd-name">Timeline View</div><div class="vd-desc">Duration along a time axis</div></div></div>
 
           <div class="vd-section">Other</div>
-          <div class="vd-item" id="vdi-activity"  onclick="setView('activity')"> <div class="vi" style="background:#3DB8CF20;">📡</div><div><div class="vd-name">Activity Feed</div><div class="vd-desc">Chronological updates</div></div></div>
-          <div class="vd-item" id="vdi-subs"      onclick="setView('subs')">     <div class="vi" style="background:#22A06B20;">💳</div><div><div class="vd-name">Subscriptions</div><div class="vd-desc">Active paying customers</div></div></div>
-          <div class="vd-item" id="vdi-billing"   onclick="setView('billing')">  <div class="vi" style="background:#F0A03020;">🧾</div><div><div class="vd-name">Billing &amp; Collection</div><div class="vd-desc">Invoices and payments</div></div></div>
+          <div class="vd-item" id="vdi-activity" onclick="setView('activity')"><div class="vi" style="background:#3DB8CF20;">📡</div><div><div class="vd-name">Activity Feed</div><div class="vd-desc">Chronological updates</div></div></div>
+          <div class="vd-item" id="vdi-subs"     onclick="setView('subs')">   <div class="vi" style="background:#22A06B20;">💳</div><div><div class="vd-name">Subscriptions</div><div class="vd-desc">Active paying customers</div></div></div>
+          <div class="vd-item" id="vdi-billing"  onclick="setView('billing')"> <div class="vi" style="background:#F0A03020;">🧾</div><div><div class="vd-name">Billing &amp; Collection</div><div class="vd-desc">Invoices and payments</div></div></div>
         </div>
       </div>
     </div>
-    {% endif %}
 
+    <!-- Filter Rep — admin only -->
+    {% if is_admin %}
     <div>
       <div class="ctrl-label">Filter Rep</div>
       <form method="get" id="filter-form">
@@ -197,6 +201,7 @@
         </select>
       </form>
     </div>
+    {% endif %}
     <a href="{{ url_for('lead_new') }}" class="btn-new"><i class="bi bi-plus-lg"></i> New Lead</a>
   </div>
 </div>
@@ -795,11 +800,10 @@ function initCharts() {
 /* ── Init on load ── */
 (function() {
   const saved = localStorage.getItem('revfi_view') || 'kanban';
-  if (isAdmin) {
-    setView(saved);
-  } else {
-    showPane(saved in ['kanban','list','subs','billing'] ? saved : 'kanban');
-  }
+  // Admin-only views — fall back to kanban for non-admins
+  const adminOnly = ['swimlane','matrix','funnel','kpidash','workload'];
+  const view = (!isAdmin && adminOnly.includes(saved)) ? 'kanban' : saved;
+  setView(view);
 })();
 </script>
 {% endblock %}

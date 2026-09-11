@@ -7,124 +7,127 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    /* ── Theme variables ── */
-    :root {
-      --gold:    #C9A84C;
-      --navy:    #0F1C2E;
-      --slate:   #1E3A5F;
-      --sidebar-w: 230px;
-    }
+    /* ── Shared constants ── */
+    :root { --gold:#C9A84C; --navy:#0F1C2E; --slate:#1E3A5F; --sidebar-w:230px; }
 
-    /* ── LIGHT theme (default) ── */
+    /* ════════════════════════════════════════════
+       LIGHT — Clean white, green accents
+    ════════════════════════════════════════════ */
     html[data-theme="light"] {
-      --bg:         #F4F6F9;
-      --sidebar-bg: #ffffff;
-      --sidebar-border: #E5E8EF;
-      --sidebar-text: #5C6880;
-      --sidebar-active-bg: #E8F7F0;
-      --sidebar-active-color: #167A4F;
-      --sidebar-active-border: #22A06B;
-      --sidebar-hover-bg: #F0F2F5;
-      --sidebar-hover-color: #1a1a2e;
-      --brand-tag-color: #22A06B;
-      --brand-name-color: #1a1a2e;
-      --brand-sub-color: #8892A4;
-      --main-color: #1a1a2e;
-      --card-bg: #ffffff;
-      --card-border: #E5E8EF;
-      --input-bg: #ffffff;
-      --input-border: #D0D5DD;
-      --input-color: #1a1a2e;
-      --table-head-color: #8892A4;
-      --table-row-hover: #FAFBFD;
-      --table-border: #F0F2F5;
-      --muted: #8892A4;
-      --footer-border: #E5E8EF;
-      --alert-bg: #fff;
+      --bg:#F4F6F9; --sidebar-bg:#ffffff; --sidebar-border:#E5E8EF;
+      --sidebar-text:#5C6880; --sidebar-active-bg:#E8F7F0;
+      --sidebar-active-color:#167A4F; --sidebar-active-border:#22A06B;
+      --sidebar-hover-bg:#F0F2F5; --sidebar-hover-color:#1a1a2e;
+      --brand-tag-color:#22A06B; --brand-name-color:#1a1a2e; --brand-sub-color:#8892A4;
+      --main-color:#1a1a2e; --card-bg:#ffffff; --card-border:#E5E8EF;
+      --input-bg:#ffffff; --input-border:#D0D5DD; --input-color:#1a1a2e;
+      --table-head-color:#8892A4; --table-row-hover:#FAFBFD; --table-border:#F0F2F5;
+      --muted:#8892A4; --footer-border:#E5E8EF; --alert-bg:#fff;
     }
 
-    /* ── MEDIUM theme ── */
-    html[data-theme="medium"] {
-      --bg:         #1E2532;
-      --sidebar-bg: #161D2B;
-      --sidebar-border: #252E40;
-      --sidebar-text: #7B8BA4;
-      --sidebar-active-bg: rgba(201,168,76,.15);
-      --sidebar-active-color: #C9A84C;
-      --sidebar-active-border: #C9A84C;
-      --sidebar-hover-bg: rgba(255,255,255,.05);
-      --sidebar-hover-color: #fff;
-      --brand-tag-color: #C9A84C;
-      --brand-name-color: #ffffff;
-      --brand-sub-color: #4A5568;
-      --main-color: #E2E8F0;
-      --card-bg: #252E40;
-      --card-border: #2E3A50;
-      --input-bg: #1E2532;
-      --input-border: #2E3A50;
-      --input-color: #E2E8F0;
-      --table-head-color: #7B8BA4;
-      --table-row-hover: rgba(255,255,255,.03);
-      --table-border: #252E40;
-      --muted: #7B8BA4;
-      --footer-border: #252E40;
-      --alert-bg: #252E40;
-    }
-
-    /* ── MODERN theme ── */
-    html[data-theme="modern"] {
-      --bg:         #F7F5F2;
-      --sidebar-bg: #FAF8F5;
-      --sidebar-border: #E8E4DE;
-      --sidebar-text: #7A7267;
-      --sidebar-active-bg: #FFF3E0;
-      --sidebar-active-color: #C9A84C;
-      --sidebar-active-border: #C9A84C;
-      --sidebar-hover-bg: #F0EDE8;
-      --sidebar-hover-color: #2D2A25;
-      --brand-tag-color: #C9A84C;
-      --brand-name-color: #2D2A25;
-      --brand-sub-color: #9A9085;
-      --main-color: #2D2A25;
-      --card-bg: #ffffff;
-      --card-border: #E8E4DE;
-      --input-bg: #FAF8F5;
-      --input-border: #D8D4CE;
-      --input-color: #2D2A25;
-      --table-head-color: #9A9085;
-      --table-row-hover: #FAF8F5;
-      --table-border: #EDE9E3;
-      --muted: #9A9085;
-      --footer-border: #E8E4DE;
-      --alert-bg: #FFF;
-    }
-
-    /* ── DARK theme ── */
+    /* ════════════════════════════════════════════
+       DARK — Deep navy, gold accents
+    ════════════════════════════════════════════ */
     html[data-theme="dark"] {
-      --bg:         #0d1117;
-      --sidebar-bg: #0F1C2E;
-      --sidebar-border: #1a2d45;
-      --sidebar-text: #8A9BB0;
-      --sidebar-active-bg: rgba(201,168,76,.12);
-      --sidebar-active-color: #C9A84C;
-      --sidebar-active-border: #C9A84C;
-      --sidebar-hover-bg: rgba(201,168,76,.08);
-      --sidebar-hover-color: #ffffff;
-      --brand-tag-color: #C9A84C;
-      --brand-name-color: #ffffff;
-      --brand-sub-color: #4A5568;
-      --main-color: #cdd5e0;
-      --card-bg: #111827;
-      --card-border: #1f2d3d;
-      --input-bg: #0d1117;
-      --input-border: #2a3f58;
-      --input-color: #e2e8f0;
-      --table-head-color: #8A9BB0;
-      --table-row-hover: rgba(255,255,255,.03);
-      --table-border: #1a2635;
-      --muted: #8A9BB0;
-      --footer-border: #1a2d45;
-      --alert-bg: #111827;
+      --bg:#0d1117; --sidebar-bg:#0F1C2E; --sidebar-border:#1a2d45;
+      --sidebar-text:#8A9BB0; --sidebar-active-bg:rgba(201,168,76,.12);
+      --sidebar-active-color:#C9A84C; --sidebar-active-border:#C9A84C;
+      --sidebar-hover-bg:rgba(201,168,76,.08); --sidebar-hover-color:#fff;
+      --brand-tag-color:#C9A84C; --brand-name-color:#fff; --brand-sub-color:#4A5568;
+      --main-color:#cdd5e0; --card-bg:#111827; --card-border:#1f2d3d;
+      --input-bg:#0d1117; --input-border:#2a3f58; --input-color:#e2e8f0;
+      --table-head-color:#8A9BB0; --table-row-hover:rgba(255,255,255,.03);
+      --table-border:#1a2635; --muted:#8A9BB0; --footer-border:#1a2d45; --alert-bg:#111827;
+    }
+
+    /* ════════════════════════════════════════════
+       MIDNIGHT — Pure black, electric blue
+    ════════════════════════════════════════════ */
+    html[data-theme="midnight"] {
+      --bg:#000000; --sidebar-bg:#080808; --sidebar-border:#1a1a1a;
+      --sidebar-text:#666; --sidebar-active-bg:rgba(99,102,241,.15);
+      --sidebar-active-color:#818CF8; --sidebar-active-border:#6366F1;
+      --sidebar-hover-bg:rgba(99,102,241,.08); --sidebar-hover-color:#fff;
+      --brand-tag-color:#6366F1; --brand-name-color:#fff; --brand-sub-color:#333;
+      --main-color:#e2e8f0; --card-bg:#111111; --card-border:#222;
+      --input-bg:#0a0a0a; --input-border:#222; --input-color:#e2e8f0;
+      --table-head-color:#555; --table-row-hover:rgba(255,255,255,.02);
+      --table-border:#1a1a1a; --muted:#555; --footer-border:#1a1a1a; --alert-bg:#111;
+    }
+
+    /* ════════════════════════════════════════════
+       OCEAN — Deep teal, cyan accents
+    ════════════════════════════════════════════ */
+    html[data-theme="ocean"] {
+      --bg:#0A1628; --sidebar-bg:#071020; --sidebar-border:#0D2040;
+      --sidebar-text:#5B8DB8; --sidebar-active-bg:rgba(6,182,212,.15);
+      --sidebar-active-color:#22D3EE; --sidebar-active-border:#06B6D4;
+      --sidebar-hover-bg:rgba(6,182,212,.08); --sidebar-hover-color:#fff;
+      --brand-tag-color:#06B6D4; --brand-name-color:#E0F2FE; --brand-sub-color:#1E4060;
+      --main-color:#CBD5E1; --card-bg:#0D1F38; --card-border:#122640;
+      --input-bg:#0A1628; --input-border:#1A3050; --input-color:#E0F2FE;
+      --table-head-color:#3A6080; --table-row-hover:rgba(6,182,212,.04);
+      --table-border:#0D2040; --muted:#3A6080; --footer-border:#0D2040; --alert-bg:#0D1F38;
+    }
+
+    /* ════════════════════════════════════════════
+       FOREST — Dark green, emerald sidebar
+    ════════════════════════════════════════════ */
+    html[data-theme="forest"] {
+      --bg:#0F1A0F; --sidebar-bg:#0A120A; --sidebar-border:#1A2E1A;
+      --sidebar-text:#4A7A4A; --sidebar-active-bg:rgba(34,197,94,.15);
+      --sidebar-active-color:#4ADE80; --sidebar-active-border:#22C55E;
+      --sidebar-hover-bg:rgba(34,197,94,.08); --sidebar-hover-color:#fff;
+      --brand-tag-color:#22C55E; --brand-name-color:#DCFCE7; --brand-sub-color:#1F3A1F;
+      --main-color:#D1FAE5; --card-bg:#141E14; --card-border:#1E301E;
+      --input-bg:#0F1A0F; --input-border:#1E3A1E; --input-color:#D1FAE5;
+      --table-head-color:#2D5A2D; --table-row-hover:rgba(34,197,94,.04);
+      --table-border:#1A2E1A; --muted:#2D5A2D; --footer-border:#1A2E1A; --alert-bg:#141E14;
+    }
+
+    /* ════════════════════════════════════════════
+       ROSE — Warm rose, pink accents (light)
+    ════════════════════════════════════════════ */
+    html[data-theme="rose"] {
+      --bg:#FFF5F7; --sidebar-bg:#FFF0F3; --sidebar-border:#FFD6E0;
+      --sidebar-text:#9B6B78; --sidebar-active-bg:#FFE4ED;
+      --sidebar-active-color:#BE185D; --sidebar-active-border:#EC4899;
+      --sidebar-hover-bg:#FFE8F0; --sidebar-hover-color:#1a0010;
+      --brand-tag-color:#EC4899; --brand-name-color:#1A0010; --brand-sub-color:#C4879B;
+      --main-color:#1A0010; --card-bg:#ffffff; --card-border:#FFD6E0;
+      --input-bg:#FFF5F7; --input-border:#FFBDD0; --input-color:#1A0010;
+      --table-head-color:#C4879B; --table-row-hover:#FFF8FA; --table-border:#FFE4ED;
+      --muted:#C4879B; --footer-border:#FFD6E0; --alert-bg:#fff;
+    }
+
+    /* ════════════════════════════════════════════
+       SLATE — Cool gray-blue, professional
+    ════════════════════════════════════════════ */
+    html[data-theme="slate"] {
+      --bg:#F1F5F9; --sidebar-bg:#1E293B; --sidebar-border:#334155;
+      --sidebar-text:#94A3B8; --sidebar-active-bg:rgba(99,102,241,.2);
+      --sidebar-active-color:#A5B4FC; --sidebar-active-border:#6366F1;
+      --sidebar-hover-bg:rgba(255,255,255,.06); --sidebar-hover-color:#F1F5F9;
+      --brand-tag-color:#6366F1; --brand-name-color:#F8FAFC; --brand-sub-color:#475569;
+      --main-color:#1E293B; --card-bg:#ffffff; --card-border:#E2E8F0;
+      --input-bg:#F8FAFC; --input-border:#CBD5E1; --input-color:#1E293B;
+      --table-head-color:#94A3B8; --table-row-hover:#F8FAFC; --table-border:#E2E8F0;
+      --muted:#94A3B8; --footer-border:#334155; --alert-bg:#fff;
+    }
+
+    /* ════════════════════════════════════════════
+       AURORA — Dark with purple-pink gradient feel
+    ════════════════════════════════════════════ */
+    html[data-theme="aurora"] {
+      --bg:#0D0D1A; --sidebar-bg:#08080F; --sidebar-border:#1A1A30;
+      --sidebar-text:#7070A0; --sidebar-active-bg:rgba(167,139,250,.15);
+      --sidebar-active-color:#C4B5FD; --sidebar-active-border:#A78BFA;
+      --sidebar-hover-bg:rgba(167,139,250,.08); --sidebar-hover-color:#fff;
+      --brand-tag-color:#A78BFA; --brand-name-color:#EDE9FE; --brand-sub-color:#2D2D4A;
+      --main-color:#DDD6FE; --card-bg:#111122; --card-border:#1E1E35;
+      --input-bg:#0D0D1A; --input-border:#252540; --input-color:#DDD6FE;
+      --table-head-color:#404070; --table-row-hover:rgba(167,139,250,.04);
+      --table-border:#1A1A30; --muted:#404070; --footer-border:#1A1A30; --alert-bg:#111122;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -232,6 +235,7 @@
     .theme-btn:hover { border-color: var(--gold); }
     .theme-menu {
 <<<<<<< HEAD
+<<<<<<< HEAD
       position:absolute; right:0; top:46px; background: var(--card-bg);
       border:1px solid var(--card-border); border-radius:12px; min-width:170px;
       box-shadow:0 8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
@@ -240,6 +244,11 @@
       position:absolute; left:0; right:0; background: var(--card-bg);
       border:1px solid var(--card-border); border-radius:12px; min-width:170px;
       box-shadow:0 -8px 24px rgba(0,0,0,.15); z-index:999; padding:8px;
+=======
+      position:absolute; left:0; right:auto; background: var(--card-bg);
+      border:1px solid var(--card-border); border-radius:12px; min-width:220px;
+      box-shadow:0 -8px 24px rgba(0,0,0,.25); z-index:999; padding:6px;
+>>>>>>> 54a3d53 (dash)
       display:none; bottom:calc(100% + 4px);
 >>>>>>> 75952c0 (second)
     }
@@ -324,11 +333,40 @@
         <span style="margin-left:auto;font-size:10px;">▼</span>
       </button>
       <div class="theme-menu" id="theme-menu" style="bottom:calc(100% + 6px);top:auto;">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 12px 8px;">Choose Theme</div>
-        <div class="theme-option" id="opt-light"  onclick="setTheme('light')"><div class="theme-dot" style="background:radial-gradient(circle at 40% 40%,#FFD700 30%,#FFA500 100%);"></div>Light</div>
-        <div class="theme-option" id="opt-medium" onclick="setTheme('medium')"><div class="theme-dot" style="background:#2E3A50;"></div>Medium</div>
-        <div class="theme-option" id="opt-modern" onclick="setTheme('modern')"><div class="theme-dot" style="background:#F7F5F2;border-color:#C9A84C;"></div>Modern</div>
-        <div class="theme-option" id="opt-dark"   onclick="setTheme('dark')"><div class="theme-dot" style="background:#0F1C2E;"></div>Dark</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 12px 6px;">Light</div>
+        <div class="theme-option" id="opt-light" onclick="setTheme('light')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#F4F6F9 50%,#22A06B 100%);"></div>
+          <div><div style="font-weight:600;">Light</div><div style="font-size:10px;opacity:.7;">Clean white, green accents</div></div>
+        </div>
+        <div class="theme-option" id="opt-rose" onclick="setTheme('rose')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#FFF5F7 50%,#EC4899 100%);"></div>
+          <div><div style="font-weight:600;">Rose</div><div style="font-size:10px;opacity:.7;">Warm rose, pink accents</div></div>
+        </div>
+        <div class="theme-option" id="opt-slate" onclick="setTheme('slate')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#F1F5F9 50%,#1E293B 100%);"></div>
+          <div><div style="font-weight:600;">Slate</div><div style="font-size:10px;opacity:.7;">Cool gray, indigo sidebar</div></div>
+        </div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 12px 6px;">Dark</div>
+        <div class="theme-option" id="opt-dark" onclick="setTheme('dark')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#111827 50%,#C9A84C 100%);"></div>
+          <div><div style="font-weight:600;">Dark</div><div style="font-size:10px;opacity:.7;">Deep navy, gold accents</div></div>
+        </div>
+        <div class="theme-option" id="opt-midnight" onclick="setTheme('midnight')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#000 50%,#6366F1 100%);"></div>
+          <div><div style="font-weight:600;">Midnight</div><div style="font-size:10px;opacity:.7;">Pure black, electric blue</div></div>
+        </div>
+        <div class="theme-option" id="opt-aurora" onclick="setTheme('aurora')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#0D0D1A 30%,#A78BFA 100%);"></div>
+          <div><div style="font-weight:600;">Aurora</div><div style="font-size:10px;opacity:.7;">Dark purple, violet glow</div></div>
+        </div>
+        <div class="theme-option" id="opt-ocean" onclick="setTheme('ocean')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#0A1628 30%,#06B6D4 100%);"></div>
+          <div><div style="font-weight:600;">Ocean</div><div style="font-size:10px;opacity:.7;">Deep teal, cyan accents</div></div>
+        </div>
+        <div class="theme-option" id="opt-forest" onclick="setTheme('forest')">
+          <div class="theme-dot" style="background:linear-gradient(135deg,#0F1A0F 30%,#22C55E 100%);"></div>
+          <div><div style="font-weight:600;">Forest</div><div style="font-size:10px;opacity:.7;">Dark green, emerald glow</div></div>
+        </div>
       </div>
     </div>
     <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary w-100" style="font-size:12px;color:var(--muted);border-color:var(--sidebar-border);">
@@ -384,11 +422,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
-const THEME_ICONS = { light:'🌤️', medium:'⚫', modern:'🪨', dark:'🌑' };
-const THEME_LABELS = { light:'Light', medium:'Medium', modern:'Modern', dark:'Dark' };
+const THEME_ICONS  = { light:'☀️', rose:'🌸', slate:'🪨', dark:'🌑', midnight:'⚡', aurora:'🔮', ocean:'🌊', forest:'🌲' };
+const THEME_LABELS = { light:'Light', rose:'Rose', slate:'Slate', dark:'Dark', midnight:'Midnight', aurora:'Aurora', ocean:'Ocean', forest:'Forest' };
+const LIGHT_THEMES = new Set(['light','rose','slate']);
 
 function setTheme(t) {
   document.getElementById('html-root').setAttribute('data-theme', t);
+<<<<<<< HEAD
 <<<<<<< HEAD
   // Bootstrap theme
   document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
@@ -397,13 +437,20 @@ function setTheme(t) {
   // Update selected state
 =======
   document.getElementById('html-root').setAttribute('data-bs-theme', t === 'light' || t === 'modern' ? 'light' : 'dark');
+=======
+  document.getElementById('html-root').setAttribute('data-bs-theme', LIGHT_THEMES.has(t) ? 'light' : 'dark');
+>>>>>>> 54a3d53 (dash)
   localStorage.setItem('revfi_theme', t);
   const iconEl = document.getElementById('theme-icon');
   const lblEl  = document.getElementById('theme-label-txt');
   if (iconEl) iconEl.textContent = THEME_ICONS[t] || '🌤️';
   if (lblEl)  lblEl.textContent  = THEME_LABELS[t] || 'Theme';
+<<<<<<< HEAD
 >>>>>>> 75952c0 (second)
   ['light','medium','modern','dark'].forEach(opt => {
+=======
+  ['light','rose','slate','dark','midnight','aurora','ocean','forest'].forEach(opt => {
+>>>>>>> 54a3d53 (dash)
     const el = document.getElementById('opt-' + opt);
     if (el) el.classList.toggle('selected', opt === t);
   });
@@ -429,8 +476,9 @@ document.addEventListener('click', function(e) {
 
 // Apply saved theme on load
 (function() {
+  const validThemes = ['light','rose','slate','dark','midnight','aurora','ocean','forest'];
   const saved = localStorage.getItem('revfi_theme') || 'dark';
-  setTheme(saved);
+  setTheme(validThemes.includes(saved) ? saved : 'dark');
 })();
 </script>
 
