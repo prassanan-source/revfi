@@ -1,0 +1,17 @@
+data/
+*.db
+*.db-wal
+*.db-shm
+.secret_key
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+logs/
+tmp/
+*.pid
+*.log
+gunicorn.log
+.htaccess
+revfi/
