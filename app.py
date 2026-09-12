@@ -91,6 +91,9 @@ class Lead(db.Model):
     setup_fee       = db.Column(db.Float,        default=300)     # one-time setup fee (0 = waived)
     notes           = db.Column(db.Text)
     value           = db.Column(db.Float,        default=0)       # monthly subscription fee
+    billing_status  = db.Column(db.String(20),   default="active")  # active | unsubscribed
+    unsubscribed_at = db.Column(db.DateTime,     nullable=True)
+    resubscribed_at = db.Column(db.DateTime,     nullable=True)
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -187,6 +190,22 @@ class EmailSettings(db.Model):
     from_email = db.Column(db.String(200), default="")
     use_tls    = db.Column(db.Boolean,     default=True)
     updated_at = db.Column(db.DateTime,    default=datetime.utcnow)
+
+
+class SubscriptionActivity(db.Model):
+    __tablename__ = "subscription_activities"
+    id           = db.Column(db.Integer, primary_key=True)
+    lead_id      = db.Column(db.Integer, db.ForeignKey("leads.id"), nullable=False)
+    action       = db.Column(db.String(30), nullable=False)
+    channel      = db.Column(db.String(30), default="sales")
+    notes        = db.Column(db.Text, default="")
+    happened_at  = db.Column(db.Date, nullable=True)
+    user_id      = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    lead = db.relationship("Lead", backref=db.backref("sub_activities", lazy="dynamic",
+                                                      order_by="SubscriptionActivity.created_at.desc()"))
+    user = db.relationship("User", foreign_keys=[user_id])
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -800,6 +819,37 @@ def fmt_usd(val):
     except Exception:
         return "$0"
 
+def is_billable(lead):
+    """Closed-won accounts that are not in an unsubscribed hold."""
+    if not lead or lead.status != "Closed Won":
+        return False
+    return (getattr(lead, "billing_status", None) or "active") == "active"
+
+
+def log_sub_activity(lead, action, channel, notes, happened_at=None):
+    when = happened_at
+    if isinstance(when, str) and when:
+        try:
+            when = datetime.strptime(when[:10], "%Y-%m-%d").date()
+        except ValueError:
+            when = date.today()
+    elif not when:
+        when = date.today()
+    db.session.add(SubscriptionActivity(
+        lead_id=lead.id,
+        action=action,
+        channel=channel if channel in ("sales", "company") else "sales",
+        notes=(notes or "").strip(),
+        happened_at=when,
+        user_id=session.get("user_id"),
+    ))
+
+
+def can_manage_subscriber(lead):
+    if session.get("user_role") == "admin":
+        return True
+    return lead and lead.assignee_id == session.get("user_id")
+
 app.jinja_env.globals.update(
     fmt_usd=fmt_usd,
     current_user=current_user,
@@ -807,6 +857,7 @@ app.jinja_env.globals.update(
     STAGE_COLORS=STAGE_COLORS,
     datetime=datetime,
     date=date,
+    is_billable=is_billable,
 )
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
@@ -849,8 +900,8 @@ def dashboard():
     lost   = [l for l in leads if l.status == "Closed Lost"]
     active = [l for l in leads if l.status not in ("Closed Won","Closed Lost")]
 
-    # MRR uses discounted price
-    mrr = sum(calc_discounted_price(l)[0] for l in won)
+    # MRR uses discounted price of billable (not unsubscribed) accounts
+    mrr = sum(calc_discounted_price(l)[0] for l in won if is_billable(l))
     arr = mrr * 12
     pipeline_val = sum(calc_discounted_price(l)[0] for l in active)
 
@@ -866,7 +917,7 @@ def dashboard():
     subs_q = Lead.query.filter_by(status="Closed Won")
     if not is_admin:
         subs_q = subs_q.filter_by(assignee_id=current_uid)
-    subscribers = subs_q.all()
+    subscribers = [s for s in subs_q.all() if is_billable(s)]
     sub_prices  = {s.id: calc_discounted_price(s)[0] for s in subscribers}
 
     # Billing — non-admin sees invoices for their own subscribers only
@@ -1172,7 +1223,7 @@ def agreement_resend(aid):
 @login_required
 def invoices():
     invs = Invoice.query.order_by(Invoice.due_date.desc()).all()
-    subscribers = Lead.query.filter_by(status="Closed Won").all()
+    subscribers = [s for s in Lead.query.filter_by(status="Closed Won").all() if is_billable(s)]
     sub_prices = {}
     for s in subscribers:
         final, setup, label = calc_discounted_price(s)
@@ -1184,6 +1235,9 @@ def invoices():
 def invoice_new():
     f = request.form
     lead   = Lead.query.get(f.get("lead_id"))
+    if lead and not is_billable(lead):
+        flash("No invoices while this subscriber is unsubscribed. Record a renewal first.", "warning")
+        return redirect(url_for("invoices"))
     amount = float(f.get("amount") or 0)
     include_setup = f.get("include_setup_fee") == "1"
 
@@ -1260,11 +1314,15 @@ def invoice_void(iid):
 @app.route("/invoices/generate-bulk", methods=["POST"])
 @login_required
 def invoice_generate_bulk():
-    """Generate monthly invoices for all active subscribers without one this month."""
+    """Generate monthly invoices for billable subscribers without one this month."""
     period_start = date.today().replace(day=1)
     subs = Lead.query.filter_by(status="Closed Won").all()
     created = 0
+    skipped = 0
     for lead in subs:
+        if not is_billable(lead):
+            skipped += 1
+            continue
         existing = Invoice.query.filter(
             Invoice.lead_id == lead.id,
             Invoice.sent_at >= datetime(period_start.year, period_start.month, 1)
@@ -1293,7 +1351,7 @@ def invoice_generate_bulk():
             )
             if ok:
                 emailed += 1
-    flash(f"Generated {created} invoice(s), emailed {emailed}.", "success")
+    flash(f"Generated {created} invoice(s), emailed {emailed}. Skipped {skipped} unsubscribed.", "success")
     return redirect(url_for("invoices"))
 
 # ── Commissions ───────────────────────────────────────────────────────────────
@@ -1374,13 +1432,101 @@ def subscribers():
     q = Lead.query.filter_by(status="Closed Won")
     if not is_admin:
         q = q.filter_by(assignee_id=session.get("user_id"))
-    subs = q.order_by(Lead.updated_at.desc()).all()
+    all_subs = q.order_by(Lead.updated_at.desc()).all()
+    show = request.args.get("show", "all")
+    if show == "active":
+        subs = [s for s in all_subs if is_billable(s)]
+    elif show == "ended":
+        subs = [s for s in all_subs if not is_billable(s)]
+    else:
+        subs = all_subs
+        show = "all"
     sub_prices = {}
-    for s in subs:
+    for s in all_subs:
         final, setup, label = calc_discounted_price(s)
         sub_prices[s.id] = {"final": final, "setup": setup, "label": label}
-    mrr = sum(sub_prices[s.id]["final"] for s in subs)
-    return render_template("subscribers.html", subscribers=subs, mrr=mrr, sub_prices=sub_prices)
+    mrr = sum(sub_prices[s.id]["final"] for s in all_subs if is_billable(s))
+    counts = {
+        "all": len(all_subs),
+        "active": sum(1 for s in all_subs if is_billable(s)),
+        "ended": sum(1 for s in all_subs if not is_billable(s)),
+    }
+    return render_template("subscribers.html", subscribers=subs, mrr=mrr,
+                           sub_prices=sub_prices, show=show, counts=counts)
+
+
+@app.route("/subscribers/<int:lid>")
+@login_required
+def subscriber_detail(lid):
+    lead = Lead.query.get_or_404(lid)
+    if lead.status != "Closed Won":
+        flash("That account is not a subscriber.", "warning")
+        return redirect(url_for("subscribers"))
+    if not can_manage_subscriber(lead):
+        flash("You can only view your own subscribers.", "danger")
+        return redirect(url_for("subscribers"))
+    final, setup, label = calc_discounted_price(lead)
+    activities = lead.sub_activities.order_by(SubscriptionActivity.created_at.desc()).all()
+    return render_template("subscriber_detail.html", s=lead, activities=activities,
+                           price={"final": final, "setup": setup, "label": label},
+                           billable=is_billable(lead))
+
+
+@app.route("/subscribers/<int:lid>/end", methods=["POST"])
+@login_required
+def subscriber_end(lid):
+    lead = Lead.query.get_or_404(lid)
+    if not can_manage_subscriber(lead):
+        flash("You can only update your own subscribers.", "danger")
+        return redirect(url_for("subscribers"))
+    if not is_billable(lead) and (lead.billing_status or "active") == "unsubscribed":
+        flash(f"{lead.company} is already unsubscribed.", "info")
+        return redirect(url_for("subscriber_detail", lid=lid))
+    lead.billing_status = "unsubscribed"
+    lead.unsubscribed_at = datetime.utcnow()
+    lead.updated_at = datetime.utcnow()
+    log_sub_activity(lead, "ended", request.form.get("channel", "sales"),
+                     request.form.get("notes", ""), request.form.get("happened_at"))
+    db.session.commit()
+    flash(f"{lead.company} marked unsubscribed. Automatic invoices are paused.", "warning")
+    return redirect(url_for("subscriber_detail", lid=lid))
+
+
+@app.route("/subscribers/<int:lid>/renew", methods=["POST"])
+@login_required
+def subscriber_renew(lid):
+    lead = Lead.query.get_or_404(lid)
+    if not can_manage_subscriber(lead):
+        flash("You can only update your own subscribers.", "danger")
+        return redirect(url_for("subscribers"))
+    lead.billing_status = "active"
+    lead.resubscribed_at = datetime.utcnow()
+    lead.status = "Closed Won"
+    lead.updated_at = datetime.utcnow()
+    log_sub_activity(lead, "renewed", request.form.get("channel", "sales"),
+                     request.form.get("notes", ""), request.form.get("happened_at"))
+    db.session.commit()
+    flash(f"{lead.company} renewed. Invoices will generate again.", "success")
+    return redirect(url_for("subscriber_detail", lid=lid))
+
+
+@app.route("/subscribers/<int:lid>/note", methods=["POST"])
+@login_required
+def subscriber_note(lid):
+    lead = Lead.query.get_or_404(lid)
+    if not can_manage_subscriber(lead):
+        flash("You can only update your own subscribers.", "danger")
+        return redirect(url_for("subscribers"))
+    notes = (request.form.get("notes") or "").strip()
+    if not notes:
+        flash("Enter a note.", "warning")
+        return redirect(url_for("subscriber_detail", lid=lid))
+    log_sub_activity(lead, "note", request.form.get("channel", "sales"),
+                     notes, request.form.get("happened_at"))
+    db.session.commit()
+    flash("Activity recorded.", "success")
+    return redirect(url_for("subscriber_detail", lid=lid))
+
 
 # ── Products & Plans ──────────────────────────────────────────────────────────
 
@@ -2012,6 +2158,7 @@ def safe_init_db():
 
     db.create_all()
     _migrate_agreement_template_schema(db_path)
+    _migrate_billing_schema(db_path)
 
 
 def _migrate_agreement_template_schema(db_path):
@@ -2038,6 +2185,40 @@ def _migrate_agreement_template_schema(db_path):
             conn.execute("ALTER TABLE agreement_templates ADD COLUMN company_name VARCHAR(200) DEFAULT 'Karyva.ai'")
             conn.execute("UPDATE agreement_templates SET company_name = 'Karyva.ai' WHERE company_name IS NULL OR company_name = ''")
             print("✅  Added agreement_templates.company_name")
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _migrate_billing_schema(db_path):
+    """Add unsubscribe / activity tracking without wiping live data."""
+    if not os.path.exists(db_path):
+        return
+    conn = sqlite3.connect(db_path)
+    try:
+        lead_cols = [r[1] for r in conn.execute("PRAGMA table_info(leads)").fetchall()]
+        if lead_cols and "billing_status" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN billing_status VARCHAR(20) DEFAULT 'active'")
+            conn.execute("UPDATE leads SET billing_status = 'active' WHERE billing_status IS NULL")
+            print("✅  Added leads.billing_status")
+        if lead_cols and "unsubscribed_at" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN unsubscribed_at DATETIME")
+        if lead_cols and "resubscribed_at" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN resubscribed_at DATETIME")
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS subscription_activities (
+                id INTEGER PRIMARY KEY,
+                lead_id INTEGER NOT NULL,
+                action VARCHAR(30) NOT NULL,
+                channel VARCHAR(30),
+                notes TEXT,
+                happened_at DATE,
+                user_id INTEGER,
+                created_at DATETIME,
+                FOREIGN KEY(lead_id) REFERENCES leads(id),
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )"""
+        )
         conn.commit()
     finally:
         conn.close()

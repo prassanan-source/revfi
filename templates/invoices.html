@@ -10,7 +10,7 @@
     </div>
   </div>
   <div class="d-flex gap-2">
-    <form method="post" action="{{ url_for('invoice_generate_bulk') }}" class="d-inline">
+    <form method="post" action="{{ url_for('invoice_generate_bulk') }}" class="d-inline" onsubmit="return confirm('Create this month’s invoices for active subscribers only? Unsubscribed accounts are skipped.');">
       <button class="btn btn-navy"><i class="bi bi-lightning me-1"></i>Generate Monthly</button>
     </form>
     <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#newInvModal">

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ s.company }}{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-3">
+  <div>
+    <div class="page-title">{{ s.company }}</div>
+    <div class="page-sub">
+      {{ s.contact }} · {{ s.email or '—' }}
+      {% if s.product %} · {{ s.product.name }}{% endif %}
+      {% if s.plan %} {{ s.plan.name }}{% endif %}
+      · {{ fmt_usd(price.final) }}/mo
+    </div>
+  </div>
+  <a href="{{ url_for('subscribers') }}" class="btn btn-navy">All subscribers</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header py-3">Billing</div>
+      <div class="card-body">
+        {% if billable %}
+        <div class="mb-2"><span class="badge" style="background:rgba(16,185,129,.2);color:#10B981;">Active — invoices on</span></div>
+        {% else %}
+        <div class="mb-2"><span class="badge" style="background:rgba(239,68,68,.2);color:#F87171;">Unsubscribed — invoices paused</span></div>
+        {% endif %}
+        <div style="font-size:13px;color:#cdd5e0;line-height:1.7;">
+          Rep: {{ s.assignee.name if s.assignee else '—' }}<br>
+          {% if s.unsubscribed_at %}Ended: {{ s.unsubscribed_at.strftime('%b %d, %Y %H:%M') }} UTC<br>{% endif %}
+          {% if s.resubscribed_at %}Last renew: {{ s.resubscribed_at.strftime('%b %d, %Y %H:%M') }} UTC{% endif %}
+        </div>
+      </div>
+    </div>
+
+    {% if billable %}
+    <div class="card mb-3">
+      <div class="card-header py-3">End subscription</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('subscriber_end', lid=s.id) }}">
+          <div class="mb-2">
+            <label class="form-label">How they told us</label>
+            <select name="channel" class="form-select">
+              <option value="sales">Through salesperson</option>
+              <option value="company">Direct with the company</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Effective date</label>
+            <input type="date" name="happened_at" class="form-control" value="{{ date.today().isoformat() }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Reason, notice period, who you spoke with…"></textarea>
+          </div>
+          <button class="btn btn-outline-danger w-100" onclick="return confirm('Pause all automatic invoices for this account?')">Mark unsubscribed</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="card mb-3">
+      <div class="card-header py-3">Renew</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('subscriber_renew', lid=s.id) }}">
+          <div class="mb-2">
+            <label class="form-label">How they told us</label>
+            <select name="channel" class="form-select">
+              <option value="sales">Through salesperson</option>
+              <option value="company">Direct with the company</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Effective date</label>
+            <input type="date" name="happened_at" class="form-control" value="{{ date.today().isoformat() }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="New term, plan changes, who confirmed…"></textarea>
+          </div>
+          <button class="btn btn-gold w-100">Record renewal</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-header py-3">Log a conversation</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('subscriber_note', lid=s.id) }}">
+          <div class="mb-2">
+            <label class="form-label">Channel</label>
+            <select name="channel" class="form-select">
+              <option value="sales">Salesperson</option>
+              <option value="company">Company direct</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Date</label>
+            <input type="date" name="happened_at" class="form-control" value="{{ date.today().isoformat() }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">What happened</label>
+            <textarea name="notes" class="form-control" rows="3" required></textarea>
+          </div>
+          <button class="btn btn-navy w-100">Save activity</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header py-3">Activity history</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead>
+            <tr><th>When</th><th>Event</th><th>Channel</th><th>By</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+          {% for a in activities %}
+          <tr>
+            <td style="font-size:12px;white-space:nowrap;">
+              {{ a.happened_at.strftime('%b %d, %Y') if a.happened_at else a.created_at.strftime('%b %d, %Y') }}
+              <div style="color:#8A9BB0;font-size:10px;">logged {{ a.created_at.strftime('%H:%M') }} UTC</div>
+            </td>
+            <td>
+              {% if a.action == 'ended' %}<span class="badge" style="background:rgba(239,68,68,.2);color:#F87171;">Ended</span>
+              {% elif a.action == 'renewed' %}<span class="badge" style="background:rgba(16,185,129,.2);color:#10B981;">Renewed</span>
+              {% else %}<span class="badge" style="background:rgba(148,163,184,.2);color:#cbd5e1;">Note</span>{% endif %}
+            </td>
+            <td style="font-size:13px;">{{ 'Salesperson' if a.channel=='sales' else 'Company direct' }}</td>
+            <td style="font-size:13px;">{{ a.user.name if a.user else '—' }}</td>
+            <td style="font-size:13px;color:#cdd5e0;">{{ a.notes or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center py-5" style="color:#8A9BB0;">No activity yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
