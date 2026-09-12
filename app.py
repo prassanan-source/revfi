@@ -3,7 +3,7 @@ Revfi — Subscription Management Platform
 Flask/SQLAlchemy/SQLite · aligned with Raya Finance & Temple apps
 """
 
-import os, json, uuid, smtplib, ssl, io, requests as http_requests
+import os, json, uuid, smtplib, ssl, io, re, html, sqlite3, requests as http_requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -116,8 +116,17 @@ class Agreement(db.Model):
     discount_reason = db.Column(db.String(200),  default="")
     setup_fee       = db.Column(db.Float,        default=0)
     final_monthly   = db.Column(db.Float,        default=0)  # discounted monthly amount
+    terms_body      = db.Column(db.Text)  # filled terms snapshot at send time
 
     lead = db.relationship("Lead", backref="agreements")
+
+
+class AgreementTemplate(db.Model):
+    __tablename__ = "agreement_templates"
+    id         = db.Column(db.Integer, primary_key=True)
+    title      = db.Column(db.String(200), default="Subscription Agreement")
+    body       = db.Column(db.Text, default="")
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Invoice(db.Model):
@@ -191,6 +200,13 @@ STAGE_COLORS = {
 SALES_COMMISSION_RATE = 12.0   # default %
 CADENCE_MULTIPLIERS = {"monthly": 1, "quarterly": 3, "annual": 12}
 
+DEFAULT_AGREEMENT_TERMS = """1. <b>Subscription.</b> {{company}} agrees to subscribe to <b>{{product}} — {{plan}}</b> at <b>{{price}}</b>, billed {{cadence}}.
+2. <b>Payment.</b> Invoices are due within 14 days of issuance. Late payments may incur a 1.5% monthly fee.
+3. <b>Term.</b> This agreement commences on the date signed and auto-renews unless cancelled with 30 days written notice.
+4. <b>Cancellation.</b> Either party may terminate with 30 days written notice. No refunds for partial billing periods.
+5. <b>Confidentiality.</b> Both parties agree to keep the terms of this agreement confidential.
+6. <b>Governing Law.</b> This agreement is governed by the laws of the State of California."""
+
 # ── Email Sending ─────────────────────────────────────────────────────────────
 
 def get_email_settings():
@@ -200,6 +216,66 @@ def get_email_settings():
         db.session.add(s)
         db.session.commit()
     return s
+
+def get_agreement_template():
+    t = AgreementTemplate.query.first()
+    if not t:
+        t = AgreementTemplate(title="Subscription Agreement", body=DEFAULT_AGREEMENT_TERMS)
+        db.session.add(t)
+        db.session.commit()
+    elif not (t.body or "").strip():
+        t.body = DEFAULT_AGREEMENT_TERMS
+        db.session.commit()
+    return t
+
+
+def agreement_term_context(agr, lead):
+    prod = lead.product.name if lead.product else "Revfi"
+    plan = lead.plan.name if lead.plan else ""
+    final_monthly = agr.final_monthly if agr.final_monthly else lead.value
+    setup_fee = agr.setup_fee if agr.setup_fee else 0
+    _, _, discount_label = calc_discounted_price(lead)
+    cadence = (lead.plan.cadence if lead.plan else "monthly")
+    date_sent = agr.sent_at.strftime("%B %d, %Y") if agr.sent_at else datetime.utcnow().strftime("%B %d, %Y")
+    if setup_fee and setup_fee > 0:
+        setup_txt = f"${setup_fee:,.2f} (due at signing)"
+    elif lead.setup_fee == 0 and agr.discount_type == "waive_setup":
+        setup_txt = "Waived"
+    else:
+        setup_txt = "$0.00"
+    return {
+        "company": lead.company or "",
+        "contact": lead.contact or "",
+        "email": lead.email or "",
+        "product": prod,
+        "plan": plan,
+        "price": f"${final_monthly:,.2f}/month",
+        "cadence": cadence,
+        "ref": agr.ref or "",
+        "date": date_sent,
+        "signer_name": agr.signer_name or lead.contact or "",
+        "signer_title": agr.signer_title or "",
+        "setup_fee": setup_txt,
+        "discount": discount_label or agr.discount_reason or "",
+        "notes": agr.notes or "",
+    }
+
+
+def fill_agreement_terms(body, agr, lead):
+    ctx = agreement_term_context(agr, lead)
+    safe = {k: html.escape(str(v), quote=False) for k, v in ctx.items()}
+
+    def repl(m):
+        key = m.group(1)
+        return safe.get(key, m.group(0))
+
+    return re.sub(r"\{\{\s*(\w+)\s*\}\}", repl, body or "")
+
+
+def snapshot_agreement_terms(agr, lead):
+    tmpl = get_agreement_template()
+    agr.terms_body = fill_agreement_terms(tmpl.body, agr, lead)
+
 
 def generate_agreement_pdf(agr, lead):
     """Generate a branded agreement PDF and return bytes."""
@@ -289,17 +365,13 @@ def generate_agreement_pdf(agr, lead):
     story.append(tbl)
     story.append(Spacer(1, 20))
 
-    # Terms
+    # Terms (admin template, snapshotted on send)
     story.append(Paragraph("Terms & Conditions", head_style))
-    terms = [
-        f"1. <b>Subscription.</b> {lead.company} agrees to subscribe to <b>{prod} — {plan}</b> at <b>{price}</b>, billed {(lead.plan.cadence if lead.plan else 'monthly')}.",
-        "2. <b>Payment.</b> Invoices are due within 14 days of issuance. Late payments may incur a 1.5% monthly fee.",
-        "3. <b>Term.</b> This agreement commences on the date signed and auto-renews unless cancelled with 30 days written notice.",
-        "4. <b>Cancellation.</b> Either party may terminate with 30 days written notice. No refunds for partial billing periods.",
-        "5. <b>Confidentiality.</b> Both parties agree to keep the terms of this agreement confidential.",
-        "6. <b>Governing Law.</b> This agreement is governed by the laws of the State of California.",
-    ]
-    for t in terms:
+    terms_src = (agr.terms_body or "").strip() or fill_agreement_terms(get_agreement_template().body, agr, lead)
+    for t in terms_src.splitlines():
+        t = t.strip()
+        if not t:
+            continue
         story.append(Paragraph(t, body_style))
         story.append(Spacer(1, 6))
 
@@ -991,6 +1063,7 @@ def agreement_send():
         setup_fee       = final_setup,
         final_monthly   = final_monthly,
     )
+    snapshot_agreement_terms(agr, lead)
     lead.status = "Agreement Sent"
     lead.updated_at = datetime.utcnow()
     db.session.add(agr)
@@ -1059,6 +1132,7 @@ def agreement_resend(aid):
     agr.discount_reason = agr.lead.discount_reason
     agr.setup_fee       = final_setup
     agr.final_monthly   = final_monthly
+    snapshot_agreement_terms(agr, lead)
     # Reset status back to Pending and update sent timestamp
     agr.status    = "Pending Signature"
     agr.signed_at = None
@@ -1704,6 +1778,24 @@ def agreements_check_replies():
         flash(f"Could not check inbox: {e}", "danger")
     return redirect(url_for("agreements"))
 
+@app.route("/settings/agreement-template", methods=["GET", "POST"])
+@login_required
+@admin_required
+def agreement_template():
+    tmpl = get_agreement_template()
+    if request.method == "POST":
+        if "reset" in request.form:
+            tmpl.body = DEFAULT_AGREEMENT_TERMS
+            tmpl.title = "Subscription Agreement"
+        else:
+            tmpl.title = (request.form.get("title") or "Subscription Agreement").strip()
+            tmpl.body = request.form.get("body") or ""
+        tmpl.updated_at = datetime.utcnow()
+        db.session.commit()
+        flash("Agreement template saved. New and resent agreements will use this wording.", "success")
+        return redirect(url_for("agreement_template"))
+    return render_template("agreement_template.html", tmpl=tmpl)
+
 # ── Email Settings ───────────────────────────────────────────────────────────
 
 @app.route("/settings/email", methods=["GET","POST"])
@@ -1850,6 +1942,7 @@ def seed_db():
     if not SquareSettings.query.first():
         db.session.add(SquareSettings())
         db.session.commit()
+    get_agreement_template()
     print("✅  Database seeded.")
 
 
@@ -1898,6 +1991,30 @@ def safe_init_db():
         print("✅  Stale DB removed.")
 
     db.create_all()
+    _migrate_agreement_template_schema(db_path)
+
+
+def _migrate_agreement_template_schema(db_path):
+    """Add template table / terms snapshot without wiping live data."""
+    if not os.path.exists(db_path):
+        return
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS agreement_templates (
+                id INTEGER PRIMARY KEY,
+                title VARCHAR(200),
+                body TEXT,
+                updated_at DATETIME
+            )"""
+        )
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(agreements)").fetchall()]
+        if "terms_body" not in cols:
+            conn.execute("ALTER TABLE agreements ADD COLUMN terms_body TEXT")
+            print("✅  Added agreements.terms_body")
+        conn.commit()
+    finally:
+        conn.close()
 
 
 with app.app_context():

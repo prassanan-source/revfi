@@ -369,7 +369,7 @@
     <a href="{{ url_for('subscribers') }}" class="sidebar-link {% if request.endpoint=='subscribers' %}active{% endif %}"><i class="bi bi-stars"></i> Subscribers</a>
 
     <div class="nav-section-label">Transactions</div>
-    <a href="{{ url_for('agreements') }}"  class="sidebar-link {% if request.endpoint=='agreements' %}active{% endif %}"><i class="bi bi-pen"></i> Agreements</a>
+    <a href="{{ url_for('agreements') }}"  class="sidebar-link {% if request.endpoint in ('agreements','agreement_template') %}active{% endif %}"><i class="bi bi-pen"></i> Agreements</a>
     <a href="{{ url_for('invoices') }}"    class="sidebar-link {% if 'invoice' in request.endpoint %}active{% endif %}"><i class="bi bi-receipt"></i> Invoices</a>
     <a href="{{ url_for('commissions') }}" class="sidebar-link {% if request.endpoint=='commissions' %}active{% endif %}"><i class="bi bi-cash-coin"></i> Commissions</a>
 
@@ -377,6 +377,7 @@
     <div class="nav-section-label">Admin</div>
     <a href="{{ url_for('products') }}"       class="sidebar-link {% if 'product' in request.endpoint or 'plan' in request.endpoint %}active{% endif %}"><i class="bi bi-box-seam"></i> Products &amp; Plans</a>
     <a href="{{ url_for('users') }}"          class="sidebar-link {% if 'user' in request.endpoint %}active{% endif %}"><i class="bi bi-people"></i> Users</a>
+    <a href="{{ url_for('agreement_template') }}" class="sidebar-link {% if request.endpoint=='agreement_template' %}active{% endif %}"><i class="bi bi-file-earmark-text"></i> Agreement Template</a>
     <a href="{{ url_for('email_settings') }}" class="sidebar-link {% if 'email_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-envelope-gear"></i> Email Settings</a>
     <a href="{{ url_for('square_settings') }}" class="sidebar-link {% if 'square_settings' in request.endpoint %}active{% endif %}"><i class="bi bi-square"></i> Square Settings</a>
     {% endif %}

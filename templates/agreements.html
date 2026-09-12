@@ -10,6 +10,11 @@
     <form method="post" action="{{ url_for('agreements_check_replies') }}" class="d-inline">
       <button class="btn btn-navy"><i class="bi bi-inbox me-1"></i> Check Replies Now</button>
     </form>
+    {% if session.get('user_role') == 'admin' %}
+    <a href="{{ url_for('agreement_template') }}" class="btn btn-navy">
+      <i class="bi bi-pencil-square me-1"></i> Edit Template
+    </a>
+    {% endif %}
     <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#sendModal">
       <i class="bi bi-send me-1"></i> Send Agreement
     </button>
