@@ -747,7 +747,7 @@ def agreement_email_html(agr, lead):
       </p>
     </div>
     <p style="margin-top:32px;color:#6b7280;font-size:13px;">
-      {issuer} · <a href="mailto:shan@revfi.ai" style="color:#C9A84C;">shan@revfi.ai</a>
+      {issuer} · <a href="mailtoinfo@karyva.ai" style="color:#C9A84C;">info@karyva.ai</a>
     </p>
   </div>
 </div>"""
@@ -777,7 +777,7 @@ def invoice_email_html(inv, lead):
     </table>
     {f'<p style="background:#fffbeb;border-left:4px solid #C9A84C;padding:12px 16px;border-radius:4px;">{inv.notes}</p>' if inv.notes else ''}
     <p style="margin-top:32px;color:#6b7280;font-size:13px;">
-      {issuer} · <a href="mailto:shan@revfi.ai" style="color:#C9A84C;">shan@revfi.ai</a>
+      {issuer} · <a href="mailto:info@karyva.ai" style="color:#C9A84C;">info@karyva.ai</a>
     </p>
   </div>
 </div>"""
@@ -2071,7 +2071,7 @@ def seed_db():
     if User.query.first():
         return  # already seeded
     # Admin
-    admin = User(name="Shan Kumar", email="shan@revfi.ai",
+    admin = User(name="Shankar Prassanan", email="info@karyva.ai",
                  password=generate_password_hash("Admin@123"), role="admin")
     db.session.add(admin)
     # Sales reps
