@@ -4,16 +4,33 @@
 <div class="page-header d-flex justify-content-between align-items-start">
   <div>
     <div class="page-title">Agreement Template</div>
-    <div class="page-sub">Edit the terms used on every new or resent agreement PDF. Changes do not rewrite already-sent copies unless you resend.</div>
+    <div class="page-sub">Karyva.AI Subscription &amp; Services Agreement. Edit anytime — new and resent PDFs use the saved text. Already-sent copies stay as they were.</div>
   </div>
   <a href="{{ url_for('agreements') }}" class="btn btn-navy">Back to Agreements</a>
 </div>
 
 <div class="row g-4">
   <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-upload" style="color:var(--karyva-gold, #C9A84C);"></i> Replace from Word
+      </div>
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="company_name" value="{{ tmpl.company_name or 'Karyva.ai' }}">
+          <label class="form-label">Upload a .docx to replace the template</label>
+          <div class="d-flex gap-2 flex-wrap">
+            <input type="file" name="docx" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="form-control" style="max-width:420px;">
+            <button type="submit" class="btn btn-navy">Import Word file</button>
+          </div>
+          <div class="form-text mt-2">Keeps placeholders such as <code>{{ '{{client}}' }}</code> if they are in the document.</div>
+        </form>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-header py-3 d-flex align-items-center gap-2">
-        <i class="bi bi-file-earmark-text" style="color:var(--karyva-gold, #C9A84C);"></i> Terms &amp; Conditions
+        <i class="bi bi-file-earmark-text" style="color:var(--karyva-gold, #C9A84C);"></i> Live template
       </div>
       <div class="card-body p-4">
         <form method="post">
@@ -22,13 +39,17 @@
             <input type="text" name="title" class="form-control" value="{{ tmpl.title }}" maxlength="200">
           </div>
           <div class="mb-3">
-            <label class="form-label">Body</label>
-            <textarea name="body" class="form-control" rows="18" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.55;">{{ tmpl.body }}</textarea>
-            <div class="form-text mt-2">One clause per line. Use <code>&lt;b&gt;bold&lt;/b&gt;</code> and placeholders like <code>{{ '{{company}}' }}</code>.</div>
+            <label class="form-label">Provider name <span style="font-size:11px;color:var(--karyva-muted,#8A9BB0);">({{ '{{company}}' }})</span></label>
+            <input type="text" name="company_name" class="form-control" value="{{ tmpl.company_name or 'Karyva.ai' }}" maxlength="200">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Agreement body</label>
+            <textarea name="body" class="form-control" rows="28" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5;">{{ tmpl.body }}</textarea>
+            <div class="form-text mt-2">Change any clause and click Save. Placeholders fill when an agreement is sent.</div>
           </div>
           <div class="d-flex gap-2 flex-wrap">
             <button type="submit" name="save" class="btn btn-gold px-4">Save template</button>
-            <button type="submit" name="reset" class="btn btn-outline-secondary" onclick="return confirm('Restore the original Revfi terms?')">Restore default</button>
+            <button type="submit" name="reset" class="btn btn-outline-secondary" onclick="return confirm('Restore the original Karyva.AI Subscription &amp; Services Agreement?')">Restore original document</button>
           </div>
         </form>
       </div>
@@ -38,8 +59,8 @@
     <div class="card">
       <div class="card-header py-3">Placeholders</div>
       <div class="card-body" style="font-size:13px;line-height:1.7;">
-        <p class="mb-2" style="color:#cdd5e0;">Filled from the lead when the agreement is sent:</p>
-        <code>{{ '{{company}}' }}</code><br>
+        <p class="mb-2" style="color:#cdd5e0;"><code>{{ '{{company}}' }}</code> is <strong>{{ tmpl.company_name or 'Karyva.ai' }}</strong>. The subscriber is <code>{{ '{{client}}' }}</code>.</p>
+        <code>{{ '{{company}}' }}</code> <code>{{ '{{client}}' }}</code><br>
         <code>{{ '{{contact}}' }}</code> <code>{{ '{{email}}' }}</code><br>
         <code>{{ '{{product}}' }}</code> <code>{{ '{{plan}}' }}</code><br>
         <code>{{ '{{price}}' }}</code> <code>{{ '{{cadence}}' }}</code><br>

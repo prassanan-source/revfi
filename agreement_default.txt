@@ -1,0 +1,146 @@
+Subscription & Services Agreement
+Effective Date: {{date}}
+Document Reference: {{ref}}
+
+HOW THIS AGREEMENT IS ACCEPTED
+
+NO HANDWRITTEN OR ELECTRONIC SIGNATURE IS REQUIRED.
+
+This Agreement becomes legally binding when Subscriber replies to the Karyva.AI proposal or order email with the word "Agreed" or "Confirmed" — or any email reply that clearly expresses acceptance of these terms.
+
+Such reply constitutes a valid electronic signature under the E-SIGN Act (15 U.S.C. § 7001 et seq.) and California UETA (Cal. Com. Code § 1633.1 et seq.), legally equivalent to a handwritten signature.
+
+Acceptance Process
+1.  Provider sends this Agreement and Order details to Subscriber's designated email address.
+2.  Subscriber reviews the Agreement in full.
+3.  Subscriber replies with "Agreed", "Confirmed", or equivalent affirmative language.
+4.  Provider sends a confirmation email — this serves as the binding executed copy of the Agreement.
+5.  Provider's email records (timestamps, sender addresses, content) are the official record of contract formation, admissible as evidence of Subscriber's intent to be bound.
+
+Authorized Acceptor
+The individual sending the acceptance email represents and warrants they have authority to bind Subscriber. If not, Subscriber remains bound under principles of apparent authority and ratification.
+
+Example Acceptance Email
+
+From:    {{signer_name}}
+To:      agreements@karyva.ai
+Subject: RE: Karyva.AI Subscription Agreement — {{client}}
+
+Agreed.
+
+{{signer_name}}, {{signer_title}}
+{{client}}
+
+Replies such as "Confirmed", "I accept", "We agree to the terms", or any reply reasonably communicating affirmative assent equally constitute binding acceptance.
+
+Record Retention
+Provider retains a timestamped copy of the acceptance email thread for the Agreement term plus seven (7) years. Copies available on request at legal@karyva.ai.
+
+
+PARTIES
+This Agreement is entered into as of the date of Subscriber's email acceptance, by and between:
+
+Karyva.AI, Inc., a corporation with its principal place of business in the San Francisco Bay Area, California ("Provider", "we", "us", or "our");
+
+AND
+
+The company, organization, or individual identified in the proposal or Order Form email to which Subscriber replied with acceptance ("Subscriber", "Client", "you", or "your").
+
+CORE SUBSCRIPTION TERMS
+
+1.  Subscription.  {{client}} agrees to subscribe to {{company}} — {{product}} — {{plan}} at {{price}}, billed {{cadence}}. Subscriber acknowledges the platform provides AI-powered back-office and operations automation covering finance, AP, reconciliation, vendor management, and workforce scheduling.
+2.  Payment.  Invoices due within 14 days of issuance. Late payments incur 1.5% monthly fee plus collection costs. Provider may suspend access after 30-day delinquency.
+3.  Term.  Commences on date of email acceptance and auto-renews unless cancelled with 30 days written notice before term end.
+4.  Cancellation.  Either Party may terminate with 30 days written notice (email sufficient). No refunds for partial periods. Subscriber data accessible 30 days post-termination, then permanently deleted.
+5.  Confidentiality.  Both Parties keep Agreement terms and pricing confidential. Survives termination for three (3) years.
+6.  Governing Law.  Governed by laws of the State of California. Disputes resolved in Alameda County, CA or binding AAA arbitration at Provider's election.
+
+
+A.  PLATFORM & SERVICE DESCRIPTION
+Karyva.AI is an AI-powered operations intelligence platform delivered as cloud-based SaaS. Products include RezFi, FreshFi, RevFi, and additional modules. Covered domains: Finance & Accounting, Accounts Payable, Vendor Management, Workforce Scheduling, Reconciliation, and Day-to-Day Operations. Provider may add, modify, or discontinue features with reasonable advance notice.
+
+B.  AI SERVICES — SPECIFIC DISCLAIMERS & LIMITATIONS
+B.1  Nature of AI Outputs
+(a)  AI-generated outputs are probabilistic and may contain errors, omissions, or inaccuracies.
+(b)  No AI output constitutes professional financial, legal, tax, accounting, or regulatory advice.
+(c)  Provider does not warrant AI outputs will be free from bias, hallucination, or error.
+(d)  The platform is a decision-support tool. Subscriber must maintain competent staff to review all outputs before acting.
+
+B.2  No Fiduciary or Professional Duty
+Provider is a technology platform provider only. Nothing herein creates any fiduciary duty, accountant-client, attorney-client, or financial advisor relationship. Provider shall not be liable for any financial loss, regulatory penalty, audit finding, tax liability, or legal consequence arising from Subscriber's reliance on platform outputs.
+
+B.3  Regulatory Compliance — Subscriber Responsibility
+Subscriber is solely responsible for compliance with GAAP, IFRS, SOX, PCI-DSS, HIPAA, GDPR, CCPA, and all applicable labor laws. Provider shall not be liable for any regulatory violations, fines, or sanctions arising from Subscriber's use of the platform.
+
+B.4  Data Quality — Subscriber Responsibility
+AI output accuracy depends on data quality. Subscriber warrants all submitted data is accurate, complete, and lawfully obtained. Provider is not liable for output errors caused by Subscriber data issues.
+
+C.  LIABILITY LIMITATIONS & INDEMNIFICATION
+C.1  Disclaimer of Warranties
+THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND — EXPRESS OR IMPLIED — INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, ACCURACY OF AI OUTPUTS, OR UNINTERRUPTED SERVICE.
+
+C.2  Liability Cap
+PROVIDER'S TOTAL LIABILITY FOR ALL CLAIMS SHALL NOT EXCEED THE GREATER OF: (A) FEES PAID IN THE PRIOR 12 MONTHS; OR (B) USD $1,000. THIS CAP IS A MATERIAL TERM OF THIS AGREEMENT.
+
+C.3  Exclusion of Consequential Damages
+IN NO EVENT SHALL PROVIDER BE LIABLE FOR INDIRECT, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES; LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL; REGULATORY FINES; OR FINANCIAL LOSSES FROM AI OUTPUT RELIANCE — EVEN IF ADVISED OF SUCH POSSIBILITY.
+
+C.4  Subscriber Indemnification
+Subscriber shall indemnify Provider from all claims arising from: (a) platform misuse or law violations; (b) decisions made from AI outputs; (c) regulatory non-compliance; (d) Subscriber data accuracy or legality; (e) misrepresentation of platform capabilities to third parties.
+
+C.5  Claims Period
+No action may be brought more than two (2) years after the claiming Party knew or should have known of the cause of action.
+
+D.  DATA PRIVACY & SECURITY
+Subscriber retains ownership of all Subscriber Data. Provider processes data solely to deliver services, does not sell data, and will not use it to train general AI models without explicit consent. Provider employs TLS 1.2+ encryption in transit, AES-256 at rest, and SOC 2 Type II aligned practices. Breach notification within 72 hours of discovery. Data deleted within 90 days of termination.
+
+E.  INTELLECTUAL PROPERTY
+Provider retains all rights to the Karyva.AI platform and all products (RezFi, FreshFi, RevFi, and others), AI models, and algorithms. Subscriber receives a limited, non-exclusive, non-transferable license for internal use during the Term. Subscriber may not reverse engineer, resell, or use the platform to develop a competing product.
+
+F.  ACCEPTABLE USE
+Subscriber shall not use the platform to: commit or facilitate fraud, money laundering, or financial crime; circumvent financial controls or regulatory reporting; misrepresent financial condition to investors or regulators using AI outputs; process data without legal authority; or transmit malicious code. Violation constitutes a material breach warranting immediate termination with no liability to Provider.
+
+G.  SERVICE LEVELS
+Provider targets 99.5% monthly uptime excluding scheduled maintenance, emergency maintenance, third-party infrastructure outages, and force majeure events. Service credits (if any) are Subscriber's sole remedy for downtime, not exceeding the pro-rated monthly fee for the affected period.
+
+H.  FORCE MAJEURE
+Neither Party is liable for delays caused by acts of God, pandemics, government actions, war, cyberattacks by third parties, internet outages, or other events beyond reasonable control. Affected Party must notify promptly and use commercially reasonable efforts to resume.
+
+I.  DISPUTE RESOLUTION
+Parties will negotiate in good faith for 30 days before formal proceedings. Unresolved disputes go to binding AAA arbitration in Alameda County, California. EACH PARTY WAIVES CLASS ACTION AND REPRESENTATIVE PROCEEDING RIGHTS. Either Party may seek emergency injunctive relief without waiving arbitration.
+
+J.  GENERAL PROVISIONS
+J.1  Entire Agreement — This Agreement and applicable Order Forms constitute the entire agreement between the Parties.
+J.2  Amendments — Provider may amend with 30 days' notice; continued use constitutes acceptance.
+J.3  Severability — Invalid provisions modified to minimum extent; remainder continues in force.
+J.4  Waiver — No waiver effective unless in writing.
+J.5  Assignment — Subscriber may not assign without Provider's written consent.
+J.6  Notices — May be delivered by email with confirmed receipt.
+J.7  Contact — legal@karyva.ai  |  karyva.ai
+
+
+ACCEPTANCE BY EMAIL REPLY
+To accept this Agreement, reply to this email with:
+
+"Agreed"  or  "Confirmed"
+
+Your reply constitutes a legally binding electronic signature under the E-SIGN Act and California UETA — with the same legal force as a handwritten signature.
+
+By replying you confirm: (1) you have read this Agreement in full; (2) you have authority to bind Subscriber; and (3) you agree to all terms herein.
+
+
+Subscriber (Company)
+{{client}}
+Plan
+{{product}} — {{plan}}
+Price
+{{price}}, billed {{cadence}}
+Reply To
+agreements@karyva.ai
+Agreement Date
+Date of Subscriber's reply email
+Provider
+{{company}}
+
+
+© 2026 Karyva.AI, Inc.  ·  All Rights Reserved  ·  {{ref}}

@@ -3,7 +3,7 @@ Revfi — Subscription Management Platform
 Flask/SQLAlchemy/SQLite · aligned with Raya Finance & Temple apps
 """
 
-import os, json, uuid, smtplib, ssl, io, re, html, sqlite3, requests as http_requests
+import os, json, uuid, smtplib, ssl, io, re, html, sqlite3, zipfile, requests as http_requests
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -16,6 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from datetime import datetime, date, timedelta
 from functools import wraps
+from xml.etree import ElementTree as ET
 from flask import (Flask, render_template, request, redirect, url_for,
                    flash, session, jsonify, abort)
 from flask_sqlalchemy import SQLAlchemy
@@ -123,10 +124,11 @@ class Agreement(db.Model):
 
 class AgreementTemplate(db.Model):
     __tablename__ = "agreement_templates"
-    id         = db.Column(db.Integer, primary_key=True)
-    title      = db.Column(db.String(200), default="Subscription Agreement")
-    body       = db.Column(db.Text, default="")
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id           = db.Column(db.Integer, primary_key=True)
+    title        = db.Column(db.String(200), default="Subscription Agreement")
+    company_name = db.Column(db.String(200), default="Karyva.ai")  # {{company}}
+    body         = db.Column(db.Text, default="")
+    updated_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Invoice(db.Model):
@@ -181,7 +183,7 @@ class EmailSettings(db.Model):
     smtp_port  = db.Column(db.Integer,     default=587)
     smtp_user  = db.Column(db.String(200), default="")
     smtp_pass  = db.Column(db.String(200), default="")
-    from_name  = db.Column(db.String(200), default="Revfi Team")
+    from_name  = db.Column(db.String(200), default="Karyva.ai Team")
     from_email = db.Column(db.String(200), default="")
     use_tls    = db.Column(db.Boolean,     default=True)
     updated_at = db.Column(db.DateTime,    default=datetime.utcnow)
@@ -200,12 +202,45 @@ STAGE_COLORS = {
 SALES_COMMISSION_RATE = 12.0   # default %
 CADENCE_MULTIPLIERS = {"monthly": 1, "quarterly": 3, "annual": 12}
 
-DEFAULT_AGREEMENT_TERMS = """1. <b>Subscription.</b> {{company}} agrees to subscribe to <b>{{product}} — {{plan}}</b> at <b>{{price}}</b>, billed {{cadence}}.
+_FALLBACK_AGREEMENT_TERMS = """1. <b>Subscription.</b> {{client}} agrees to subscribe with <b>{{company}}</b> to <b>{{product}} — {{plan}}</b> at <b>{{price}}</b>, billed {{cadence}}.
 2. <b>Payment.</b> Invoices are due within 14 days of issuance. Late payments may incur a 1.5% monthly fee.
 3. <b>Term.</b> This agreement commences on the date signed and auto-renews unless cancelled with 30 days written notice.
 4. <b>Cancellation.</b> Either party may terminate with 30 days written notice. No refunds for partial billing periods.
 5. <b>Confidentiality.</b> Both parties agree to keep the terms of this agreement confidential.
 6. <b>Governing Law.</b> This agreement is governed by the laws of the State of California."""
+
+AGREEMENT_DEFAULT_FILE = os.path.join(BASE_DIR, "agreement_default.txt")
+KARYVA_AGREEMENT_DOCX = os.path.join(BASE_DIR, "Karyva_AI_Agreement_Final.docx")
+
+
+def default_agreement_terms():
+    try:
+        with open(AGREEMENT_DEFAULT_FILE, encoding="utf-8") as f:
+            text = f.read().strip()
+        if text:
+            return text
+    except OSError:
+        pass
+    return _FALLBACK_AGREEMENT_TERMS
+
+
+def extract_docx_text(fileobj):
+    """Plain-text paragraphs from a .docx upload (no extra dependency)."""
+    with zipfile.ZipFile(fileobj) as zf:
+        xml = zf.read("word/document.xml")
+    root = ET.fromstring(xml)
+    w_p = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"
+    w_t = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t"
+    lines = []
+    for p in root.iter(w_p):
+        parts = []
+        for t in p.iter(w_t):
+            if t.text:
+                parts.append(t.text)
+            if t.tail:
+                parts.append(t.tail)
+        lines.append("".join(parts).rstrip())
+    return "\n".join(lines).strip()
 
 # ── Email Sending ─────────────────────────────────────────────────────────────
 
@@ -219,18 +254,34 @@ def get_email_settings():
 
 def get_agreement_template():
     t = AgreementTemplate.query.first()
+    dirty = False
+    default_body = default_agreement_terms()
     if not t:
-        t = AgreementTemplate(title="Subscription Agreement", body=DEFAULT_AGREEMENT_TERMS)
+        t = AgreementTemplate(
+            title="Subscription & Services Agreement",
+            company_name="Karyva.ai",
+            body=default_body,
+        )
         db.session.add(t)
-        db.session.commit()
-    elif not (t.body or "").strip():
-        t.body = DEFAULT_AGREEMENT_TERMS
+        dirty = True
+    if not (t.company_name or "").strip():
+        t.company_name = "Karyva.ai"
+        dirty = True
+    if not (t.body or "").strip() or "HOW THIS AGREEMENT IS ACCEPTED" not in (t.body or ""):
+        t.body = default_body
+        t.title = t.title or "Subscription & Services Agreement"
+        dirty = True
+    if dirty:
         db.session.commit()
     return t
 
 
+def issuer_brand():
+    return (get_agreement_template().company_name or "Karyva.ai").strip() or "Karyva.ai"
+
+
 def agreement_term_context(agr, lead):
-    prod = lead.product.name if lead.product else "Revfi"
+    prod = lead.product.name if lead.product else issuer_brand()
     plan = lead.plan.name if lead.plan else ""
     final_monthly = agr.final_monthly if agr.final_monthly else lead.value
     setup_fee = agr.setup_fee if agr.setup_fee else 0
@@ -243,8 +294,11 @@ def agreement_term_context(agr, lead):
         setup_txt = "Waived"
     else:
         setup_txt = "$0.00"
+    issuer = issuer_brand()
     return {
-        "company": lead.company or "",
+        "company": issuer,
+        "vendor": issuer,
+        "client": lead.company or "",
         "contact": lead.contact or "",
         "email": lead.email or "",
         "product": prod,
@@ -272,6 +326,13 @@ def fill_agreement_terms(body, agr, lead):
     return re.sub(r"\{\{\s*(\w+)\s*\}\}", repl, body or "")
 
 
+def _pdf_safe_line(text):
+    s = text.replace("&", "&amp;")
+    s = s.replace("<b>", "\x00b\x00").replace("</b>", "\x00/b\x00")
+    s = s.replace("<", "&lt;").replace(">", "&gt;")
+    return s.replace("\x00b\x00", "<b>").replace("\x00/b\x00", "</b>")
+
+
 def snapshot_agreement_terms(agr, lead):
     tmpl = get_agreement_template()
     agr.terms_body = fill_agreement_terms(tmpl.body, agr, lead)
@@ -289,18 +350,24 @@ def generate_agreement_pdf(agr, lead):
     grey   = colors.HexColor("#6B7280")
     light  = colors.HexColor("#F9FAFB")
 
-    title_style = ParagraphStyle("Title", fontSize=22, fontName="Helvetica-Bold",
-                                 textColor=navy, spaceAfter=4)
-    sub_style   = ParagraphStyle("Sub",   fontSize=10, fontName="Helvetica",
-                                 textColor=grey, spaceAfter=14)
-    head_style  = ParagraphStyle("Head",  fontSize=12, fontName="Helvetica-Bold",
-                                 textColor=navy, spaceBefore=14, spaceAfter=6)
-    body_style  = ParagraphStyle("Body",  fontSize=10, fontName="Helvetica",
-                                 textColor=colors.HexColor("#374151"), leading=16)
-    small_style = ParagraphStyle("Small", fontSize=8,  fontName="Helvetica",
-                                 textColor=grey, leading=12)
+    title_style = ParagraphStyle("AgrTitle", parent=styles["Normal"], fontSize=20,
+                                 fontName="Helvetica-Bold", textColor=navy,
+                                 spaceAfter=10, leading=26)
+    sub_style   = ParagraphStyle("AgrSub", parent=styles["Normal"], fontSize=10,
+                                 fontName="Helvetica", textColor=grey,
+                                 spaceBefore=2, spaceAfter=14, leading=14)
+    head_style  = ParagraphStyle("AgrHead", parent=styles["Normal"], fontSize=12,
+                                 fontName="Helvetica-Bold", textColor=navy,
+                                 spaceBefore=14, spaceAfter=6, leading=16)
+    body_style  = ParagraphStyle("AgrBody", parent=styles["Normal"], fontSize=9,
+                                 fontName="Helvetica", textColor=colors.HexColor("#374151"),
+                                 leading=13)
+    small_style = ParagraphStyle("AgrSmall", parent=styles["Normal"], fontSize=8,
+                                 fontName="Helvetica", textColor=grey, leading=12)
+    hdr_style   = ParagraphStyle("AgrBanner", parent=styles["Normal"], leading=18)
 
-    prod  = lead.product.name if lead.product else "Revfi"
+    issuer = issuer_brand()
+    prod  = lead.product.name if lead.product else issuer
     plan  = lead.plan.name    if lead.plan    else ""
     # Use agreement's snapshotted final price, fallback to calc
     final_monthly = agr.final_monthly if agr.final_monthly else lead.value
@@ -311,128 +378,64 @@ def generate_agreement_pdf(agr, lead):
 
     story = []
 
-    # Header bar (simulated with a table)
-    header_data = [[Paragraph('<font color="#C9A84C"><b>REVFI</b></font><br/>'
-                              '<font size="8" color="#8A9BB0">Subscription Agreement</font>', styles["Normal"])]]
+    issuer_esc = html.escape(issuer)
+    header_data = [[Paragraph(
+        f'<font color="#C9A84C" size="13"><b>{issuer_esc}</b></font><br/>'
+        f'<font size="8" color="#8A9BB0">Subscription &amp; Services Agreement</font>',
+        hdr_style,
+    )]]
     header_tbl = Table(header_data, colWidths=[6.5*inch])
     header_tbl.setStyle(TableStyle([
         ("BACKGROUND", (0,0), (-1,-1), navy),
-        ("TOPPADDING",    (0,0), (-1,-1), 18),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 18),
-        ("LEFTPADDING",   (0,0), (-1,-1), 20),
+        ("TOPPADDING",    (0,0), (-1,-1), 14),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 14),
+        ("LEFTPADDING",   (0,0), (-1,-1), 16),
+        ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
     ]))
     story.append(header_tbl)
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 14))
+    story.append(Paragraph(
+        f"Reference: {html.escape(agr.ref)} &nbsp;&nbsp;·&nbsp;&nbsp; Date: {date_sent}",
+        sub_style,
+    ))
+    story.append(HRFlowable(width="100%", thickness=1, color=gold, spaceAfter=12))
 
-    story.append(Paragraph(f"Subscription Agreement", title_style))
-    story.append(Paragraph(f"Reference: {agr.ref} &nbsp;·&nbsp; Date: {date_sent}", sub_style))
-    story.append(HRFlowable(width="100%", thickness=1, color=gold, spaceAfter=16))
-
-    # Agreement details table
-    tbl_data = [
-        ["Agreement Reference", agr.ref],
-        ["Company",             lead.company],
-        ["Signatory",           f"{agr.signer_name or lead.contact}  {agr.signer_title or ''}".strip()],
-        ["Email",               lead.email or "—"],
-        ["Product",             f"{prod} — {plan}"],
-        ["Billing Cadence",     (lead.plan.cadence.capitalize() if lead.plan else "Monthly")],
-        ["Agreement Date",      date_sent],
-    ]
-    if lead.value != final_monthly:
-        tbl_data.insert(5, ["Standard Monthly Fee", f"${lead.value:,.2f}/month"])
-        tbl_data.insert(6, ["Discount Applied",     discount_label or agr.discount_reason or "Special pricing"])
-        tbl_data.insert(7, ["Your Monthly Fee",     price])
-    else:
-        tbl_data.insert(5, ["Monthly Fee",          price])
-    if setup_fee and setup_fee > 0:
-        tbl_data.append(["One-time Setup Fee",  f"${setup_fee:,.2f} (due at signing)"])
-    elif lead.setup_fee == 0 and agr.discount_type == "waive_setup":
-        tbl_data.append(["Setup Fee",           "Waived"])
-    tbl = Table(tbl_data, colWidths=[2.2*inch, 4.3*inch])
-    tbl.setStyle(TableStyle([
-        ("FONTNAME",      (0,0), (0,-1), "Helvetica-Bold"),
-        ("FONTNAME",      (1,0), (1,-1), "Helvetica"),
-        ("FONTSIZE",      (0,0), (-1,-1), 10),
-        ("TEXTCOLOR",     (0,0), (0,-1), navy),
-        ("TEXTCOLOR",     (1,0), (1,-1), colors.HexColor("#374151")),
-        ("ROWBACKGROUNDS",(0,0), (-1,-1), [light, colors.white]),
-        ("TOPPADDING",    (0,0), (-1,-1), 9),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 9),
-        ("LEFTPADDING",   (0,0), (-1,-1), 12),
-        ("RIGHTPADDING",  (0,0), (-1,-1), 12),
-        ("LINEBELOW",     (0,-1), (-1,-1), 0.5, gold),
-    ]))
-    story.append(tbl)
-    story.append(Spacer(1, 20))
-
-    # Terms (admin template, snapshotted on send)
-    story.append(Paragraph("Terms & Conditions", head_style))
     terms_src = (agr.terms_body or "").strip() or fill_agreement_terms(get_agreement_template().body, agr, lead)
-    for t in terms_src.splitlines():
-        t = t.strip()
+    heading_names = {
+        "HOW THIS AGREEMENT IS ACCEPTED",
+        "NO HANDWRITTEN OR ELECTRONIC SIGNATURE IS REQUIRED.",
+        "PARTIES",
+        "CORE SUBSCRIPTION TERMS",
+        "ACCEPTANCE BY EMAIL REPLY",
+        "Acceptance Process",
+        "Authorized Acceptor",
+        "Example Acceptance Email",
+        "Record Retention",
+        "AND",
+    }
+    for raw in terms_src.splitlines():
+        t = raw.strip()
         if not t:
+            story.append(Spacer(1, 8))
             continue
-        story.append(Paragraph(t, body_style))
-        story.append(Spacer(1, 6))
+        markup = _pdf_safe_line(t)
+        plain = re.sub(r"<[^>]+>", "", t).strip()
+        is_head = (
+            plain in heading_names
+            or (plain.upper() == plain and 3 < len(plain) < 72 and any(c.isalpha() for c in plain))
+            or bool(re.match(r"^[A-J]\.\s", plain))
+            or bool(re.match(r"^[A-J]\.\d", plain))
+        )
+        if is_head:
+            story.append(Paragraph(markup, head_style))
+        else:
+            story.append(Paragraph(markup, body_style))
+            story.append(Spacer(1, 3))
 
     if agr.notes:
         story.append(Spacer(1, 10))
         story.append(Paragraph("Additional Notes", head_style))
-        story.append(Paragraph(agr.notes, body_style))
-
-    story.append(Spacer(1, 30))
-    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#E5E7EB"), spaceAfter=16))
-
-    # Signature block
-    sig_data = [
-        [Paragraph("<b>Revfi</b>", body_style), Paragraph(f"<b>{lead.company}</b>", body_style)],
-        ["", ""],
-        ["", ""],
-        [Paragraph("_______________________________", small_style), Paragraph("_______________________________", small_style)],
-        [Paragraph("Authorised Signatory", small_style), Paragraph(f"{agr.signer_name or lead.contact}", small_style)],
-        [Paragraph("Date: ___________________", small_style), Paragraph(f"{agr.signer_title or ''}", small_style)],
-    ]
-    sig_tbl = Table(sig_data, colWidths=[3.25*inch, 3.25*inch])
-    sig_tbl.setStyle(TableStyle([
-        ("VALIGN",       (0,0), (-1,-1), "BOTTOM"),
-        ("LEFTPADDING",  (0,0), (-1,-1), 0),
-        ("RIGHTPADDING", (0,0), (-1,-1), 0),
-    ]))
-    story.append(sig_tbl)
-
-    story.append(Spacer(1, 20))
-    story.append(Paragraph(
-        "<b>How to respond to this agreement:</b>",
-        ParagraphStyle("NoteHead", fontSize=10, fontName="Helvetica-Bold",
-                       textColor=navy, spaceBefore=4, spaceAfter=6)
-    ))
-    story.append(Paragraph(
-        "Reply to the email that delivered this agreement with one of the words below. "
-        "The agreement reference <b>{agr.ref}</b> must be in the subject line "
-        "(it will be there automatically if you click Reply).",
-        ParagraphStyle("NoteSub", fontSize=9, fontName="Helvetica", textColor=grey, leading=14, spaceAfter=8)
-    ))
-    reply_data = [
-        [Paragraph("<b>✓ To ACCEPT — reply with:</b>", body_style),
-         Paragraph("<b>✗ To DECLINE — reply with:</b>", body_style)],
-        [Paragraph('<font size="14"><b>   Agreed</b></font>  or  <font size="14"><b>Confirmed</b></font>', body_style),
-         Paragraph('<font size="14"><b>   Declined</b></font>', body_style)],
-    ]
-    reply_tbl = Table(reply_data, colWidths=[3.25*inch, 3.25*inch])
-    reply_tbl.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (0,-1), colors.HexColor("#D1FAE5")),
-        ("BACKGROUND", (1,0), (1,-1), colors.HexColor("#FEE2E2")),
-        ("TEXTCOLOR",  (0,0), (0,-1), colors.HexColor("#065F46")),
-        ("TEXTCOLOR",  (1,0), (1,-1), colors.HexColor("#991B1B")),
-        ("TOPPADDING",    (0,0), (-1,-1), 8),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 8),
-        ("LEFTPADDING",   (0,0), (-1,-1), 10),
-        ("RIGHTPADDING",  (0,0), (-1,-1), 10),
-        ("ROUNDEDCORNERS", [4]),
-    ]))
-    story.append(reply_tbl)
-    story.append(Spacer(1, 10))
-    story.append(Paragraph("Revfi · shan@revfi.ai", small_style))
+        story.append(Paragraph(_pdf_safe_line(agr.notes), body_style))
 
     doc.build(story)
     return buf.getvalue()
@@ -560,7 +563,7 @@ def square_send_invoice(inv):
             "location_id": cfg.location_id,
             "customer_id": customer_id,
             "line_items": [{
-                "name":     prod_name or "Revfi Subscription",
+                "name":     prod_name or "Karyva.ai Subscription",
                 "quantity": "1",
                 "base_price_money": {"amount": amount_cents, "currency": "USD"},
                 "note": f"{inv.cadence.capitalize()} subscription · {inv.ref}",
@@ -580,7 +583,7 @@ def square_send_invoice(inv):
             "location_id":    cfg.location_id,
             "order_id":       order_id,
             "invoice_number": inv.ref,
-            "title":          f"Revfi — {prod_name or 'Subscription'}",
+            "title":          f"Karyva.ai — {prod_name or 'Subscription'}",
             "description":    f"{inv.cadence.capitalize()} subscription invoice",
             "delivery_method": "EMAIL",
             "primary_recipient": {"customer_id": customer_id},
@@ -652,7 +655,8 @@ def send_email(to_addr, subject, html_body, to_name="", attachment_bytes=None, a
         return False, str(e)
 
 def agreement_email_html(agr, lead):
-    prod  = lead.product.name if lead.product else "Revfi"
+    issuer = issuer_brand()
+    prod  = lead.product.name if lead.product else issuer
     plan  = lead.plan.name    if lead.plan    else ""
     final_monthly = agr.final_monthly if agr.final_monthly else lead.value
     setup_fee     = agr.setup_fee     if agr.setup_fee     else 0
@@ -685,12 +689,12 @@ def agreement_email_html(agr, lead):
     return f"""
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222;">
   <div style="background:#0F1C2E;padding:28px 32px;border-radius:10px 10px 0 0;">
-    <div style="color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Revfi</div>
+    <div style="color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">{issuer}</div>
     <div style="color:#fff;font-size:22px;font-weight:800;margin-top:4px;">Subscription Agreement</div>
   </div>
   <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;">
     <p>Dear <strong>{agr.signer_name or lead.contact}</strong>,</p>
-    <p>Please review and sign your <strong>{prod} {plan}</strong> subscription agreement with Revfi.</p>
+    <p>Please review and sign your <strong>{prod} {plan}</strong> subscription agreement with {issuer}.</p>
     <table style="width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;">
       <tr style="background:#f3f4f6;"><td style="padding:10px 14px;font-weight:700;width:40%;">Agreement Ref</td><td style="padding:10px 14px;">{agr.ref}</td></tr>
       <tr><td style="padding:10px 14px;font-weight:700;">Company</td><td style="padding:10px 14px;">{lead.company}</td></tr>
@@ -724,20 +728,21 @@ def agreement_email_html(agr, lead):
       </p>
     </div>
     <p style="margin-top:32px;color:#6b7280;font-size:13px;">
-      Revfi · <a href="mailto:shan@revfi.ai" style="color:#C9A84C;">shan@revfi.ai</a>
+      {issuer} · <a href="mailto:shan@revfi.ai" style="color:#C9A84C;">shan@revfi.ai</a>
     </p>
   </div>
 </div>"""
 
 def invoice_email_html(inv, lead):
-    prod  = lead.product.name if lead and lead.product else "Revfi"
+    issuer = issuer_brand()
+    prod  = lead.product.name if lead and lead.product else issuer
     plan  = lead.plan.name    if lead and lead.plan    else ""
     # Use the invoice amount (already discounted at creation time)
     amount = inv.amount
     return f"""
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#222;">
   <div style="background:#0F1C2E;padding:28px 32px;border-radius:10px 10px 0 0;">
-    <div style="color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Revfi</div>
+    <div style="color:#C9A84C;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">{issuer}</div>
     <div style="color:#fff;font-size:22px;font-weight:800;margin-top:4px;">Invoice {inv.ref}</div>
   </div>
   <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;">
@@ -753,7 +758,7 @@ def invoice_email_html(inv, lead):
     </table>
     {f'<p style="background:#fffbeb;border-left:4px solid #C9A84C;padding:12px 16px;border-radius:4px;">{inv.notes}</p>' if inv.notes else ''}
     <p style="margin-top:32px;color:#6b7280;font-size:13px;">
-      Revfi · <a href="mailto:shan@revfi.ai" style="color:#C9A84C;">shan@revfi.ai</a>
+      {issuer} · <a href="mailto:shan@revfi.ai" style="color:#C9A84C;">shan@revfi.ai</a>
     </p>
   </div>
 </div>"""
@@ -1073,7 +1078,7 @@ def agreement_send():
     ok, err = send_email(
         to_addr         = lead.email,
         to_name         = agr.signer_name or lead.contact,
-        subject         = f"[Revfi] Subscription Agreement {agr.ref} — {lead.company}",
+        subject         = f"[Karyva.ai] Subscription Agreement {agr.ref} — {lead.company}",
         html_body       = agreement_email_html(agr, lead),
         attachment_bytes= pdf_bytes,
         attachment_name = f"{agr.ref}-Agreement.pdf",
@@ -1150,7 +1155,7 @@ def agreement_resend(aid):
     ok, err = send_email(
         to_addr         = lead.email,
         to_name         = agr.signer_name or lead.contact,
-        subject         = f"[Revfi] Updated Agreement {agr.ref} — {lead.company}",
+        subject         = f"[Karyva.ai] Updated Agreement {agr.ref} — {lead.company}",
         html_body       = agreement_email_html(agr, lead),
         attachment_bytes= pdf_bytes,
         attachment_name = f"{agr.ref}-Agreement.pdf",
@@ -1222,7 +1227,7 @@ def invoice_new():
         ok, err = send_email(
             to_addr  = lead.email,
             to_name  = lead.contact,
-            subject  = f"[Revfi] Invoice {inv.ref} — {lead.company}",
+            subject  = f"[Karyva.ai] Invoice {inv.ref} — {lead.company}",
             html_body= invoice_email_html(inv, lead),
         )
         if ok:
@@ -1283,7 +1288,7 @@ def invoice_generate_bulk():
             ok, _ = send_email(
                 to_addr  = lead.email,
                 to_name  = lead.contact,
-                subject  = f"[Revfi] Invoice {inv.ref} — {lead.company}",
+                subject  = f"[Karyva.ai] Invoice {inv.ref} — {lead.company}",
                 html_body= invoice_email_html(inv, lead),
             )
             if ok:
@@ -1784,15 +1789,30 @@ def agreements_check_replies():
 def agreement_template():
     tmpl = get_agreement_template()
     if request.method == "POST":
+        upload = request.files.get("docx")
         if "reset" in request.form:
-            tmpl.body = DEFAULT_AGREEMENT_TERMS
-            tmpl.title = "Subscription Agreement"
+            tmpl.body = default_agreement_terms()
+            tmpl.title = "Subscription & Services Agreement"
+            tmpl.company_name = "Karyva.ai"
+            flash("Restored the Karyva.AI Subscription & Services Agreement.", "success")
+        elif upload and upload.filename and upload.filename.lower().endswith(".docx"):
+            try:
+                tmpl.body = extract_docx_text(io.BytesIO(upload.read()))
+                first = next((ln.strip() for ln in tmpl.body.splitlines() if ln.strip()), "")
+                if first:
+                    tmpl.title = first[:200]
+                tmpl.company_name = (request.form.get("company_name") or tmpl.company_name or "Karyva.ai").strip()
+                flash("Word document imported. Review the text, then Save if you edit further.", "success")
+            except Exception as e:
+                flash(f"Could not read that .docx: {e}", "danger")
+                return redirect(url_for("agreement_template"))
         else:
-            tmpl.title = (request.form.get("title") or "Subscription Agreement").strip()
+            tmpl.title = (request.form.get("title") or "Subscription & Services Agreement").strip()
+            tmpl.company_name = (request.form.get("company_name") or "Karyva.ai").strip() or "Karyva.ai"
             tmpl.body = request.form.get("body") or ""
+            flash("Agreement template saved. New and resent agreements will use this wording.", "success")
         tmpl.updated_at = datetime.utcnow()
         db.session.commit()
-        flash("Agreement template saved. New and resent agreements will use this wording.", "success")
         return redirect(url_for("agreement_template"))
     return render_template("agreement_template.html", tmpl=tmpl)
 
@@ -1809,7 +1829,7 @@ def email_settings():
         cfg.smtp_port  = int(f.get("smtp_port", 587))
         cfg.smtp_user  = f.get("smtp_user",  "")
         cfg.smtp_pass  = f.get("smtp_pass",  "") or cfg.smtp_pass  # keep old if blank
-        cfg.from_name  = f.get("from_name",  "Revfi Team")
+        cfg.from_name  = f.get("from_name",  "Karyva.ai Team")
         cfg.from_email = f.get("from_email", "")
         cfg.use_tls    = "use_tls" in f
         cfg.updated_at = datetime.utcnow()
@@ -1817,8 +1837,8 @@ def email_settings():
         # Send a test email if requested
         if "test" in f:
             test_to = f.get("test_to", cfg.smtp_user)
-            ok, err = send_email(test_to, "Revfi SMTP Test",
-                "<p>Your Revfi email settings are working correctly ✓</p>")
+            ok, err = send_email(test_to, "Karyva.ai SMTP Test",
+                "<p>Your Karyva.ai email settings are working correctly ✓</p>")
             if ok:
                 flash(f"Settings saved. Test email sent to {test_to} ✓", "success")
             else:
@@ -2004,14 +2024,20 @@ def _migrate_agreement_template_schema(db_path):
             """CREATE TABLE IF NOT EXISTS agreement_templates (
                 id INTEGER PRIMARY KEY,
                 title VARCHAR(200),
+                company_name VARCHAR(200),
                 body TEXT,
                 updated_at DATETIME
             )"""
         )
-        cols = [r[1] for r in conn.execute("PRAGMA table_info(agreements)").fetchall()]
-        if "terms_body" not in cols:
+        agr_cols = [r[1] for r in conn.execute("PRAGMA table_info(agreements)").fetchall()]
+        if "terms_body" not in agr_cols:
             conn.execute("ALTER TABLE agreements ADD COLUMN terms_body TEXT")
             print("✅  Added agreements.terms_body")
+        tmpl_cols = [r[1] for r in conn.execute("PRAGMA table_info(agreement_templates)").fetchall()]
+        if tmpl_cols and "company_name" not in tmpl_cols:
+            conn.execute("ALTER TABLE agreement_templates ADD COLUMN company_name VARCHAR(200) DEFAULT 'Karyva.ai'")
+            conn.execute("UPDATE agreement_templates SET company_name = 'Karyva.ai' WHERE company_name IS NULL OR company_name = ''")
+            print("✅  Added agreement_templates.company_name")
         conn.commit()
     finally:
         conn.close()
