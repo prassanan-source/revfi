@@ -8,38 +8,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
 
 :root {
-  --navy: #0B1826;
-  --slate: #162230;
-  --slate2: #1C2E42;
-  --teal: #0F9B85;
-  --teal-light: #1EC8AD;
-  --teal-dim: rgba(15,155,133,0.12);
-  --amber: #E8903A;
-  --amber-dim: rgba(232,144,58,0.12);
-  --ruby: #D94F5C;
-  --ruby-dim: rgba(217,79,92,0.1);
-  --white: #F0F6FF;
-  --muted: #6B8099;
-  --border: #1F3347;
-  --row-alt: #111F2E;
-  --row-hover: #1A2F45;
+  --navy: #F6F3EC;
+  --page: #F6F3EC;
+  --slate: #FFFFFF;
+  --slate2: #EEF1F4;
+  --teal: #0D7A6B;
+  --teal-light: #0B6B5E;
+  --teal-dim: rgba(13,122,107,0.10);
+  --amber: #B86A12;
+  --amber-dim: rgba(184,106,18,0.12);
+  --ruby: #B53A46;
+  --ruby-dim: rgba(181,58,70,0.10);
+  --white: #132033;
+  --muted: #4A5A70;
+  --border: #D5DCE6;
+  --row-alt: #F7F8FA;
+  --row-hover: #EEF6F1;
+  --gold: #C9A84C;
   --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --shadow: 0 1px 2px rgba(19,32,51,.04), 0 8px 24px rgba(19,32,51,.06);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 
 body{
-  background:var(--navy);
+  background:var(--page);
   color:var(--white);
   font-family:'Inter',sans-serif;
-  font-size:14px;
-  line-height:1.6;
+  font-size:15px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
 }
 
 /* ── HEADER ── */
 .site-header{
-  padding:56px 52px 0;
+  padding:40px 52px 0;
   max-width:1340px;
   margin:0 auto;
 }
@@ -48,52 +52,63 @@ body{
   display:flex;
   align-items:center;
   gap:12px;
-  margin-bottom:32px;
+  margin-bottom:28px;
 }
 
 .logo-mark{
-  width:32px;height:32px;
-  background:linear-gradient(135deg,var(--teal),var(--teal-light));
+  width:36px;height:32px;
+  background:linear-gradient(135deg,#0F1C2E,#1a3a4a);
   border-radius:8px;
   display:flex;align-items:center;justify-content:center;
   font-size:16px;
+  color:#C9A84C;
 }
 
 .logo-text{
-  font-weight:700;font-size:16px;
+  font-weight:800;font-size:17px;
   letter-spacing:-0.02em;
+  color:#0F1C2E;
 }
 
-.logo-text span{color:var(--teal-light);}
+.logo-text span{color:var(--gold);}
+
+.confidential{
+  margin-left:auto;
+  font-size:11px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);
+  border:1px solid var(--border);
+  background:#fff;
+  padding:5px 10px;border-radius:999px;
+}
 
 .hero{
   display:grid;
   grid-template-columns:1fr auto;
   gap:40px;
   align-items:end;
-  padding-bottom:40px;
-  border-bottom:1px solid var(--border);
+  padding-bottom:36px;
 }
 
 .hero-left h1{
   font-family:'DM Serif Display',serif;
-  font-size:44px;
-  line-height:1.1;
-  color:var(--white);
-  max-width:660px;
-  margin-bottom:12px;
+  font-size:40px;
+  line-height:1.15;
+  color:#0F1C2E;
+  max-width:680px;
+  margin-bottom:14px;
 }
 
 .hero-left p{
   color:var(--muted);
-  font-size:14px;
-  max-width:560px;
+  font-size:16px;
+  max-width:580px;
 }
 
 .hero-metrics{
   display:flex;
   flex-direction:column;
-  gap:2px;
+  gap:8px;
   align-items:flex-end;
 }
 
@@ -101,10 +116,12 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
-  background:var(--slate);
-  padding:10px 16px;
-  border-radius:6px;
-  min-width:220px;
+  background:#fff;
+  padding:12px 16px;
+  border-radius:10px;
+  min-width:240px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
 
 .metric-dot{
@@ -112,8 +129,8 @@ body{
   flex-shrink:0;
 }
 
-.metric-label{font-size:12px;color:var(--muted);flex:1;}
-.metric-value{font-size:14px;font-weight:700;color:var(--teal-light);}
+.metric-label{font-size:13px;color:var(--muted);flex:1;}
+.metric-value{font-size:15px;font-weight:800;color:var(--teal-light);}
 
 /* ── MAIN NAV ── */
 .main-nav{
@@ -124,28 +141,31 @@ body{
   gap:0;
   border-bottom:1px solid var(--border);
   overflow-x:auto;
+  position:sticky;top:0;z-index:20;
+  background:rgba(246,243,236,.95);
+  backdrop-filter:blur(10px);
 }
 
 .nav-btn{
   background:none;border:none;
   font-family:'Inter',sans-serif;
-  font-size:13px;font-weight:500;
+  font-size:14px;font-weight:600;
   color:var(--muted);
-  padding:15px 22px;
+  padding:16px 20px;
   cursor:pointer;
   border-bottom:2px solid transparent;
   white-space:nowrap;
   transition:color .15s,border-color .15s;
 }
 
-.nav-btn:hover{color:var(--white);}
-.nav-btn.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+.nav-btn:hover{color:#0F1C2E;}
+.nav-btn.active{color:var(--teal-light);border-bottom-color:var(--gold);}
 
 /* ── CONTENT ── */
 main{
   max-width:1340px;
   margin:0 auto;
-  padding:40px 52px 80px;
+  padding:36px 52px 80px;
 }
 
 .section{display:none;}
@@ -166,11 +186,11 @@ main{
 .sec-title{
   font-family:'DM Serif Display',serif;
   font-size:28px;
-  color:var(--white);
-  margin-bottom:4px;
+  color:#0F1C2E;
+  margin-bottom:6px;
 }
 
-.sec-sub{font-size:13px;color:var(--muted);max-width:580px;}
+.sec-sub{font-size:15px;color:var(--muted);max-width:620px;}
 
 .sec-kpis{
   display:flex;gap:8px;flex-wrap:wrap;
@@ -178,12 +198,14 @@ main{
 }
 
 .kpi{
-  background:var(--slate);
-  border-radius:6px;
-  padding:10px 14px;
+  background:#fff;
+  border-radius:10px;
+  padding:12px 16px;
   text-align:center;
   min-width:110px;
-  border-top:2px solid var(--teal);
+  border:1px solid var(--border);
+  border-top:3px solid var(--gold);
+  box-shadow:var(--shadow);
 }
 
 .kpi-n{font-size:18px;font-weight:800;color:var(--teal-light);line-height:1.1;margin-bottom:2px;}
@@ -193,32 +215,35 @@ main{
 .market-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:2px;
+  gap:14px;
   margin-bottom:32px;
 }
 
 .mkt-card{
-  background:var(--slate);
+  background:#fff;
   padding:24px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
 
-.mkt-card:first-child{border-radius:8px 0 0 8px;}
-.mkt-card:last-child{border-radius:0 8px 8px 0;}
+.mkt-card:first-child{border-radius:12px;}
+.mkt-card:last-child{border-radius:12px;}
 
 .mkt-icon{font-size:22px;margin-bottom:10px;}
-.mkt-name{font-size:15px;font-weight:700;color:var(--white);margin-bottom:2px;}
-.mkt-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+.mkt-name{font-size:16px;font-weight:700;color:#0F1C2E;margin-bottom:2px;}
+.mkt-sub{font-size:13px;color:var(--muted);margin-bottom:16px;}
 
 .mkt-row{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:6px 0;
+  padding:7px 0;
   border-bottom:1px solid var(--border);
 }
 .mkt-row:last-child{border-bottom:none;}
-.mkt-row-l{font-size:11px;color:var(--muted);}
-.mkt-row-v{font-size:12px;font-weight:600;color:var(--white);}
+.mkt-row-l{font-size:13px;color:var(--muted);}
+.mkt-row-v{font-size:13px;font-weight:700;color:#0F1C2E;}
 .mkt-row-v.us{color:var(--teal-light);}
 .mkt-row-v.india{color:var(--amber);}
 
@@ -234,7 +259,7 @@ main{
 .vtab-btn{
   background:none;border:none;
   font-family:'Inter',sans-serif;
-  font-size:12px;font-weight:500;
+  font-size:13px;font-weight:600;
   color:var(--muted);
   padding:10px 16px;
   cursor:pointer;
@@ -242,19 +267,19 @@ main{
   white-space:nowrap;
   transition:color .15s,border-color .15s;
 }
-.vtab-btn:hover{color:var(--white);}
-.vtab-btn.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+.vtab-btn:hover{color:#0F1C2E;}
+.vtab-btn.active{color:var(--teal-light);border-bottom-color:var(--gold);}
 
 .vtab-panel{display:none;}
 .vtab-panel.active{display:block;}
 
 /* ── NOTE BOX ── */
 .note{
-  background:var(--teal-dim);
-  border:1px solid rgba(15,155,133,.2);
-  border-radius:6px;
-  padding:10px 14px;
-  font-size:12px;color:var(--muted);
+  background:#F3FAF7;
+  border:1px solid rgba(13,122,107,.22);
+  border-radius:10px;
+  padding:12px 16px;
+  font-size:14px;color:#2C4258;
   margin-bottom:18px;
 }
 .note strong{color:var(--teal-light);}
@@ -262,19 +287,21 @@ main{
 /* ── TABLE ── */
 .tbl-wrap{
   overflow-x:auto;
-  border-radius:8px;
+  border-radius:12px;
   border:1px solid var(--border);
   margin-bottom:28px;
+  background:#fff;
+  box-shadow:var(--shadow);
 }
 
-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
 
-thead tr{background:var(--slate2);}
+thead tr{background:#F0F3F6;}
 th{
-  padding:11px 14px;text-align:left;
-  font-size:10px;font-weight:600;
+  padding:12px 14px;text-align:left;
+  font-size:11px;font-weight:700;
   text-transform:uppercase;letter-spacing:.08em;
-  color:var(--muted);white-space:nowrap;
+  color:#3D4F66;white-space:nowrap;
   border-bottom:1px solid var(--border);
 }
 th.r{text-align:right;}
@@ -284,18 +311,18 @@ tbody tr:last-child{border-bottom:none;}
 tbody tr:nth-child(even){background:var(--row-alt);}
 tbody tr:hover{background:var(--row-hover);}
 
-td{padding:9px 14px;vertical-align:middle;}
+td{padding:11px 14px;vertical-align:middle;color:#243447;}
 td.r{text-align:right;}
 
-.st-name{font-weight:600;color:var(--white);}
+.st-name{font-weight:700;color:#0F1C2E;}
 .rk{
-  display:inline-block;width:20px;height:20px;border-radius:50%;
-  background:var(--border);color:var(--muted);
-  font-size:9px;font-weight:700;text-align:center;line-height:20px;
+  display:inline-block;width:22px;height:20px;border-radius:50%;
+  background:#E8EDF3;color:#3D4F66;
+  font-size:10px;font-weight:700;text-align:center;line-height:20px;
   margin-right:6px;
 }
 
-.num{font-weight:700;color:var(--white);font-variant-numeric:tabular-nums;}
+.num{font-weight:700;color:#0F1C2E;font-variant-numeric:tabular-nums;}
 
 .addr{font-weight:800;font-variant-numeric:tabular-nums;}
 .addr-h{color:var(--teal-light);}
@@ -304,58 +331,63 @@ td.r{text-align:right;}
 
 .pill{
   display:inline-block;border-radius:20px;
-  padding:2px 9px;font-size:10px;font-weight:700;
+  padding:3px 10px;font-size:11px;font-weight:700;
 }
 .p1{background:var(--teal-dim);color:var(--teal-light);}
 .p2{background:var(--amber-dim);color:var(--amber);}
-.p3{background:rgba(107,128,153,.1);color:var(--muted);}
+.p3{background:#EEF1F4;color:#4A5A70;}
 
 .bar-cell{min-width:70px;}
-.bar-bg{background:var(--border);border-radius:3px;height:5px;overflow:hidden;}
-.bar-fill{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--teal-light));}
+.bar-bg{background:#E4E9F0;border-radius:3px;height:6px;overflow:hidden;}
+.bar-fill{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--gold));}
 
-.insight{font-size:11px;color:var(--muted);max-width:220px;}
+.insight{font-size:13px;color:var(--muted);max-width:240px;}
 
 /* ── CALLOUT BOXES ── */
 .opp-row{
   display:grid;grid-template-columns:repeat(3,1fr);
-  gap:10px;margin-top:20px;
+  gap:12px;margin-top:20px;
 }
 
 .opp{
-  background:var(--slate);border-radius:6px;
-  padding:16px;border-left:3px solid var(--teal);
+  background:#fff;border-radius:10px;
+  padding:16px 18px;border-left:3px solid var(--gold);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
 
-.opp-t{font-size:11px;font-weight:700;color:var(--teal-light);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
-.opp-d{font-size:12px;color:#9BB0C8;line-height:1.5;}
+.opp-t{font-size:12px;font-weight:700;color:var(--teal-light);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
+.opp-d{font-size:14px;color:#2C4258;line-height:1.55;}
 
 /* ── INFRA SECTION ── */
 .infra-intro{
-  background:var(--slate);border-radius:8px;
+  background:#fff;border-radius:12px;
   padding:28px 32px;margin-bottom:32px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
 
-.infra-intro p{font-size:13px;color:#9BB0C8;line-height:1.7;margin-bottom:12px;}
+.infra-intro p{font-size:15px;color:#2C4258;line-height:1.7;margin-bottom:12px;}
 .infra-intro p:last-child{margin-bottom:0;}
 
 .infra-intro strong{color:var(--teal-light);}
 
 .tier-selector{
-  display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap;
+  display:flex;gap:10px;margin-bottom:32px;flex-wrap:wrap;
 }
 
 .tier-card{
   flex:1;min-width:200px;
-  background:var(--slate);border-radius:8px;
+  background:#fff;border-radius:12px;
   padding:20px 22px;
-  border:2px solid transparent;
+  border:2px solid var(--border);
   cursor:pointer;
-  transition:border-color .2s,background .2s;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+  box-shadow:var(--shadow);
 }
 
-.tier-card:hover{background:var(--slate2);}
-.tier-card.selected{border-color:var(--teal-light);}
+.tier-card:hover{background:#FAFCFA;}
+.tier-card.selected{border-color:var(--gold);background:#FFFdf6;}
 
 .tier-card-num{
   font-family:'DM Serif Display',serif;
@@ -363,8 +395,8 @@ td.r{text-align:right;}
   line-height:1;margin-bottom:4px;
 }
 
-.tier-card-label{font-size:12px;color:var(--muted);margin-bottom:8px;}
-.tier-card-desc{font-size:11px;color:#6B8099;line-height:1.5;}
+.tier-card-label{font-size:13px;color:var(--muted);margin-bottom:8px;}
+.tier-card-desc{font-size:13px;color:#4A5A70;line-height:1.5;}
 
 /* ── INFRA DETAIL ── */
 .infra-detail{display:none;}
@@ -374,29 +406,30 @@ td.r{text-align:right;}
   display:flex;
   justify-content:space-between;
   align-items:center;
-  background:linear-gradient(135deg,var(--slate2),var(--slate));
-  border-radius:8px;
+  background:#fff;
+  border-radius:12px;
   padding:24px 28px;
   margin-bottom:24px;
   border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
 
 .infra-stage-label{
-  font-size:11px;font-weight:600;text-transform:uppercase;
+  font-size:12px;font-weight:700;text-transform:uppercase;
   letter-spacing:.1em;color:var(--teal-light);margin-bottom:6px;
 }
 
 .infra-total-cost{
   font-family:'DM Serif Display',serif;
-  font-size:40px;color:var(--white);line-height:1;
+  font-size:40px;color:#0F1C2E;line-height:1;
 }
 
-.infra-total-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+.infra-total-sub{font-size:14px;color:var(--muted);margin-top:4px;}
 
 .cost-range{
   text-align:right;
 }
-.cost-range-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.cost-range-label{font-size:12px;color:var(--muted);margin-bottom:4px;}
 .cost-range-vals{
   font-size:20px;font-weight:700;
   color:var(--teal-light);
@@ -405,31 +438,36 @@ td.r{text-align:right;}
 .infra-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:2px;
+  gap:12px;
   margin-bottom:24px;
 }
 
 .infra-comp{
-  background:var(--slate);padding:20px;
+  background:#fff;padding:20px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
-.infra-comp:first-child{border-radius:8px 0 0 8px;}
-.infra-comp:last-child{border-radius:0 8px 8px 0;}
+.infra-comp:first-child{border-radius:12px;}
+.infra-comp:last-child{border-radius:12px;}
 
 .infra-comp-icon{font-size:18px;margin-bottom:8px;}
 .infra-comp-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
-.infra-comp-spec{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;}
+.infra-comp-spec{font-size:14px;font-weight:600;color:#0F1C2E;margin-bottom:4px;}
 .infra-comp-cost{font-size:20px;font-weight:800;color:var(--teal-light);margin-bottom:2px;}
-.infra-comp-sub{font-size:10px;color:var(--muted);}
+.infra-comp-sub{font-size:12px;color:var(--muted);}
 
 .infra-breakdown-table{
-  border-radius:8px;
+  border-radius:12px;
   border:1px solid var(--border);
   overflow:hidden;
   margin-bottom:24px;
+  background:#fff;
+  box-shadow:var(--shadow);
 }
 
 .ibt-head{
-  background:var(--slate2);
+  background:#F0F3F6;
   display:grid;
   grid-template-columns:2fr 1.5fr 1fr 1fr 2fr;
   padding:10px 16px;
@@ -437,8 +475,8 @@ td.r{text-align:right;}
 }
 
 .ibt-head-cell{
-  font-size:10px;font-weight:600;
-  text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;color:#3D4F66;
 }
 
 .ibt-head-cell.r{text-align:right;}
@@ -453,30 +491,32 @@ td.r{text-align:right;}
 }
 .ibt-row:hover{background:var(--row-hover);}
 
-.ibt-cell{font-size:12.5px;color:#9BB0C8;display:flex;align-items:center;}
+.ibt-cell{font-size:14px;color:#2C4258;display:flex;align-items:center;}
 .ibt-cell.r{text-align:right;justify-content:flex-end;}
-.ibt-cell.bold{color:var(--white);font-weight:600;}
+.ibt-cell.bold{color:#0F1C2E;font-weight:600;}
 .ibt-cell.cost{color:var(--teal-light);font-weight:700;font-variant-numeric:tabular-nums;}
-.ibt-cell.total-row{font-weight:800;color:var(--white);}
+.ibt-cell.total-row{font-weight:800;color:#0F1C2E;}
 
 .ibt-total{
-  background:var(--slate2);
+  background:#F0F3F6;
   display:grid;
   grid-template-columns:2fr 1.5fr 1fr 1fr 2fr;
   padding:14px 16px;
   gap:10px;
-  border-top:2px solid var(--teal);
+  border-top:2px solid var(--gold);
 }
 
 .architecture-note{
-  background:var(--slate);
-  border-radius:8px;
+  background:#fff;
+  border-radius:12px;
   padding:22px 26px;
   margin-bottom:24px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
 }
 
 .arch-title{
-  font-size:13px;font-weight:700;color:var(--teal-light);
+  font-size:14px;font-weight:700;color:var(--teal-light);
   margin-bottom:12px;
 }
 
@@ -486,22 +526,22 @@ td.r{text-align:right;}
 }
 
 .arch-item{
-  font-size:12px;color:#9BB0C8;
+  font-size:14px;color:#2C4258;
   padding-left:14px;position:relative;
   line-height:1.5;
 }
 
 .arch-item::before{
   content:'·';position:absolute;left:0;
-  color:var(--teal-light);font-size:16px;line-height:1;top:1px;
+  color:var(--gold);font-size:16px;line-height:1;top:1px;
 }
 
 .scaling-note{
-  background:var(--amber-dim);
-  border:1px solid rgba(232,144,58,.2);
-  border-radius:6px;
+  background:#FFF8EE;
+  border:1px solid rgba(184,106,18,.25);
+  border-radius:10px;
   padding:14px 18px;
-  font-size:12px;color:#C8A060;
+  font-size:14px;color:#5C4318;
   line-height:1.6;
 }
 
@@ -509,14 +549,16 @@ td.r{text-align:right;}
 
 /* ── COMPARISON TABLE (all tiers) ── */
 .compare-wrap{
-  border-radius:8px;
+  border-radius:12px;
   border:1px solid var(--border);
   overflow:hidden;
   margin-top:32px;
+  background:#fff;
+  box-shadow:var(--shadow);
 }
 
 .compare-head{
-  background:var(--slate2);
+  background:#F0F3F6;
   display:grid;
   grid-template-columns:2fr 1fr 1fr 1fr 1fr;
   padding:12px 16px;
@@ -534,27 +576,36 @@ td.r{text-align:right;}
 .compare-row:hover{background:var(--row-hover);}
 
 .compare-row.total-row{
-  background:var(--slate2);
-  border-top:2px solid var(--teal);
+  background:#F3FAF7;
+  border-top:2px solid var(--gold);
 }
 
-.ch{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.ch{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3D4F66;}
 .ch.r{text-align:right;}
-.cv{font-size:12.5px;color:#9BB0C8;display:flex;align-items:center;}
+.cv{font-size:14px;color:#2C4258;display:flex;align-items:center;}
 .cv.r{justify-content:flex-end;text-align:right;}
-.cv.bold{color:var(--white);font-weight:600;}
+.cv.bold{color:#0F1C2E;font-weight:600;}
 .cv.t1{color:var(--teal-light);font-weight:700;}
-.cv.t2{color:#60C4B0;font-weight:700;}
-.cv.t3{color:#E8903A;font-weight:700;}
+.cv.t2{color:#0A8A78;font-weight:700;}
+.cv.t3{color:var(--amber);font-weight:700;}
 .cv.t4{color:var(--ruby);font-weight:700;}
 
 /* ── FOOTER ── */
 footer{
   text-align:center;
-  font-size:11px;color:var(--muted);
-  padding:20px 52px 32px;
+  font-size:13px;color:var(--muted);
+  padding:24px 52px 40px;
   border-top:1px solid var(--border);
   max-width:1340px;margin:0 auto;
+  line-height:1.7;
+}
+footer a{color:var(--teal-light);font-weight:600;text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+
+@media print{
+  .main-nav{position:static;}
+  .nav-btn,.tier-card{box-shadow:none;}
+  body{background:#fff;}
 }
 
 /* ── RESPONSIVE ── */
@@ -565,17 +616,15 @@ footer{
   .main-nav{padding:0 20px;}
   main{padding:28px 20px 60px;}
   .market-grid{grid-template-columns:1fr;}
-  .mkt-card:first-child{border-radius:8px 8px 0 0;}
-  .mkt-card:last-child{border-radius:0 0 8px 8px;}
   .opp-row{grid-template-columns:1fr;}
   .infra-grid{grid-template-columns:repeat(2,1fr);}
-  .infra-comp:first-child{border-radius:8px 0 0 0;}
-  .infra-comp:last-child{border-radius:0 0 8px 0;}
   .arch-list{grid-template-columns:1fr;}
   .ibt-head,.ibt-row,.ibt-total{grid-template-columns:2fr 1.2fr 0.8fr 0.8fr 1.5fr;}
-  .compare-head,.compare-row{grid-template-columns:2fr 1fr 1fr 1fr 1fr;font-size:11px;}
+  .compare-head,.compare-row{grid-template-columns:2fr 1fr 1fr 1fr 1fr;font-size:12px;}
   .tier-selector{flex-direction:column;}
+  .confidential{display:none;}
 }
+
 </style>
 </head>
 <body>
@@ -585,11 +634,12 @@ footer{
   <div class="logo-line">
     <div class="logo-mark">⚙</div>
     <div class="logo-text">Karyva<span>.AI</span></div>
+    <span class="confidential">Client briefing · Sep 2026</span>
   </div>
   <div class="hero">
     <div class="hero-left">
       <h1>Market Intelligence &amp; Infrastructure Planning</h1>
-      <p>Combined vertical market sizing (US + India), state-by-state addressable unit counts, and cloud infrastructure cost modeling across four growth tiers — 1K to 1M customers.</p>
+      <p>A board-ready view of US and India market size, addressable units by state, and cloud infrastructure cost at four growth tiers — from 1,000 to 1 million customers.</p>
     </div>
     <div class="hero-metrics">
       <div class="metric-row"><div class="metric-dot" style="background:var(--teal-light)"></div><span class="metric-label">Combined US TAM (5 verticals)</span><span class="metric-value">$3T+</span></div>
@@ -634,7 +684,7 @@ footer{
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$85B (2025)</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">10.4% CAGR to 2030</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">500K+ restaurants</span></div>
-      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RezFi / RevFi</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#0B6B5E">RezFi / RevFi</span></div>
     </div>
 
     <div class="mkt-card">
@@ -647,7 +697,7 @@ footer{
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$28B (2025)</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">9.8% CAGR to 2034</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">100K+ CA firms</span></div>
-      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RevFi / FreshFi</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#0B6B5E">RevFi / FreshFi</span></div>
     </div>
 
     <div class="mkt-card">
@@ -660,7 +710,7 @@ footer{
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$657B (kiranas 2025)</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">7–8% CAGR to 2030</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">12–13M kirana stores</span></div>
-      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">FreshFi / RevFi</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#0B6B5E">FreshFi / RevFi</span></div>
     </div>
 
     <div class="mkt-card" style="border-radius:8px 0 0 8px;margin-top:2px;">
@@ -673,7 +723,7 @@ footer{
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$11.4B (2025)</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">13.8% CAGR to 2030</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">#1 offshore BPO dest.</span></div>
-      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RevFi / Custom RCM</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#0B6B5E">RevFi / Custom RCM</span></div>
     </div>
 
     <div class="mkt-card" style="margin-top:2px;">
@@ -686,7 +736,7 @@ footer{
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$533B (2025)</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">10.1% CAGR to 2034</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">105K+ RERA agents</span></div>
-      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RevFi / Custom</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#0B6B5E">RevFi / Custom</span></div>
     </div>
 
     <div class="mkt-card" style="border-radius:0 8px 8px 0;margin-top:2px;">
@@ -699,7 +749,7 @@ footer{
       <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Legal Practices</span><span class="mkt-row-v us">$350B / 50K+ small firms</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Temples &amp; Trusts</span><span class="mkt-row-v india">1M+ registered</span></div>
       <div class="mkt-row"><span class="mkt-row-l">🇮🇳 MSMEs</span><span class="mkt-row-v india">63M+ enterprises</span></div>
-      <div class="mkt-row"><span class="mkt-row-l">Karyva Advantage</span><span class="mkt-row-v" style="color:#9BB0C8">Temple app credibility</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Advantage</span><span class="mkt-row-v" style="color:#0B6B5E">Temple app credibility</span></div>
     </div>
 
   </div>
@@ -1232,7 +1282,8 @@ footer{
 </main>
 
 <footer>
-  Karyva.AI, Inc. · Market sizing: NRA, IBISWorld, ARELLO, Definitive Healthcare, AMA, NGA, BLS, Anthropic pricing (Sep 2026). Infrastructure estimates based on AWS US-East list pricing with Savings Plans applied at higher tiers. AI token costs use Claude Haiku 4.5 and Sonnet 5 published rates. All figures are estimates — actual costs vary with usage patterns. Not for external distribution.
+  <strong>Karyva.AI, Inc.</strong> · <a href="mailto:info@karyva.ai">info@karyva.ai</a> · karyva.ai<br>
+  Sources: NRA, IBISWorld, ARELLO, Definitive Healthcare, AMA, NGA, BLS, Anthropic and AWS list pricing (Sep 2026). Figures are planning estimates and will vary with actual usage.
 </footer>
 
 <script>
