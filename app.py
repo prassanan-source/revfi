@@ -31,6 +31,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "revfi-dev-secret-change-in-prod")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(DATA_DIR, 'revfi.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "connect_args": {"timeout": 30, "check_same_thread": False},
+    "pool_pre_ping": True,
+}
 
 db = SQLAlchemy(app)
 
@@ -861,6 +865,11 @@ app.jinja_env.globals.update(
 )
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
+
+@app.route("/health")
+def health():
+    """Used by CGI and cron. Must stay unauthenticated and fast."""
+    return jsonify({"ok": True, "app": "revfi"}), 200
 
 @app.route("/login", methods=["GET","POST"])
 def login():
@@ -2246,10 +2255,20 @@ with app.app_context():
 # Start IMAP watcher (works under both flask dev server and gunicorn)
 _watcher_started = False
 def _start_watcher_once():
+    """One IMAP poller per host. Extra gunicorn workers skip this."""
     global _watcher_started
-    if not _watcher_started:
-        _watcher_started = True
-        start_reply_watcher()
+    if _watcher_started or os.environ.get("SKIP_IMAP_WATCHER") == "1":
+        return
+    lock_path = os.path.join(DATA_DIR, ".imap.lock")
+    try:
+        import fcntl
+        fp = open(lock_path, "w")
+        fcntl.flock(fp.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        app._imap_lock_fp = fp
+    except Exception:
+        return
+    _watcher_started = True
+    start_reply_watcher()
 
 import atexit
 try:

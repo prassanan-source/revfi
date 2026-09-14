@@ -37,7 +37,7 @@ if [[ "$FRONT" == "php" || "$FRONT" == "proxy" || "$FRONT" == "off" || "$FRONT" 
   echo "FRONT=$FRONT is not the working public front; using cgi (FallbackResource → gunicorn)" >&2
   FRONT=cgi
 fi
-WORKERS="${WORKERS:-2}"
+WORKERS="${WORKERS:-1}"
 TIMEOUT="${TIMEOUT:-120}"
 PID_FILE="${PID_FILE:-$APPDIR/tmp/${APP_NAME}.pid}"
 # Never /tmp/aifinance.pid — FreshFi may still use that leftover name.
@@ -89,7 +89,7 @@ if PYTHON="$(find_venv_python)"; then
   :
 else
   case "${CMD}" in
-    -h|--help|help|backup|backup-cron|pull)
+    -h|--help|help|backup|backup-cron|keep-alive-cron|pull)
       PYTHON="$(command -v python3 || true)"
       ;;
     *)
@@ -501,6 +501,10 @@ start_gunicorn() {
     --bind "$BIND" \
     --workers "$WORKERS" \
     --timeout "$TIMEOUT" \
+    --graceful-timeout 30 \
+    --keep-alive 5 \
+    --max-requests 400 \
+    --max-requests-jitter 40 \
     --name "$APP_NAME" \
     --daemon \
     --pid "$PID_FILE" \
@@ -573,6 +577,24 @@ case "$CMD" in
     fi
     exit 0
     ;;
+  keep-alive-cron)
+    # Public /health hits CGI, which respawns Apache-jail gunicorn if it died.
+    ka_line="*/2 * * * * curl -fsS --max-time 20 ${PUBLIC_URL%/}/health >/dev/null || curl -fsS --max-time 25 -o /dev/null ${PUBLIC_URL%/}/login"
+    if command -v crontab >/dev/null 2>&1; then
+      existing="$(crontab -l 2>/dev/null || true)"
+      {
+        printf '%s\n' "$existing" | grep -vF "${PUBLIC_URL%/}/health" || true
+        echo "$ka_line"
+      } | crontab -
+      echo "Installed 2-minute keepalive cron:"
+      crontab -l
+    else
+      echo "crontab is not available in this shell. Add this line on the host:"
+      echo "$ka_line"
+      exit 1
+    fi
+    exit 0
+    ;;
   pull)
     ensure_live_db_writable
     # Never `git pull` / `git pull --rebase` on this host. Logs, pid files, and
@@ -624,13 +646,14 @@ case "$CMD" in
     ;;
   start|restart) ;;
   -h|--help|help)
-    echo "Usage: $0 [restart|start|status|stop|cgi|htaccess|diagnose|db|backup|backup-cron|pull|deps|gunicorn]"
+    echo "Usage: $0 [restart|start|status|stop|cgi|htaccess|diagnose|db|backup|backup-cron|keep-alive-cron|pull|deps|gunicorn]"
     echo "App root: $APPDIR"
     echo "On IONOS, stop/start talk to Apache CGI (SSH cannot kill those PIDs)."
     echo "./start.sh cgi          write revfi_proxy.cgi + .htaccess only"
     echo "./start.sh db           show which sqlite file and invoice counts (Python, no sqlite3 CLI)"
     echo "./start.sh backup       copy data/revfi.db to backups/revfi_YYYYMMDD.db"
     echo "./start.sh backup-cron  install daily 03:00 cron; prune backups older than 30 days"
+    echo "./start.sh keep-alive-cron  ping /health every 2 minutes so CGI restarts gunicorn"
     echo "./start.sh pull         git fetch + reset origin/master without touching live sqlite"
     echo "./start.sh deps         pip install -r requirements.txt (Pillow, Flask, gunicorn, …)"
     echo "START_LOCAL=1 $0        start gunicorn in this SSH jail (dies on logout)"
@@ -638,7 +661,7 @@ case "$CMD" in
     exit 0
     ;;
   *)
-    echo "Unknown command: $CMD (use restart, start, status, stop, cgi, htaccess, diagnose, db, backup, backup-cron, pull, deps, or gunicorn)" >&2
+    echo "Unknown command: $CMD (use restart, start, status, stop, cgi, htaccess, diagnose, db, backup, backup-cron, keep-alive-cron, pull, deps, or gunicorn)" >&2
     exit 1
     ;;
 esac

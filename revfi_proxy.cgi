@@ -82,14 +82,16 @@ def _port_open(host, port):
 
 
 def _gunicorn_healthy(bind):
-    """True if gunicorn answers /health without a inherited-SCRIPT_NAME error."""
+    """True if gunicorn is serving HTTP. Do not kill on 404 — that used to
+    restart the app on every request because /health was missing."""
     opener = build_opener(_PassThrough)
     try:
-        resp = opener.open(bind.rstrip("/") + "/health", timeout=3)
+        resp = opener.open(bind.rstrip("/") + "/health", timeout=5)
         body = resp.read() or b""
         if b"SCRIPT_NAME" in body:
             return False
-        return (resp.getcode() or 0) == 200
+        code = resp.getcode() or 0
+        return 200 <= code < 500
     except URLError:
         return False
     except Exception as err:
@@ -408,8 +410,12 @@ def _ensure_gunicorn(bind):
         python, "-m", "gunicorn", "passenger_wsgi:application",
         "--chdir", APPDIR,
         "--bind", "%s:%s" % (host, port),
-        "--workers", "2",
+        "--workers", "1",
         "--timeout", "120",
+        "--graceful-timeout", "30",
+        "--keep-alive", "5",
+        "--max-requests", "400",
+        "--max-requests-jitter", "40",
         "--name", APP_NAME,
         "--daemon",
         "--pid", pid_file,
@@ -452,10 +458,10 @@ def _ensure_gunicorn(bind):
             close_fds=True,
             env=clean_env,
         )
-        for _ in range(50):
-            if _port_open(host, port):
+        for _ in range(80):
+            if _port_open(host, port) and _gunicorn_healthy(bind):
                 return True
-            time.sleep(0.2)
+            time.sleep(0.25)
         ok = _port_open(host, port)
         _log("gunicorn listening=%s" % ok)
         return ok
