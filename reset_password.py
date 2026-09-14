@@ -20,9 +20,9 @@ with app.app_context():
         print(f"  [{u.id}] {u.name} <{u.email}> — {u.role}{'  ← INACTIVE' if not u.active else ''}")
 
     print()
-    email = input("Enter email to reset (or press Enter for shan@revfi.ai): ").strip()
+    email = input("Enter email to reset (or press Enter for info@karyva.ai): ").strip()
     if not email:
-        email = "shan@revfi.ai"
+        email = "info@karyva.ai"
 
     user = User.query.filter_by(email=email).first()
     if not user:

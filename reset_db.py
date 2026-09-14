@@ -28,5 +28,5 @@ with app.app_context():
     seed_db()
     print("✅  Seed data loaded.")
     print("")
-    print("Login: shan@revfi.ai / Admin@123")
+    print("Login: info@karyva.ai / Admin@123")
     print("Done.")

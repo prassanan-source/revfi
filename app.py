@@ -18,7 +18,7 @@ from datetime import datetime, date, timedelta
 from functools import wraps
 from xml.etree import ElementTree as ET
 from flask import (Flask, render_template, request, redirect, url_for,
-                   flash, session, jsonify, abort)
+                   flash, session, jsonify, abort, send_file)
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -747,7 +747,7 @@ def agreement_email_html(agr, lead):
       </p>
     </div>
     <p style="margin-top:32px;color:#6b7280;font-size:13px;">
-      {issuer} · <a href="mailtoinfo@karyva.ai" style="color:#C9A84C;">info@karyva.ai</a>
+      {issuer} · <a href="mailto:info@karyva.ai" style="color:#C9A84C;">info@karyva.ai</a>
     </p>
   </div>
 </div>"""
@@ -1537,6 +1537,15 @@ def products():
     prods = Product.query.order_by(Product.name).all()
     return render_template("products.html", products=prods)
 
+@app.route("/admin/karyva-report")
+@login_required
+@admin_required
+def karyva_combined_report():
+    path = os.path.join(BASE_DIR, "static", "karyva-combined-report.html")
+    if not os.path.isfile(path):
+        abort(404)
+    return send_file(path, mimetype="text/html")
+
 @app.route("/products/new", methods=["GET","POST"])
 @login_required
 @admin_required
@@ -2068,6 +2077,12 @@ def user_edit(uid):
 # ── DB Init & Seed ────────────────────────────────────────────────────────────
 
 def seed_db():
+    old = User.query.filter_by(email="shan@revfi.ai").first()
+    taken = User.query.filter_by(email="info@karyva.ai").first()
+    if old and not taken:
+        old.email = "info@karyva.ai"
+        db.session.commit()
+        print("✅  Admin login email is now info@karyva.ai")
     if User.query.first():
         return  # already seeded
     # Admin

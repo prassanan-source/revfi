@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karyva.AI — Market Intelligence & Infrastructure Planning</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
+
+:root {
+  --navy: #0B1826;
+  --slate: #162230;
+  --slate2: #1C2E42;
+  --teal: #0F9B85;
+  --teal-light: #1EC8AD;
+  --teal-dim: rgba(15,155,133,0.12);
+  --amber: #E8903A;
+  --amber-dim: rgba(232,144,58,0.12);
+  --ruby: #D94F5C;
+  --ruby-dim: rgba(217,79,92,0.1);
+  --white: #F0F6FF;
+  --muted: #6B8099;
+  --border: #1F3347;
+  --row-alt: #111F2E;
+  --row-hover: #1A2F45;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--navy);
+  color:var(--white);
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* ── HEADER ── */
+.site-header{
+  padding:56px 52px 0;
+  max-width:1340px;
+  margin:0 auto;
+}
+
+.logo-line{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:32px;
+}
+
+.logo-mark{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,var(--teal),var(--teal-light));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+
+.logo-text{
+  font-weight:700;font-size:16px;
+  letter-spacing:-0.02em;
+}
+
+.logo-text span{color:var(--teal-light);}
+
+.hero{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:40px;
+  align-items:end;
+  padding-bottom:40px;
+  border-bottom:1px solid var(--border);
+}
+
+.hero-left h1{
+  font-family:'DM Serif Display',serif;
+  font-size:44px;
+  line-height:1.1;
+  color:var(--white);
+  max-width:660px;
+  margin-bottom:12px;
+}
+
+.hero-left p{
+  color:var(--muted);
+  font-size:14px;
+  max-width:560px;
+}
+
+.hero-metrics{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  align-items:flex-end;
+}
+
+.metric-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--slate);
+  padding:10px 16px;
+  border-radius:6px;
+  min-width:220px;
+}
+
+.metric-dot{
+  width:8px;height:8px;border-radius:50%;
+  flex-shrink:0;
+}
+
+.metric-label{font-size:12px;color:var(--muted);flex:1;}
+.metric-value{font-size:14px;font-weight:700;color:var(--teal-light);}
+
+/* ── MAIN NAV ── */
+.main-nav{
+  max-width:1340px;
+  margin:0 auto;
+  padding:0 52px;
+  display:flex;
+  gap:0;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+}
+
+.nav-btn{
+  background:none;border:none;
+  font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:500;
+  color:var(--muted);
+  padding:15px 22px;
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+
+.nav-btn:hover{color:var(--white);}
+.nav-btn.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+
+/* ── CONTENT ── */
+main{
+  max-width:1340px;
+  margin:0 auto;
+  padding:40px 52px 80px;
+}
+
+.section{display:none;}
+.section.active{display:block;}
+
+/* ── SECTION HEADER ── */
+.sec-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:20px;
+  margin-bottom:28px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+
+.sec-title{
+  font-family:'DM Serif Display',serif;
+  font-size:28px;
+  color:var(--white);
+  margin-bottom:4px;
+}
+
+.sec-sub{font-size:13px;color:var(--muted);max-width:580px;}
+
+.sec-kpis{
+  display:flex;gap:8px;flex-wrap:wrap;
+  align-items:flex-start;
+}
+
+.kpi{
+  background:var(--slate);
+  border-radius:6px;
+  padding:10px 14px;
+  text-align:center;
+  min-width:110px;
+  border-top:2px solid var(--teal);
+}
+
+.kpi-n{font-size:18px;font-weight:800;color:var(--teal-light);line-height:1.1;margin-bottom:2px;}
+.kpi-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+/* ── MARKET OVERVIEW GRID ── */
+.market-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:2px;
+  margin-bottom:32px;
+}
+
+.mkt-card{
+  background:var(--slate);
+  padding:24px;
+}
+
+.mkt-card:first-child{border-radius:8px 0 0 8px;}
+.mkt-card:last-child{border-radius:0 8px 8px 0;}
+
+.mkt-icon{font-size:22px;margin-bottom:10px;}
+.mkt-name{font-size:15px;font-weight:700;color:var(--white);margin-bottom:2px;}
+.mkt-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+
+.mkt-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+}
+.mkt-row:last-child{border-bottom:none;}
+.mkt-row-l{font-size:11px;color:var(--muted);}
+.mkt-row-v{font-size:12px;font-weight:600;color:var(--white);}
+.mkt-row-v.us{color:var(--teal-light);}
+.mkt-row-v.india{color:var(--amber);}
+
+/* ── VERTICAL TABS (inner) ── */
+.vtab-nav{
+  display:flex;
+  gap:0;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+  margin-bottom:24px;
+}
+
+.vtab-btn{
+  background:none;border:none;
+  font-family:'Inter',sans-serif;
+  font-size:12px;font-weight:500;
+  color:var(--muted);
+  padding:10px 16px;
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+.vtab-btn:hover{color:var(--white);}
+.vtab-btn.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+
+.vtab-panel{display:none;}
+.vtab-panel.active{display:block;}
+
+/* ── NOTE BOX ── */
+.note{
+  background:var(--teal-dim);
+  border:1px solid rgba(15,155,133,.2);
+  border-radius:6px;
+  padding:10px 14px;
+  font-size:12px;color:var(--muted);
+  margin-bottom:18px;
+}
+.note strong{color:var(--teal-light);}
+
+/* ── TABLE ── */
+.tbl-wrap{
+  overflow-x:auto;
+  border-radius:8px;
+  border:1px solid var(--border);
+  margin-bottom:28px;
+}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+
+thead tr{background:var(--slate2);}
+th{
+  padding:11px 14px;text-align:left;
+  font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+th.r{text-align:right;}
+
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:nth-child(even){background:var(--row-alt);}
+tbody tr:hover{background:var(--row-hover);}
+
+td{padding:9px 14px;vertical-align:middle;}
+td.r{text-align:right;}
+
+.st-name{font-weight:600;color:var(--white);}
+.rk{
+  display:inline-block;width:20px;height:20px;border-radius:50%;
+  background:var(--border);color:var(--muted);
+  font-size:9px;font-weight:700;text-align:center;line-height:20px;
+  margin-right:6px;
+}
+
+.num{font-weight:700;color:var(--white);font-variant-numeric:tabular-nums;}
+
+.addr{font-weight:800;font-variant-numeric:tabular-nums;}
+.addr-h{color:var(--teal-light);}
+.addr-m{color:var(--amber);}
+.addr-l{color:var(--muted);}
+
+.pill{
+  display:inline-block;border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:700;
+}
+.p1{background:var(--teal-dim);color:var(--teal-light);}
+.p2{background:var(--amber-dim);color:var(--amber);}
+.p3{background:rgba(107,128,153,.1);color:var(--muted);}
+
+.bar-cell{min-width:70px;}
+.bar-bg{background:var(--border);border-radius:3px;height:5px;overflow:hidden;}
+.bar-fill{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--teal-light));}
+
+.insight{font-size:11px;color:var(--muted);max-width:220px;}
+
+/* ── CALLOUT BOXES ── */
+.opp-row{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-top:20px;
+}
+
+.opp{
+  background:var(--slate);border-radius:6px;
+  padding:16px;border-left:3px solid var(--teal);
+}
+
+.opp-t{font-size:11px;font-weight:700;color:var(--teal-light);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
+.opp-d{font-size:12px;color:#9BB0C8;line-height:1.5;}
+
+/* ── INFRA SECTION ── */
+.infra-intro{
+  background:var(--slate);border-radius:8px;
+  padding:28px 32px;margin-bottom:32px;
+}
+
+.infra-intro p{font-size:13px;color:#9BB0C8;line-height:1.7;margin-bottom:12px;}
+.infra-intro p:last-child{margin-bottom:0;}
+
+.infra-intro strong{color:var(--teal-light);}
+
+.tier-selector{
+  display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap;
+}
+
+.tier-card{
+  flex:1;min-width:200px;
+  background:var(--slate);border-radius:8px;
+  padding:20px 22px;
+  border:2px solid transparent;
+  cursor:pointer;
+  transition:border-color .2s,background .2s;
+}
+
+.tier-card:hover{background:var(--slate2);}
+.tier-card.selected{border-color:var(--teal-light);}
+
+.tier-card-num{
+  font-family:'DM Serif Display',serif;
+  font-size:32px;color:var(--teal-light);
+  line-height:1;margin-bottom:4px;
+}
+
+.tier-card-label{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.tier-card-desc{font-size:11px;color:#6B8099;line-height:1.5;}
+
+/* ── INFRA DETAIL ── */
+.infra-detail{display:none;}
+.infra-detail.active{display:block;}
+
+.infra-header-strip{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:linear-gradient(135deg,var(--slate2),var(--slate));
+  border-radius:8px;
+  padding:24px 28px;
+  margin-bottom:24px;
+  border:1px solid var(--border);
+}
+
+.infra-stage-label{
+  font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--teal-light);margin-bottom:6px;
+}
+
+.infra-total-cost{
+  font-family:'DM Serif Display',serif;
+  font-size:40px;color:var(--white);line-height:1;
+}
+
+.infra-total-sub{font-size:13px;color:var(--muted);margin-top:4px;}
+
+.cost-range{
+  text-align:right;
+}
+.cost-range-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.cost-range-vals{
+  font-size:20px;font-weight:700;
+  color:var(--teal-light);
+}
+
+.infra-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:2px;
+  margin-bottom:24px;
+}
+
+.infra-comp{
+  background:var(--slate);padding:20px;
+}
+.infra-comp:first-child{border-radius:8px 0 0 8px;}
+.infra-comp:last-child{border-radius:0 8px 8px 0;}
+
+.infra-comp-icon{font-size:18px;margin-bottom:8px;}
+.infra-comp-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+.infra-comp-spec{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;}
+.infra-comp-cost{font-size:20px;font-weight:800;color:var(--teal-light);margin-bottom:2px;}
+.infra-comp-sub{font-size:10px;color:var(--muted);}
+
+.infra-breakdown-table{
+  border-radius:8px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  margin-bottom:24px;
+}
+
+.ibt-head{
+  background:var(--slate2);
+  display:grid;
+  grid-template-columns:2fr 1.5fr 1fr 1fr 2fr;
+  padding:10px 16px;
+  gap:10px;
+}
+
+.ibt-head-cell{
+  font-size:10px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+}
+
+.ibt-head-cell.r{text-align:right;}
+
+.ibt-row{
+  display:grid;
+  grid-template-columns:2fr 1.5fr 1fr 1fr 2fr;
+  padding:12px 16px;
+  gap:10px;
+  border-top:1px solid var(--border);
+  transition:background .1s;
+}
+.ibt-row:hover{background:var(--row-hover);}
+
+.ibt-cell{font-size:12.5px;color:#9BB0C8;display:flex;align-items:center;}
+.ibt-cell.r{text-align:right;justify-content:flex-end;}
+.ibt-cell.bold{color:var(--white);font-weight:600;}
+.ibt-cell.cost{color:var(--teal-light);font-weight:700;font-variant-numeric:tabular-nums;}
+.ibt-cell.total-row{font-weight:800;color:var(--white);}
+
+.ibt-total{
+  background:var(--slate2);
+  display:grid;
+  grid-template-columns:2fr 1.5fr 1fr 1fr 2fr;
+  padding:14px 16px;
+  gap:10px;
+  border-top:2px solid var(--teal);
+}
+
+.architecture-note{
+  background:var(--slate);
+  border-radius:8px;
+  padding:22px 26px;
+  margin-bottom:24px;
+}
+
+.arch-title{
+  font-size:13px;font-weight:700;color:var(--teal-light);
+  margin-bottom:12px;
+}
+
+.arch-list{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px 28px;
+}
+
+.arch-item{
+  font-size:12px;color:#9BB0C8;
+  padding-left:14px;position:relative;
+  line-height:1.5;
+}
+
+.arch-item::before{
+  content:'·';position:absolute;left:0;
+  color:var(--teal-light);font-size:16px;line-height:1;top:1px;
+}
+
+.scaling-note{
+  background:var(--amber-dim);
+  border:1px solid rgba(232,144,58,.2);
+  border-radius:6px;
+  padding:14px 18px;
+  font-size:12px;color:#C8A060;
+  line-height:1.6;
+}
+
+.scaling-note strong{color:var(--amber);}
+
+/* ── COMPARISON TABLE (all tiers) ── */
+.compare-wrap{
+  border-radius:8px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  margin-top:32px;
+}
+
+.compare-head{
+  background:var(--slate2);
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr 1fr;
+  padding:12px 16px;
+  gap:10px;
+}
+
+.compare-row{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr 1fr;
+  padding:11px 16px;
+  gap:10px;
+  border-top:1px solid var(--border);
+  transition:background .1s;
+}
+.compare-row:hover{background:var(--row-hover);}
+
+.compare-row.total-row{
+  background:var(--slate2);
+  border-top:2px solid var(--teal);
+}
+
+.ch{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.ch.r{text-align:right;}
+.cv{font-size:12.5px;color:#9BB0C8;display:flex;align-items:center;}
+.cv.r{justify-content:flex-end;text-align:right;}
+.cv.bold{color:var(--white);font-weight:600;}
+.cv.t1{color:var(--teal-light);font-weight:700;}
+.cv.t2{color:#60C4B0;font-weight:700;}
+.cv.t3{color:#E8903A;font-weight:700;}
+.cv.t4{color:var(--ruby);font-weight:700;}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;
+  font-size:11px;color:var(--muted);
+  padding:20px 52px 32px;
+  border-top:1px solid var(--border);
+  max-width:1340px;margin:0 auto;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .site-header{padding:28px 20px 0;}
+  .hero{grid-template-columns:1fr;}
+  .hero-metrics{align-items:flex-start;}
+  .main-nav{padding:0 20px;}
+  main{padding:28px 20px 60px;}
+  .market-grid{grid-template-columns:1fr;}
+  .mkt-card:first-child{border-radius:8px 8px 0 0;}
+  .mkt-card:last-child{border-radius:0 0 8px 8px;}
+  .opp-row{grid-template-columns:1fr;}
+  .infra-grid{grid-template-columns:repeat(2,1fr);}
+  .infra-comp:first-child{border-radius:8px 0 0 0;}
+  .infra-comp:last-child{border-radius:0 0 8px 0;}
+  .arch-list{grid-template-columns:1fr;}
+  .ibt-head,.ibt-row,.ibt-total{grid-template-columns:2fr 1.2fr 0.8fr 0.8fr 1.5fr;}
+  .compare-head,.compare-row{grid-template-columns:2fr 1fr 1fr 1fr 1fr;font-size:11px;}
+  .tier-selector{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header class="site-header">
+  <div class="logo-line">
+    <div class="logo-mark">⚙</div>
+    <div class="logo-text">Karyva<span>.AI</span></div>
+  </div>
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Market Intelligence &amp; Infrastructure Planning</h1>
+      <p>Combined vertical market sizing (US + India), state-by-state addressable unit counts, and cloud infrastructure cost modeling across four growth tiers — 1K to 1M customers.</p>
+    </div>
+    <div class="hero-metrics">
+      <div class="metric-row"><div class="metric-dot" style="background:var(--teal-light)"></div><span class="metric-label">Combined US TAM (5 verticals)</span><span class="metric-value">$3T+</span></div>
+      <div class="metric-row"><div class="metric-dot" style="background:var(--amber)"></div><span class="metric-label">Combined India TAM</span><span class="metric-value">$1.3T+</span></div>
+      <div class="metric-row"><div class="metric-dot" style="background:#7A9BB0"></div><span class="metric-label">Addressable US Business Units</span><span class="metric-value">~750K+</span></div>
+      <div class="metric-row"><div class="metric-dot" style="background:#9B7AB0"></div><span class="metric-label">Report Date</span><span class="metric-value">Sep 2026</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ NAV ═══════════════════════════════ -->
+<nav class="main-nav">
+  <button class="nav-btn active" onclick="showSection('market',this)">🌐 Market Overview</button>
+  <button class="nav-btn" onclick="showSection('restaurants',this)">🍽️ Restaurants</button>
+  <button class="nav-btn" onclick="showSection('accounting',this)">📊 Accounting Firms</button>
+  <button class="nav-btn" onclick="showSection('grocery',this)">🛒 Grocery Stores</button>
+  <button class="nav-btn" onclick="showSection('healthcare',this)">🏥 Healthcare</button>
+  <button class="nav-btn" onclick="showSection('realestate',this)">🏠 Real Estate</button>
+  <button class="nav-btn" onclick="showSection('infra',this)">☁️ Infrastructure Costs</button>
+</nav>
+
+<main>
+
+<!-- ═══════════ SECTION: MARKET OVERVIEW ═══════════ -->
+<div id="market" class="section active">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">Global Market Overview — US &amp; India</div>
+      <div class="sec-sub">Industry revenue, unit counts, growth rates, and Karyva's specific product fit across all six verticals in both markets.</div>
+    </div>
+  </div>
+
+  <div class="market-grid">
+
+    <div class="mkt-card">
+      <div class="mkt-icon">🍽️</div>
+      <div class="mkt-name">Restaurants &amp; Food Service</div>
+      <div class="mkt-sub">Full-service, QSR, cloud kitchens, catering</div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Market Size</span><span class="mkt-row-v us">$1.5T (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Growth</span><span class="mkt-row-v us">7% CAGR to 2032</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Units</span><span class="mkt-row-v us">~750K locations</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$85B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">10.4% CAGR to 2030</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">500K+ restaurants</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RezFi / RevFi</span></div>
+    </div>
+
+    <div class="mkt-card">
+      <div class="mkt-icon">📊</div>
+      <div class="mkt-name">Accounting &amp; Bookkeeping</div>
+      <div class="mkt-sub">CPA firms, tax prep, bookkeeping, payroll</div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Market Size</span><span class="mkt-row-v us">$252B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Growth</span><span class="mkt-row-v us">~5% annual</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Units</span><span class="mkt-row-v us">137K establishments</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$28B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">9.8% CAGR to 2034</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">100K+ CA firms</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RevFi / FreshFi</span></div>
+    </div>
+
+    <div class="mkt-card">
+      <div class="mkt-icon">🛒</div>
+      <div class="mkt-name">Grocery &amp; Food Retail</div>
+      <div class="mkt-sub">Independent grocers, specialty food, kirana</div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Market Size</span><span class="mkt-row-v us">$916B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Growth</span><span class="mkt-row-v us">~3.5% CAGR</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Units</span><span class="mkt-row-v us">92K+ stores</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$657B (kiranas 2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">7–8% CAGR to 2030</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">12–13M kirana stores</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">FreshFi / RevFi</span></div>
+    </div>
+
+    <div class="mkt-card" style="border-radius:8px 0 0 8px;margin-top:2px;">
+      <div class="mkt-icon">🏥</div>
+      <div class="mkt-name">Healthcare Administration</div>
+      <div class="mkt-sub">Medical billing, RCM, physician practices</div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Market Size</span><span class="mkt-row-v us">$193B BPO (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Growth</span><span class="mkt-row-v us">10.2% CAGR to 2030</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Units</span><span class="mkt-row-v us">395K physician groups</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$11.4B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">13.8% CAGR to 2030</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">#1 offshore BPO dest.</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RevFi / Custom RCM</span></div>
+    </div>
+
+    <div class="mkt-card" style="margin-top:2px;">
+      <div class="mkt-icon">🏠</div>
+      <div class="mkt-name">Real Estate &amp; Brokerage</div>
+      <div class="mkt-sub">Agents, brokerages, property mgmt</div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Market Size</span><span class="mkt-row-v us">$240B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Growth</span><span class="mkt-row-v us">2–5% CAGR</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Units</span><span class="mkt-row-v us">~2M agents, 106K brokerages</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Market Size</span><span class="mkt-row-v india">$533B (2025)</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Growth</span><span class="mkt-row-v india">10.1% CAGR to 2034</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Units</span><span class="mkt-row-v india">105K+ RERA agents</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Product</span><span class="mkt-row-v" style="color:#9BB0C8">RevFi / Custom</span></div>
+    </div>
+
+    <div class="mkt-card" style="border-radius:0 8px 8px 0;margin-top:2px;">
+      <div class="mkt-icon">⚡</div>
+      <div class="mkt-name">Additional Verticals</div>
+      <div class="mkt-sub">Auto repair, salons, temples, legal, nonprofits</div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Auto Repair</span><span class="mkt-row-v us">$116B / 230K shops</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Salons &amp; Spas</span><span class="mkt-row-v us">$58B / 1M+ businesses</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Nonprofits</span><span class="mkt-row-v us">1.5M+ registered</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇺🇸 Legal Practices</span><span class="mkt-row-v us">$350B / 50K+ small firms</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 Temples &amp; Trusts</span><span class="mkt-row-v india">1M+ registered</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">🇮🇳 MSMEs</span><span class="mkt-row-v india">63M+ enterprises</span></div>
+      <div class="mkt-row"><span class="mkt-row-l">Karyva Advantage</span><span class="mkt-row-v" style="color:#9BB0C8">Temple app credibility</span></div>
+    </div>
+
+  </div>
+
+  <div class="opp-row">
+    <div class="opp"><div class="opp-t">Total US Addressable Units</div><div class="opp-d">Across five primary verticals, Karyva has access to roughly 750K+ owner-operated US businesses that suffer back-office pain — before touching salons, legal, or nonprofits.</div></div>
+    <div class="opp"><div class="opp-t">India: The Breakout Opportunity</div><div class="opp-d">13M kirana stores, 100K+ CA firms, 500K+ restaurants — mostly manual. GST compliance mandates are forcing digitization now, creating a timed entry window.</div></div>
+    <div class="opp"><div class="opp-t">Horizontal Platform, Vertical Skins</div><div class="opp-d">RezFi, FreshFi, and RevFi share one data engine — expense capture, payroll, vendor payments, P&amp;L. One platform investment unlocks all six markets simultaneously.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ RESTAURANTS ═══════════ -->
+<div id="restaurants" class="section">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">🍽️ Restaurants &amp; Food Service — US State Breakdown</div>
+      <div class="sec-sub">Addressable = independent / single-location operators (~40% of total). Chain HQs manage back-office centrally and are not Karyva's primary target.</div>
+    </div>
+    <div class="sec-kpis">
+      <div class="kpi"><div class="kpi-n">~750K</div><div class="kpi-l">Total US Locations</div></div>
+      <div class="kpi"><div class="kpi-n">~300K</div><div class="kpi-l">Addressable Independents</div></div>
+      <div class="kpi"><div class="kpi-n">$1.5T</div><div class="kpi-l">Industry Revenue</div></div>
+    </div>
+  </div>
+  <div class="note"><strong>Source:</strong> National Restaurant Association state data, Orbital 2024–25. Addressable = ~40% independent/single-location. Priority tiers reflect market size, independent density, and South Asian dining community overlap.</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>State</th><th class="r">Total Restaurants</th><th class="r">Addressable (Independents)</th><th>Market Share</th><th>Tier</th><th>Key Insight</th></tr></thead>
+      <tbody>
+        <tr><td><span class="rk">1</span></td><td class="st-name">California</td><td class="r num">88,000</td><td class="r"><span class="addr addr-h">35,200</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">LA, Bay Area, SD; dense South Asian dining clusters</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="st-name">Texas</td><td class="r num">58,700</td><td class="r"><span class="addr addr-h">23,500</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:67%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">DFW, Houston, Austin; Sun Belt expansion leader</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="st-name">New York</td><td class="r num">51,300</td><td class="r"><span class="addr addr-h">20,500</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:58%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">NYC ~25K alone; highest national density</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="st-name">Florida</td><td class="r num">49,800</td><td class="r"><span class="addr addr-h">19,900</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:57%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Tourism-driven; Miami, Orlando, Tampa</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="st-name">Pennsylvania</td><td class="r num">31,200</td><td class="r"><span class="addr addr-h">12,500</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:36%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Philly + Pittsburgh; high ethnic independent density</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="st-name">Illinois</td><td class="r num">28,500</td><td class="r"><span class="addr addr-m">11,400</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:32%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Chicago; strong South Asian restaurant community</td></tr>
+        <tr><td><span class="rk">7</span></td><td class="st-name">Ohio</td><td class="r num">24,800</td><td class="r"><span class="addr addr-m">9,900</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:28%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Columbus, Cleveland, Cincinnati</td></tr>
+        <tr><td><span class="rk">8</span></td><td class="st-name">Georgia</td><td class="r num">22,000</td><td class="r"><span class="addr addr-m">8,800</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:25%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Top franchise growth state; Atlanta booming</td></tr>
+        <tr><td><span class="rk">9</span></td><td class="st-name">North Carolina</td><td class="r num">20,500</td><td class="r"><span class="addr addr-m">8,200</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:23%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Charlotte, Raleigh, Research Triangle</td></tr>
+        <tr><td><span class="rk">10</span></td><td class="st-name">Michigan</td><td class="r num">19,800</td><td class="r"><span class="addr addr-m">7,900</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:22%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Detroit metro; Dearborn Middle Eastern cluster</td></tr>
+        <tr><td><span class="rk">11</span></td><td class="st-name">New Jersey</td><td class="r num">19,000</td><td class="r"><span class="addr addr-m">7,600</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:22%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">High density; large Indian-owned restaurant community</td></tr>
+        <tr><td><span class="rk">12</span></td><td class="st-name">Virginia</td><td class="r num">18,000</td><td class="r"><span class="addr addr-m">7,200</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:20%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">DC suburbs; Northern VA Indian dining strip</td></tr>
+        <tr><td><span class="rk">13</span></td><td class="st-name">Washington</td><td class="r num">17,500</td><td class="r"><span class="addr addr-m">7,000</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:20%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Seattle; tech-affluent; high labor costs</td></tr>
+        <tr><td><span class="rk">14</span></td><td class="st-name">Arizona</td><td class="r num">15,200</td><td class="r"><span class="addr addr-m">6,100</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:17%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Phoenix growing; Sun Belt migration</td></tr>
+        <tr><td><span class="rk">15</span></td><td class="st-name">Massachusetts</td><td class="r num">14,500</td><td class="r"><span class="addr addr-m">5,800</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:17%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Boston dense; high average check restaurants</td></tr>
+        <tr><td><span class="rk">16</span></td><td class="st-name">Tennessee</td><td class="r num">14,200</td><td class="r"><span class="addr addr-m">5,700</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:16%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Nashville + Memphis; top franchise growth</td></tr>
+        <tr><td><span class="rk">17</span></td><td class="st-name">Colorado</td><td class="r num">12,000</td><td class="r"><span class="addr addr-m">4,800</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:14%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Denver; tech-forward operators</td></tr>
+        <tr><td><span class="rk">18</span></td><td class="st-name">Minnesota</td><td class="r num">11,500</td><td class="r"><span class="addr addr-m">4,600</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:13%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Minneapolis strong independent scene</td></tr>
+        <tr><td><span class="rk">19</span></td><td class="st-name">Maryland</td><td class="r num">11,000</td><td class="r"><span class="addr addr-m">4,400</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:13%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">DC suburbs; large South Asian dining strip</td></tr>
+        <tr><td></td><td class="st-name" style="color:var(--muted)">All Other States (31+)</td><td class="r num" style="color:var(--muted)">~220,000</td><td class="r"><span class="addr addr-l">~88,000</span></td><td class="bar-cell"></td><td><span class="pill p3">Tier 3</span></td><td class="insight">Target via digital/remote; restaurant associations</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="opp-row">
+    <div class="opp"><div class="opp-t">Top 5 States = 47% of Market</div><div class="opp-d">CA, TX, NY, FL, PA alone represent ~111K addressable restaurants — a full Year 1 go-to-market without expanding further.</div></div>
+    <div class="opp"><div class="opp-t">South Asian Restaurant Clusters</div><div class="opp-d">NJ, CA, TX, IL, VA, MD have dense South Asian restaurant communities — Karyva's founding team background is a built-in referral network.</div></div>
+    <div class="opp"><div class="opp-t">Sun Belt Priority</div><div class="opp-d">GA, NC, TN, AZ are adding locations fastest — early-mover opportunity before chains absorb independent market share.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ ACCOUNTING ═══════════ -->
+<div id="accounting" class="section">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">📊 Accounting &amp; Bookkeeping Firms — US State Breakdown</div>
+      <div class="sec-sub">Addressable = small/mid CPA practices under 10 CPAs (~75% of all firms). Large Big Four and national firms manage their own tech.</div>
+    </div>
+    <div class="sec-kpis">
+      <div class="kpi"><div class="kpi-n">137K</div><div class="kpi-l">Total Establishments</div></div>
+      <div class="kpi"><div class="kpi-n">~65K</div><div class="kpi-l">Addressable Small/Mid</div></div>
+      <div class="kpi"><div class="kpi-n">$252B</div><div class="kpi-l">Industry Revenue</div></div>
+    </div>
+  </div>
+  <div class="note"><strong>Source:</strong> IBISWorld 2026 (85,412 firms); BLS employment proportions; Smallbizgenius CPA business counts by state. Addressable = ~75% small/mid firms.</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>State</th><th class="r">Total Acctg Firms</th><th class="r">Addressable (Small/Mid)</th><th>Market Share</th><th>Tier</th><th>Key Insight</th></tr></thead>
+      <tbody>
+        <tr><td><span class="rk">1</span></td><td class="st-name">California</td><td class="r num">13,029</td><td class="r"><span class="addr addr-h">9,800</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Most accounting businesses in US; massive SME base to serve</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="st-name">Florida</td><td class="r num">8,918</td><td class="r"><span class="addr addr-h">6,700</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:68%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Miami, Tampa, Orlando; many serve restaurant + RE clients</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="st-name">Texas</td><td class="r num">7,464</td><td class="r"><span class="addr addr-h">5,600</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:57%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Dallas, Houston, Austin; fast-growing SME market</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="st-name">New York</td><td class="r num">7,200</td><td class="r"><span class="addr addr-h">5,400</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:55%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">NYC concentration; highly specialized niche firms</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="st-name">Illinois</td><td class="r num">4,200</td><td class="r"><span class="addr addr-h">3,150</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:32%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Chicago financial hub; strong tech adoption appetite</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="st-name">Pennsylvania</td><td class="r num">3,900</td><td class="r"><span class="addr addr-m">2,925</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:30%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Philadelphia-based firms serving mid-market clients</td></tr>
+        <tr><td><span class="rk">7</span></td><td class="st-name">Ohio</td><td class="r num">3,600</td><td class="r"><span class="addr addr-m">2,700</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:28%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Columbus, Cincinnati, Cleveland corridors</td></tr>
+        <tr><td><span class="rk">8</span></td><td class="st-name">Georgia</td><td class="r num">3,200</td><td class="r"><span class="addr addr-m">2,400</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:25%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Atlanta growth; many serve hospitality clients</td></tr>
+        <tr><td><span class="rk">9</span></td><td class="st-name">New Jersey</td><td class="r num">3,100</td><td class="r"><span class="addr addr-m">2,325</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:24%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Dense; large immigrant-owned business clientele</td></tr>
+        <tr><td><span class="rk">10</span></td><td class="st-name">Virginia</td><td class="r num">2,900</td><td class="r"><span class="addr addr-m">2,175</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:22%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Northern VA / DC suburbs; govt contractor accounting</td></tr>
+        <tr><td><span class="rk">11</span></td><td class="st-name">North Carolina</td><td class="r num">2,700</td><td class="r"><span class="addr addr-m">2,025</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:21%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Charlotte financial district anchors demand</td></tr>
+        <tr><td><span class="rk">12</span></td><td class="st-name">Washington</td><td class="r num">2,600</td><td class="r"><span class="addr addr-m">1,950</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:20%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Seattle; tech-forward clients receptive to AI tools</td></tr>
+        <tr><td><span class="rk">13</span></td><td class="st-name">Michigan</td><td class="r num">2,500</td><td class="r"><span class="addr addr-m">1,875</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:19%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Detroit manufacturing + auto sector</td></tr>
+        <tr><td><span class="rk">14</span></td><td class="st-name">Massachusetts</td><td class="r num">2,400</td><td class="r"><span class="addr addr-m">1,800</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:18%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Boston biotech/startup accounting niche</td></tr>
+        <tr><td><span class="rk">15</span></td><td class="st-name">Arizona</td><td class="r num">2,200</td><td class="r"><span class="addr addr-m">1,650</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:17%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Phoenix retiree wealth management accounting</td></tr>
+        <tr><td></td><td class="st-name" style="color:var(--muted)">All Other States (35+)</td><td class="r num" style="color:var(--muted)">~27,000</td><td class="r"><span class="addr addr-l">~20,000</span></td><td class="bar-cell"></td><td><span class="pill p3">Tier 3</span></td><td class="insight">Target via AICPA state chapters and remote onboarding</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="opp-row">
+    <div class="opp"><div class="opp-t">CA + FL + TX = 37% of Market</div><div class="opp-d">These three states have ~22K addressable small/mid accounting firms. A focused Tier 1 campaign is a viable Year 1 go-to-market.</div></div>
+    <div class="opp"><div class="opp-t">Channel: State CPA Societies</div><div class="opp-d">CALCPA, FICPA, TXCPA are distribution channels — one partnership unlocks thousands of warm leads in each state.</div></div>
+    <div class="opp"><div class="opp-t">B2B2C Multiplier</div><div class="opp-d">Accounting firms can resell or recommend Karyva to their restaurant, grocery, and retail clients — each firm becomes a channel multiplier.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ GROCERY ═══════════ -->
+<div id="grocery" class="section">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">🛒 Grocery &amp; Specialty Food Retail — US State Breakdown</div>
+      <div class="sec-sub">Addressable = independent stores not part of a large chain. Chain back-office is centralized; independents are Karyva's primary segment.</div>
+    </div>
+    <div class="sec-kpis">
+      <div class="kpi"><div class="kpi-n">92,663</div><div class="kpi-l">Total Stores</div></div>
+      <div class="kpi"><div class="kpi-n">~21,500</div><div class="kpi-l">Addressable Independents</div></div>
+      <div class="kpi"><div class="kpi-n">$916B</div><div class="kpi-l">Industry Revenue</div></div>
+    </div>
+  </div>
+  <div class="note"><strong>Source:</strong> IBISWorld 2026 (92,663 stores); NGA (21,574 independent community grocers). State shares estimated by population and known regional chain dominance.</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>State</th><th class="r">Est. Total Stores</th><th class="r">Addressable Independents</th><th>Market Share</th><th>Tier</th><th>Key Insight</th></tr></thead>
+      <tbody>
+        <tr><td><span class="rk">1</span></td><td class="st-name">California</td><td class="r num">9,800</td><td class="r"><span class="addr addr-h">2,450</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Large ethnic food market; Desi, Asian, Mexican independents</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="st-name">Texas</td><td class="r num">6,800</td><td class="r"><span class="addr addr-h">1,700</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:69%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">H-E-B dominates chains; strong Hispanic/Desi independents</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="st-name">Florida</td><td class="r num">6,200</td><td class="r"><span class="addr addr-h">1,550</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:63%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Independents serve Caribbean, Latin, South Asian communities</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="st-name">New York</td><td class="r num">5,900</td><td class="r"><span class="addr addr-h">1,475</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:60%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">NYC borough delis, ethnic grocers — highest density nationally</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="st-name">Pennsylvania</td><td class="r num">3,800</td><td class="r"><span class="addr addr-h">950</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:39%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Philly market; strong independent grocery tradition</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="st-name">Illinois</td><td class="r num">3,500</td><td class="r"><span class="addr addr-m">875</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:36%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Chicago ethnic supermarkets; Desi, Korean, Mexican stores</td></tr>
+        <tr><td><span class="rk">7</span></td><td class="st-name">Ohio</td><td class="r num">3,100</td><td class="r"><span class="addr addr-m">775</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:32%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Kroger HQ state; independents compete on specialty</td></tr>
+        <tr><td><span class="rk">8</span></td><td class="st-name">Georgia</td><td class="r num">2,900</td><td class="r"><span class="addr addr-m">725</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:30%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Atlanta; growing Indian/Korean specialty grocers</td></tr>
+        <tr><td><span class="rk">9</span></td><td class="st-name">Michigan</td><td class="r num">2,700</td><td class="r"><span class="addr addr-m">675</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:28%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Dearborn Middle Eastern grocers; Detroit independents</td></tr>
+        <tr><td><span class="rk">10</span></td><td class="st-name">New Jersey</td><td class="r num">2,600</td><td class="r"><span class="addr addr-m">650</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:27%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Highest South Asian grocery density per capita; Edison, Iselin</td></tr>
+        <tr><td><span class="rk">11</span></td><td class="st-name">North Carolina</td><td class="r num">2,500</td><td class="r"><span class="addr addr-m">625</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:26%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Growing immigrant food retail; Charlotte, Raleigh-Durham</td></tr>
+        <tr><td><span class="rk">12</span></td><td class="st-name">Washington</td><td class="r num">2,400</td><td class="r"><span class="addr addr-m">600</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:24%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Seattle Asian grocery; PNW specialty natural food stores</td></tr>
+        <tr><td><span class="rk">13</span></td><td class="st-name">Virginia</td><td class="r num">2,200</td><td class="r"><span class="addr addr-m">550</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:22%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Northern VA Indian grocery strip; Centreville, Herndon</td></tr>
+        <tr><td><span class="rk">14</span></td><td class="st-name">Arizona</td><td class="r num">2,000</td><td class="r"><span class="addr addr-m">500</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:20%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Phoenix; growing Hispanic and South Asian grocery</td></tr>
+        <tr><td><span class="rk">15</span></td><td class="st-name">Massachusetts</td><td class="r num">1,900</td><td class="r"><span class="addr addr-m">475</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:19%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Boston dense specialty and natural food market</td></tr>
+        <tr><td></td><td class="st-name" style="color:var(--muted)">All Other States (35+)</td><td class="r num" style="color:var(--muted)">~35,000</td><td class="r"><span class="addr addr-l">~8,700</span></td><td class="bar-cell"></td><td><span class="pill p3">Tier 3</span></td><td class="insight">Target via IGA and NGA member directories</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="opp-row">
+    <div class="opp"><div class="opp-t">South Asian Grocery Corridor</div><div class="opp-d">NJ Edison/Iselin, CA Fremont/Sunnyvale, TX Sugar Land — dense Desi grocery clusters with high referral potential given Shan's community ties.</div></div>
+    <div class="opp"><div class="opp-t">FreshFi Direct Fit</div><div class="opp-d">Inventory management, vendor invoice automation, and spoilage tracking are universal pain for independent grocers — FreshFi is the answer.</div></div>
+    <div class="opp"><div class="opp-t">NGA Membership Channel</div><div class="opp-d">The National Grocers Association has 21,574+ members. One conference presence unlocks a pre-qualified audience with known back-office pain.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ HEALTHCARE ═══════════ -->
+<div id="healthcare" class="section">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">🏥 Healthcare Practices — US State Breakdown</div>
+      <div class="sec-sub">Addressable = private/independent practices (42.2% of physicians, per AMA 2024). ~166K private practices nationally out of 395K total groups.</div>
+    </div>
+    <div class="sec-kpis">
+      <div class="kpi"><div class="kpi-n">395K</div><div class="kpi-l">Active Physician Groups</div></div>
+      <div class="kpi"><div class="kpi-n">~166K</div><div class="kpi-l">Private (Addressable)</div></div>
+      <div class="kpi"><div class="kpi-n">42%</div><div class="kpi-l">Still in Private Practice</div></div>
+    </div>
+  </div>
+  <div class="note"><strong>Source:</strong> Definitive Healthcare (Jan 2025); AMA 2024 Practice Characteristics; AAMC 2024. Top 5 states confirmed: CA, TX, FL, NY, IL. State shares from BLS physician employment distribution.</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>State</th><th class="r">Total Physician Groups</th><th class="r">Private / Addressable Practices</th><th>Market Share</th><th>Tier</th><th>Key Insight</th></tr></thead>
+      <tbody>
+        <tr><td><span class="rk">1</span></td><td class="st-name">California</td><td class="r num">42,000</td><td class="r"><span class="addr addr-h">17,700</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Largest physician market; highest billing complexity</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="st-name">Texas</td><td class="r num">36,000</td><td class="r"><span class="addr addr-h">15,200</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:86%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Largest uninsured pop → billing complexity; strong private practice culture</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="st-name">Florida</td><td class="r num">32,000</td><td class="r"><span class="addr addr-h">13,500</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:76%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Aging population; Medicare billing complexity</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="st-name">New York</td><td class="r num">28,000</td><td class="r"><span class="addr addr-h">11,800</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:67%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Complex payer environment; most specialist practices</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="st-name">Illinois</td><td class="r num">18,000</td><td class="r"><span class="addr addr-h">7,600</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:43%"></div></div></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Chicago medical district; large independent specialty clinics</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="st-name">Pennsylvania</td><td class="r num">17,000</td><td class="r"><span class="addr addr-m">7,200</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:40%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Philly + Pittsburgh; academic medical ecosystem</td></tr>
+        <tr><td><span class="rk">7</span></td><td class="st-name">Ohio</td><td class="r num">16,500</td><td class="r"><span class="addr addr-m">6,900</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:39%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Cleveland Clinic + independents; strong private practice culture</td></tr>
+        <tr><td><span class="rk">8</span></td><td class="st-name">Georgia</td><td class="r num">14,000</td><td class="r"><span class="addr addr-m">5,900</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:33%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Atlanta; growing urgent care and specialty clinics</td></tr>
+        <tr><td><span class="rk">9</span></td><td class="st-name">North Carolina</td><td class="r num">12,500</td><td class="r"><span class="addr addr-m">5,300</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:30%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Research Triangle; growing independent practice base</td></tr>
+        <tr><td><span class="rk">10</span></td><td class="st-name">Michigan</td><td class="r num">12,000</td><td class="r"><span class="addr addr-m">5,100</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:29%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Detroit area; large independent physician communities</td></tr>
+        <tr><td><span class="rk">11</span></td><td class="st-name">New Jersey</td><td class="r num">11,500</td><td class="r"><span class="addr addr-m">4,900</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:27%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Densest physician per capita; many South Asian-owned practices</td></tr>
+        <tr><td><span class="rk">12</span></td><td class="st-name">Virginia</td><td class="r num">10,500</td><td class="r"><span class="addr addr-m">4,400</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:25%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Northern VA corridor; many practices near DC</td></tr>
+        <tr><td><span class="rk">13</span></td><td class="st-name">Washington</td><td class="r num">10,000</td><td class="r"><span class="addr addr-m">4,200</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:24%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Seattle; tech-forward private practice; early AI adopters</td></tr>
+        <tr><td><span class="rk">14</span></td><td class="st-name">Massachusetts</td><td class="r num">9,500</td><td class="r"><span class="addr addr-m">4,000</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:23%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Boston biotech-adjacent; complex billing environment</td></tr>
+        <tr><td><span class="rk">15</span></td><td class="st-name">Arizona</td><td class="r num">8,500</td><td class="r"><span class="addr addr-m">3,600</span></td><td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:20%"></div></div></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Phoenix retiree belt; large geriatric/specialty practices</td></tr>
+        <tr><td></td><td class="st-name" style="color:var(--muted)">All Other States (35+)</td><td class="r num" style="color:var(--muted)">~123,000</td><td class="r"><span class="addr addr-l">~51,900</span></td><td class="bar-cell"></td><td><span class="pill p3">Tier 3</span></td><td class="insight">Target via MGMA state chapters and medical billing conferences</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="opp-row">
+    <div class="opp"><div class="opp-t">NJ South Asian Physician Cluster</div><div class="opp-d">New Jersey has the highest concentration of South Asian-owned physician practices per capita. A direct referral network opportunity for Karyva.</div></div>
+    <div class="opp"><div class="opp-t">AMA Signals the Moment</div><div class="opp-d">57% of physicians name reducing admin burden as AI's top use case. Private practices under 10 physicians are most underserved by existing RCM vendors.</div></div>
+    <div class="opp"><div class="opp-t">Texas: Biggest Immediate ROI</div><div class="opp-d">Largest uninsured population and most complex payer mix means highest billing error/denial rates. ROI pitch for AI-assisted billing is strongest here.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ REAL ESTATE ═══════════ -->
+<div id="realestate" class="section">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">🏠 Real Estate &amp; Brokerage — US State Breakdown</div>
+      <div class="sec-sub">Addressable = independent brokerages (not large franchise back-offices) and high-producing solo agents needing commission tracking and expense automation.</div>
+    </div>
+    <div class="sec-kpis">
+      <div class="kpi"><div class="kpi-n">2.13M</div><div class="kpi-l">Licensed Agents</div></div>
+      <div class="kpi"><div class="kpi-n">106K+</div><div class="kpi-l">Brokerages</div></div>
+      <div class="kpi"><div class="kpi-n">$240B</div><div class="kpi-l">Brokerage Revenue</div></div>
+    </div>
+  </div>
+  <div class="note"><strong>Source:</strong> NAR state membership data (2025); ARELLO total license counts; realestateagentlist.net 2026. Addressable = ~40% (independents + productive solo agents).</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>#</th><th>State</th><th class="r">NAR Realtors</th><th class="r">Total Licensed Agents</th><th class="r">Addressable (Solo + Indie Brokerages)</th><th>Tier</th><th>Key Insight</th></tr></thead>
+      <tbody>
+        <tr><td><span class="rk">1</span></td><td class="st-name">Florida</td><td class="r num">220,309</td><td class="r num">~320,000</td><td class="r"><span class="addr addr-h">~128,000</span></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Most Realtors in US; Miami, Tampa, Orlando booming</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="st-name">California</td><td class="r num">194,000</td><td class="r num">~280,000</td><td class="r"><span class="addr addr-h">~112,000</span></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Highest-value transactions; LA, Bay Area, SD; tech-forward</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="st-name">Texas</td><td class="r num">150,000</td><td class="r num">~280,000</td><td class="r"><span class="addr addr-h">~112,000</span></td><td><span class="pill p1">Tier 1</span></td><td class="insight">DFW, Austin, Houston; highest transaction volume nationally</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="st-name">New York</td><td class="r num">62,000</td><td class="r num">~120,000</td><td class="r"><span class="addr addr-h">~48,000</span></td><td><span class="pill p1">Tier 1</span></td><td class="insight">NYC luxury; complex commission structures; high admin burden</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="st-name">Georgia</td><td class="r num">54,000</td><td class="r num">~90,000</td><td class="r"><span class="addr addr-h">~36,000</span></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Atlanta fastest-growing major market; expanding agent base</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="st-name">North Carolina</td><td class="r num">52,000</td><td class="r num">~85,000</td><td class="r"><span class="addr addr-h">~34,000</span></td><td><span class="pill p1">Tier 1</span></td><td class="insight">Charlotte, Raleigh; top relocation market</td></tr>
+        <tr><td><span class="rk">7</span></td><td class="st-name">New Jersey</td><td class="r num">52,000</td><td class="r num">~75,000</td><td class="r"><span class="addr addr-m">~30,000</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">NYC suburb overflow; among highest home prices per sq ft</td></tr>
+        <tr><td><span class="rk">8</span></td><td class="st-name">Pennsylvania</td><td class="r num">48,000</td><td class="r num">~80,000</td><td class="r"><span class="addr addr-m">~32,000</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Philly suburbs; stable market; independent brokerage culture</td></tr>
+        <tr><td><span class="rk">9</span></td><td class="st-name">Colorado</td><td class="r num">47,000</td><td class="r num">~75,000</td><td class="r"><span class="addr addr-m">~30,000</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Denver; Mountain West luxury and investment property</td></tr>
+        <tr><td><span class="rk">10</span></td><td class="st-name">Arizona</td><td class="r num">45,000</td><td class="r num">~72,000</td><td class="r"><span class="addr addr-m">~28,800</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Phoenix; high turnover investment property market</td></tr>
+        <tr><td><span class="rk">11</span></td><td class="st-name">Illinois</td><td class="r num">44,000</td><td class="r num">~70,000</td><td class="r"><span class="addr addr-m">~28,000</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Chicago; stable high-volume; strong independent brokerage scene</td></tr>
+        <tr><td><span class="rk">12</span></td><td class="st-name">Virginia</td><td class="r num">42,000</td><td class="r num">~68,000</td><td class="r"><span class="addr addr-m">~27,200</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Northern VA/DC; extremely high home values; complex transactions</td></tr>
+        <tr><td><span class="rk">13</span></td><td class="st-name">Tennessee</td><td class="r num">38,000</td><td class="r num">~62,000</td><td class="r"><span class="addr addr-m">~24,800</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Nashville; hottest relocation market nationally 2023–25</td></tr>
+        <tr><td><span class="rk">14</span></td><td class="st-name">Ohio</td><td class="r num">35,000</td><td class="r num">~57,000</td><td class="r"><span class="addr addr-m">~22,800</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Columbus; affordable market; high transaction velocity</td></tr>
+        <tr><td><span class="rk">15</span></td><td class="st-name">Michigan</td><td class="r num">33,000</td><td class="r num">~54,000</td><td class="r"><span class="addr addr-m">~21,600</span></td><td><span class="pill p2">Tier 2</span></td><td class="insight">Detroit comeback; Grand Rapids growth corridor</td></tr>
+        <tr><td></td><td class="st-name" style="color:var(--muted)">All Other States (35+)</td><td class="r num" style="color:var(--muted)">~400,000</td><td class="r num" style="color:var(--muted)">~600,000</td><td class="r"><span class="addr addr-l">~240,000</span></td><td><span class="pill p3">Tier 3</span></td><td class="insight">Target via NAR state association partnerships</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="opp-row">
+    <div class="opp"><div class="opp-t">FL + CA + TX = 46% of Agents</div><div class="opp-d">Three states have ~352K NAR members (~700K total licensed). Focused Tier 1 launch here generates significant ARR before national expansion.</div></div>
+    <div class="opp"><div class="opp-t">Post-NAR Settlement Tailwind</div><div class="opp-d">August 2024 NAR settlement compressed commissions. Agents are actively hunting efficiency tools to protect margins — Karyva's timing is perfect.</div></div>
+    <div class="opp"><div class="opp-t">Property Management Extension</div><div class="opp-d">Many indie brokerages also manage rentals. Karyva's expense and rent tracking module can be an upsell to property management clients in every state.</div></div>
+  </div>
+</div>
+
+<!-- ═══════════ INFRASTRUCTURE ═══════════ -->
+<div id="infra" class="section">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">☁️ Cloud Infrastructure Cost Modeling</div>
+      <div class="sec-sub">Monthly AWS/GCP infrastructure cost estimates at four customer scale tiers. Assumes a multi-tenant SaaS architecture with AI features (Claude API calls for back-office automation), PostgreSQL data layer, and standard web-tier components.</div>
+    </div>
+  </div>
+
+  <div class="infra-intro">
+    <p><strong>Architecture assumptions:</strong> Karyva.AI is a multi-tenant SaaS platform where each customer (a business — restaurant, accounting firm, grocer, etc.) uploads receipts, invoices, payroll data, and transaction records. The AI layer (Claude API or equivalent) processes documents, categorizes expenses, flags anomalies, and generates P&amp;L summaries. Data is stored per-tenant in a shared PostgreSQL database with row-level isolation. A worker queue handles async AI jobs (document OCR, classification, report generation).</p>
+    <p><strong>Key variables:</strong> Each customer generates roughly 50–200 AI API calls/month (document processing + queries), stores ~500MB–2GB of data/year, and makes ~500–2,000 app requests/month. These estimates use <strong>AWS US-East pricing</strong> (September 2026 rates) and assume Claude Haiku 4.5 for routine tasks (~$0.80/M input tokens) and Sonnet for complex jobs (~$3/M input tokens).</p>
+  </div>
+
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Select a growth tier to see the full infrastructure breakdown:</p>
+
+  <div class="tier-selector">
+    <div class="tier-card selected" onclick="showInfra('t1k',this)">
+      <div class="tier-card-num">1,000</div>
+      <div class="tier-card-label">customers</div>
+      <div class="tier-card-desc">Early startup / beta phase. Single-region, minimal redundancy. Founder-managed infrastructure. Prove product-market fit.</div>
+    </div>
+    <div class="tier-card" onclick="showInfra('t10k',this)">
+      <div class="tier-card-num">10,000</div>
+      <div class="tier-card-label">customers</div>
+      <div class="tier-card-desc">Growth stage / Series A territory. Multi-AZ deployment. Dedicated DevOps. SLA commitments beginning.</div>
+    </div>
+    <div class="tier-card" onclick="showInfra('t100k',this)">
+      <div class="tier-card-num">100,000</div>
+      <div class="tier-card-label">customers</div>
+      <div class="tier-card-desc">Scale / Series B+. Multi-region, auto-scaling. 99.9% SLA. Dedicated SRE team required.</div>
+    </div>
+    <div class="tier-card" onclick="showInfra('t1m',this)">
+      <div class="tier-card-num">1,000,000</div>
+      <div class="tier-card-label">customers</div>
+      <div class="tier-card-desc">Enterprise scale. Global CDN, edge compute. Dedicated infra team. Custom AI model fine-tuning likely.</div>
+    </div>
+  </div>
+
+  <!-- 1,000 customers -->
+  <div id="t1k" class="infra-detail active">
+    <div class="infra-header-strip">
+      <div>
+        <div class="infra-stage-label">Growth Tier 1 — Early Stage</div>
+        <div class="infra-total-cost">$3,800 – $5,200</div>
+        <div class="infra-total-sub">estimated total monthly cloud cost · 1,000 customers</div>
+      </div>
+      <div class="cost-range">
+        <div class="cost-range-label">Annual run rate</div>
+        <div class="cost-range-vals">~$50K/yr</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">At $49/mo per customer = $588K ARR</div>
+      </div>
+    </div>
+    <div class="infra-grid">
+      <div class="infra-comp"><div class="infra-comp-icon">🖥️</div><div class="infra-comp-name">App Servers</div><div class="infra-comp-spec">2× EC2 t3.medium (2 vCPU, 4 GB)</div><div class="infra-comp-cost">$120</div><div class="infra-comp-sub">Single AZ, no auto-scale yet</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🗄️</div><div class="infra-comp-name">Database</div><div class="infra-comp-spec">RDS PostgreSQL db.t3.medium, 100 GB</div><div class="infra-comp-cost">$280</div><div class="infra-comp-sub">Single-AZ; daily snapshots</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🤖</div><div class="infra-comp-name">AI API (Claude)</div><div class="infra-comp-spec">~50M tokens/mo (Haiku + Sonnet mix)</div><div class="infra-comp-cost">$1,800</div><div class="infra-comp-sub">Largest single cost driver</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">📦</div><div class="infra-comp-name">Storage + CDN</div><div class="infra-comp-spec">S3 1 TB + CloudFront basic</div><div class="infra-comp-cost">$95</div><div class="infra-comp-sub">Docs, receipts, exports</div></div>
+    </div>
+    <div class="infra-breakdown-table">
+      <div class="ibt-head"><div class="ibt-head-cell">Component</div><div class="ibt-head-cell">Service / SKU</div><div class="ibt-head-cell r">Units</div><div class="ibt-head-cell r">Unit Cost</div><div class="ibt-head-cell r">Monthly Cost</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">App Servers</div><div class="ibt-cell">EC2 t3.medium (on-demand)</div><div class="ibt-cell r">2</div><div class="ibt-cell r">$60/mo</div><div class="ibt-cell r cost">$120</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Load Balancer</div><div class="ibt-cell">AWS ALB</div><div class="ibt-cell r">1</div><div class="ibt-cell r">$25/mo</div><div class="ibt-cell r cost">$25</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Database</div><div class="ibt-cell">RDS PostgreSQL db.t3.medium</div><div class="ibt-cell r">1</div><div class="ibt-cell r">$180/mo</div><div class="ibt-cell r cost">$280</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Cache</div><div class="ibt-cell">ElastiCache Redis t3.micro</div><div class="ibt-cell r">1</div><div class="ibt-cell r">$25/mo</div><div class="ibt-cell r cost">$25</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI API — Claude Haiku</div><div class="ibt-cell">40M tokens input (doc processing)</div><div class="ibt-cell r">40M</div><div class="ibt-cell r">$0.80/M</div><div class="ibt-cell r cost">$32</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI API — Claude Sonnet</div><div class="ibt-cell">10M tokens (complex queries)</div><div class="ibt-cell r">10M</div><div class="ibt-cell r">$3.00/M</div><div class="ibt-cell r cost">$30</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Output Tokens</div><div class="ibt-cell">~15M output tokens total</div><div class="ibt-cell r">15M</div><div class="ibt-cell r">$15/M avg</div><div class="ibt-cell r cost">$225</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Infra Total</div><div class="ibt-cell" style="color:var(--teal-light)">All Claude API calls combined</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">~$1,800</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Object Storage</div><div class="ibt-cell">S3 standard — receipts/docs</div><div class="ibt-cell r">1 TB</div><div class="ibt-cell r">$23/TB</div><div class="ibt-cell r cost">$23</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">CDN / Egress</div><div class="ibt-cell">CloudFront + data transfer</div><div class="ibt-cell r">~2 TB</div><div class="ibt-cell r">$36/TB</div><div class="ibt-cell r cost">$72</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Worker Queue</div><div class="ibt-cell">SQS + Lambda (async AI jobs)</div><div class="ibt-cell r">—</div><div class="ibt-cell r">usage</div><div class="ibt-cell r cost">$45</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Email / Notifications</div><div class="ibt-cell">SES + SNS</div><div class="ibt-cell r">—</div><div class="ibt-cell r">usage</div><div class="ibt-cell r cost">$20</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Monitoring</div><div class="ibt-cell">CloudWatch + basic alerting</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$40</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Auth / Security</div><div class="ibt-cell">Cognito + WAF basic</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$30</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Backup / Snapshots</div><div class="ibt-cell">RDS automated + S3 Glacier</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$35</div></div>
+      <div class="ibt-total"><div class="ibt-cell total-row bold">TOTAL MONTHLY INFRA</div><div class="ibt-cell"></div><div class="ibt-cell r"></div><div class="ibt-cell r"></div><div class="ibt-cell r cost" style="font-size:18px">~$4,500</div></div>
+    </div>
+    <div class="architecture-note">
+      <div class="arch-title">Architecture at 1,000 Customers</div>
+      <div class="arch-list">
+        <div class="arch-item">Single AWS region (us-east-1), single AZ acceptable at this stage</div>
+        <div class="arch-item">2 app servers behind an ALB; manual scaling when needed</div>
+        <div class="arch-item">Single RDS instance; read replica not yet needed</div>
+        <div class="arch-item">AI processing via direct Claude API calls; no batching needed yet</div>
+        <div class="arch-item">1 founder / engineer can manage this stack on the side</div>
+        <div class="arch-item">Zero downtime requires basic health checks + blue/green deploy</div>
+        <div class="arch-item">Cost per customer: ~$4.50/mo (vs. $49/mo revenue = strong margin)</div>
+        <div class="arch-item">Monthly infra burn as % of ARR: ~0.9% — highly profitable tier</div>
+      </div>
+    </div>
+    <div class="scaling-note"><strong>Key risk at this tier:</strong> AI API cost scales directly with usage — if customers use the product heavily (many AI queries), cost per customer rises fast. Implement usage limits or a tiered plan (Basic/Pro) from day one to protect margins.</div>
+  </div>
+
+  <!-- 10,000 customers -->
+  <div id="t10k" class="infra-detail">
+    <div class="infra-header-strip">
+      <div>
+        <div class="infra-stage-label">Growth Tier 2 — Series A Scale</div>
+        <div class="infra-total-cost">$28,000 – $38,000</div>
+        <div class="infra-total-sub">estimated total monthly cloud cost · 10,000 customers</div>
+      </div>
+      <div class="cost-range">
+        <div class="cost-range-label">Annual run rate</div>
+        <div class="cost-range-vals">~$400K/yr</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">At $49/mo per customer = $5.9M ARR → 6.8% infra ratio</div>
+      </div>
+    </div>
+    <div class="infra-grid">
+      <div class="infra-comp"><div class="infra-comp-icon">🖥️</div><div class="infra-comp-name">App Servers</div><div class="infra-comp-spec">Auto-scaling group: 4–12× c6i.xlarge</div><div class="infra-comp-cost">$1,200</div><div class="infra-comp-sub">Multi-AZ, 99.9% SLA possible</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🗄️</div><div class="infra-comp-name">Database</div><div class="infra-comp-spec">RDS db.r6g.large + 1 read replica, 500 GB</div><div class="infra-comp-cost">$1,800</div><div class="infra-comp-sub">Multi-AZ standby included</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🤖</div><div class="infra-comp-name">AI API (Claude)</div><div class="infra-comp-spec">~500M tokens/mo; Batch API discounts</div><div class="infra-comp-cost">$16,000</div><div class="infra-comp-sub">Implement Batches API for 50% discount on async jobs</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">📦</div><div class="infra-comp-name">Storage + CDN</div><div class="infra-comp-spec">S3 8 TB + CloudFront global</div><div class="infra-comp-cost">$1,200</div><div class="infra-comp-sub">Intelligent tiering for older docs</div></div>
+    </div>
+    <div class="infra-breakdown-table">
+      <div class="ibt-head"><div class="ibt-head-cell">Component</div><div class="ibt-head-cell">Service / SKU</div><div class="ibt-head-cell r">Units</div><div class="ibt-head-cell r">Unit Cost</div><div class="ibt-head-cell r">Monthly Cost</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">App Servers (ASG)</div><div class="ibt-cell">c6i.xlarge × avg 6 instances</div><div class="ibt-cell r">6</div><div class="ibt-cell r">$200/mo</div><div class="ibt-cell r cost">$1,200</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Load Balancer</div><div class="ibt-cell">AWS ALB (higher traffic)</div><div class="ibt-cell r">1</div><div class="ibt-cell r">$150/mo</div><div class="ibt-cell r cost">$150</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Database Primary</div><div class="ibt-cell">RDS db.r6g.large Multi-AZ</div><div class="ibt-cell r">1</div><div class="ibt-cell r">$900/mo</div><div class="ibt-cell r cost">$900</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Database Read Replica</div><div class="ibt-cell">RDS db.r6g.large, 500 GB</div><div class="ibt-cell r">1</div><div class="ibt-cell r">$450/mo</div><div class="ibt-cell r cost">$450</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Cache (Redis Cluster)</div><div class="ibt-cell">ElastiCache r6g.large × 2</div><div class="ibt-cell r">2</div><div class="ibt-cell r">$220/mo</div><div class="ibt-cell r cost">$440</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI API — Claude Haiku</div><div class="ibt-cell">350M input tokens (Batch API)</div><div class="ibt-cell r">350M</div><div class="ibt-cell r">$0.40/M</div><div class="ibt-cell r cost">$140</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI API — Claude Sonnet</div><div class="ibt-cell">100M input tokens</div><div class="ibt-cell r">100M</div><div class="ibt-cell r">$1.50/M</div><div class="ibt-cell r cost">$150</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Output Tokens</div><div class="ibt-cell">~130M output tokens</div><div class="ibt-cell r">130M</div><div class="ibt-cell r">$15/M avg</div><div class="ibt-cell r cost">$1,950</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Infra Total</div><div class="ibt-cell" style="color:var(--teal-light)">All AI API calls (Batch discounts applied)</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">~$16,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Object Storage</div><div class="ibt-cell">S3 intelligent-tiering, 8 TB</div><div class="ibt-cell r">8 TB</div><div class="ibt-cell r">$20/TB</div><div class="ibt-cell r cost">$160</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">CDN / Egress</div><div class="ibt-cell">CloudFront + 15 TB transfer</div><div class="ibt-cell r">15 TB</div><div class="ibt-cell r">$35/TB</div><div class="ibt-cell r cost">$525</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Worker Queue / Jobs</div><div class="ibt-cell">SQS + ECS Fargate workers</div><div class="ibt-cell r">—</div><div class="ibt-cell r">usage</div><div class="ibt-cell r cost">$450</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Search</div><div class="ibt-cell">OpenSearch small cluster</div><div class="ibt-cell r">2 nodes</div><div class="ibt-cell r">$300/mo</div><div class="ibt-cell r cost">$600</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Monitoring / Logging</div><div class="ibt-cell">CloudWatch + Datadog starter</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$400</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Security / WAF</div><div class="ibt-cell">AWS WAF + Shield Standard + Cognito</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$350</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Email / SMS</div><div class="ibt-cell">SES + SNS (higher volume)</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$180</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Backup / DR</div><div class="ibt-cell">RDS snapshots + cross-region backup</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$280</div></div>
+      <div class="ibt-total"><div class="ibt-cell total-row bold">TOTAL MONTHLY INFRA</div><div class="ibt-cell"></div><div class="ibt-cell r"></div><div class="ibt-cell r"></div><div class="ibt-cell r cost" style="font-size:18px">~$32,000</div></div>
+    </div>
+    <div class="architecture-note">
+      <div class="arch-title">Architecture at 10,000 Customers</div>
+      <div class="arch-list">
+        <div class="arch-item">Auto-scaling group: 4–12 c6i.xlarge instances behind ALB</div>
+        <div class="arch-item">RDS Multi-AZ primary + 1 read replica (99.95% uptime SLA)</div>
+        <div class="arch-item">Redis cluster for session cache + query result caching</div>
+        <div class="arch-item">Batch API for async AI jobs (50% cost reduction on non-urgent processing)</div>
+        <div class="arch-item">ECS Fargate for background worker queue isolation</div>
+        <div class="arch-item">Need: 1 DevOps engineer, or managed via Terraform + on-call</div>
+        <div class="arch-item">Cost per customer: ~$3.20/mo (improved from Tier 1 due to scale)</div>
+        <div class="arch-item">Infra as % of ARR (at $49/mo avg): ~6.8%</div>
+      </div>
+    </div>
+    <div class="scaling-note"><strong>Key cost lever at this tier:</strong> AI API is 50% of total cost. Aggressively use <strong>Claude Batch API</strong> for all non-real-time processing (nightly P&amp;L runs, document classification, report generation). This alone can cut AI costs 40–50%. Also: implement a semantic cache layer so repeated similar queries return cached results instead of new API calls.</div>
+  </div>
+
+  <!-- 100,000 customers -->
+  <div id="t100k" class="infra-detail">
+    <div class="infra-header-strip">
+      <div>
+        <div class="infra-stage-label">Growth Tier 3 — Series B Scale</div>
+        <div class="infra-total-cost">$220,000 – $280,000</div>
+        <div class="infra-total-sub">estimated total monthly cloud cost · 100,000 customers</div>
+      </div>
+      <div class="cost-range">
+        <div class="cost-range-label">Annual run rate</div>
+        <div class="cost-range-vals">~$3M/yr</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">At $49/mo per customer = $58.8M ARR → ~5% infra ratio</div>
+      </div>
+    </div>
+    <div class="infra-grid">
+      <div class="infra-comp"><div class="infra-comp-icon">🖥️</div><div class="infra-comp-name">Compute</div><div class="infra-comp-spec">EKS cluster: 20–60 nodes c6i.2xlarge</div><div class="infra-comp-cost">$18,000</div><div class="infra-comp-sub">Kubernetes; 2 regions; HPA</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🗄️</div><div class="infra-comp-name">Database</div><div class="infra-comp-spec">Aurora PostgreSQL global cluster, 2 TB</div><div class="infra-comp-cost">$12,000</div><div class="infra-comp-sub">Multi-region read replicas; 99.99% SLA</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🤖</div><div class="infra-comp-name">AI API (Claude)</div><div class="infra-comp-spec">~4B tokens/mo; enterprise pricing</div><div class="infra-comp-cost">$130,000</div><div class="infra-comp-sub">Negotiate enterprise API contract; fine-tuned prompts reduce token use</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">📦</div><div class="infra-comp-name">Storage + CDN</div><div class="infra-comp-spec">S3 70 TB + CloudFront global POP</div><div class="infra-comp-cost">$8,500</div><div class="infra-comp-sub">S3 lifecycle to Glacier for old docs</div></div>
+    </div>
+    <div class="infra-breakdown-table">
+      <div class="ibt-head"><div class="ibt-head-cell">Component</div><div class="ibt-head-cell">Service / SKU</div><div class="ibt-head-cell r">Units</div><div class="ibt-head-cell r">Unit Cost</div><div class="ibt-head-cell r">Monthly Cost</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">EKS Compute</div><div class="ibt-cell">c6i.2xlarge nodes, avg 30 nodes (Savings Plans)</div><div class="ibt-cell r">30</div><div class="ibt-cell r">$350/mo</div><div class="ibt-cell r cost">$10,500</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">EKS Control Plane</div><div class="ibt-cell">Managed EKS cluster × 2 regions</div><div class="ibt-cell r">2</div><div class="ibt-cell r">$145/mo</div><div class="ibt-cell r cost">$290</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Load Balancers</div><div class="ibt-cell">ALB × 4 (2 per region)</div><div class="ibt-cell r">4</div><div class="ibt-cell r">$250/mo</div><div class="ibt-cell r cost">$1,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Aurora PostgreSQL</div><div class="ibt-cell">Global cluster: 1 primary + 3 read replicas</div><div class="ibt-cell r">4 nodes</div><div class="ibt-cell r">$2,500/mo</div><div class="ibt-cell r cost">$10,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Redis Enterprise</div><div class="ibt-cell">ElastiCache r6g.xlarge cluster × 3</div><div class="ibt-cell r">3</div><div class="ibt-cell r">$800/mo</div><div class="ibt-cell r cost">$2,400</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI API — Claude Haiku</div><div class="ibt-cell">2.5B input tokens (Batch + enterprise)</div><div class="ibt-cell r">2.5B</div><div class="ibt-cell r">$0.30/M</div><div class="ibt-cell r cost">$750</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI API — Claude Sonnet</div><div class="ibt-cell">800M input tokens (enterprise rate)</div><div class="ibt-cell r">800M</div><div class="ibt-cell r">$1.20/M</div><div class="ibt-cell r cost">$960</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Output Tokens</div><div class="ibt-cell">~900M output tokens</div><div class="ibt-cell r">900M</div><div class="ibt-cell r">$12/M avg</div><div class="ibt-cell r cost">$10,800</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Semantic Cache</div><div class="ibt-cell">Reduces AI calls ~30%; cost already reflected</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">($4,000 saved)</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Infra Total</div><div class="ibt-cell" style="color:var(--teal-light)">Net AI API cost after cache + enterprise pricing</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">~$130,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Object Storage</div><div class="ibt-cell">S3 intelligent-tiering, 70 TB</div><div class="ibt-cell r">70 TB</div><div class="ibt-cell r">$18/TB</div><div class="ibt-cell r cost">$1,260</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">CDN / Egress</div><div class="ibt-cell">CloudFront + 100 TB/mo transfer</div><div class="ibt-cell r">100 TB</div><div class="ibt-cell r">$30/TB</div><div class="ibt-cell r cost">$3,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Worker / Queue</div><div class="ibt-cell">ECS Fargate + SQS high throughput</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$3,500</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Search &amp; Analytics</div><div class="ibt-cell">OpenSearch medium cluster + Redshift</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$4,200</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Observability</div><div class="ibt-cell">Datadog APM + logs + metrics</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$6,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Security</div><div class="ibt-cell">WAF + Shield Advanced + GuardDuty + Cognito</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$3,500</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Messaging / Email</div><div class="ibt-cell">SES + SNS + Twilio (SMS alerts)</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$1,800</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Backup / DR</div><div class="ibt-cell">Cross-region Aurora + S3 replication</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$2,000</div></div>
+      <div class="ibt-total"><div class="ibt-cell total-row bold">TOTAL MONTHLY INFRA</div><div class="ibt-cell"></div><div class="ibt-cell r"></div><div class="ibt-cell r"></div><div class="ibt-cell r cost" style="font-size:18px">~$250,000</div></div>
+    </div>
+    <div class="architecture-note">
+      <div class="arch-title">Architecture at 100,000 Customers</div>
+      <div class="arch-list">
+        <div class="arch-item">Kubernetes (EKS) across 2 AWS regions for failover</div>
+        <div class="arch-item">Aurora Global Database: active-active replication &lt;1s lag</div>
+        <div class="arch-item">Dedicated SRE team: 2–3 engineers minimum</div>
+        <div class="arch-item">AI cost is 52% of total infra — negotiate enterprise Claude contract</div>
+        <div class="arch-item">Semantic cache layer saves ~$4K/mo on repeated AI queries</div>
+        <div class="arch-item">Data warehouse (Redshift) for cross-tenant analytics and product insights</div>
+        <div class="arch-item">Cost per customer: ~$2.50/mo — better unit economics at scale</div>
+        <div class="arch-item">Infra as % of ARR (at $49/mo): ~5.1%</div>
+      </div>
+    </div>
+    <div class="scaling-note"><strong>At this tier, AI cost is the #1 lever.</strong> Consider: (1) negotiate a volume enterprise contract with Anthropic — typically 30–50% discount at this scale; (2) build a prompt optimization layer that compresses inputs by 20–30%; (3) evaluate fine-tuning a smaller open-source model for routine classification tasks to offload ~40% of Haiku volume.</div>
+  </div>
+
+  <!-- 1,000,000 customers -->
+  <div id="t1m" class="infra-detail">
+    <div class="infra-header-strip">
+      <div>
+        <div class="infra-stage-label">Growth Tier 4 — Enterprise Scale</div>
+        <div class="infra-total-cost">$1.8M – $2.4M</div>
+        <div class="infra-total-sub">estimated total monthly cloud cost · 1,000,000 customers</div>
+      </div>
+      <div class="cost-range">
+        <div class="cost-range-label">Annual run rate</div>
+        <div class="cost-range-vals">~$25M/yr</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">At $49/mo per customer = $588M ARR → ~4.3% infra ratio</div>
+      </div>
+    </div>
+    <div class="infra-grid">
+      <div class="infra-comp"><div class="infra-comp-icon">🖥️</div><div class="infra-comp-name">Compute</div><div class="infra-comp-spec">EKS global: 200–600 nodes c6i.4xlarge</div><div class="infra-comp-cost">$180,000</div><div class="infra-comp-sub">3+ AWS regions; edge compute via Lambda@Edge</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🗄️</div><div class="infra-comp-name">Database</div><div class="infra-comp-spec">Aurora global + sharded PostgreSQL, 20 TB</div><div class="infra-comp-cost">$85,000</div><div class="infra-comp-sub">Database sharding by tenant geography</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">🤖</div><div class="infra-comp-name">AI Infrastructure</div><div class="infra-comp-spec">Claude enterprise + fine-tuned local models</div><div class="infra-comp-cost">$900,000</div><div class="infra-comp-sub">Hybrid: Claude API + self-hosted open-source for routine tasks</div></div>
+      <div class="infra-comp"><div class="infra-comp-icon">📦</div><div class="infra-comp-name">Storage + CDN</div><div class="infra-comp-spec">S3 700 TB + CloudFront enterprise</div><div class="infra-comp-cost">$55,000</div><div class="infra-comp-sub">Global edge caching; S3 Glacier for archival</div></div>
+    </div>
+    <div class="infra-breakdown-table">
+      <div class="ibt-head"><div class="ibt-head-cell">Component</div><div class="ibt-head-cell">Service / SKU</div><div class="ibt-head-cell r">Units</div><div class="ibt-head-cell r">Unit Cost</div><div class="ibt-head-cell r">Monthly Cost</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">EKS Compute (3 regions)</div><div class="ibt-cell">c6i.4xlarge avg 300 nodes (Reserved)</div><div class="ibt-cell r">300</div><div class="ibt-cell r">$500/mo</div><div class="ibt-cell r cost">$150,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Edge Compute</div><div class="ibt-cell">Lambda@Edge + CloudFront Functions</div><div class="ibt-cell r">—</div><div class="ibt-cell r">usage</div><div class="ibt-cell r cost">$18,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Aurora Global</div><div class="ibt-cell">Global cluster + 6 read replicas, 20 TB</div><div class="ibt-cell r">8 nodes</div><div class="ibt-cell r">$5,000/mo</div><div class="ibt-cell r cost">$40,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Analytical DB</div><div class="ibt-cell">Redshift RA3 cluster for analytics</div><div class="ibt-cell r">6 nodes</div><div class="ibt-cell r">$3,500/mo</div><div class="ibt-cell r cost">$21,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Redis Global</div><div class="ibt-cell">ElastiCache Global Datastore × 3 regions</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$12,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Claude API (Enterprise)</div><div class="ibt-cell">20B input tokens/mo — negotiated rate</div><div class="ibt-cell r">20B</div><div class="ibt-cell r">$0.20/M</div><div class="ibt-cell r cost">$4,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Output Tokens</div><div class="ibt-cell">8B output tokens — negotiated rate</div><div class="ibt-cell r">8B</div><div class="ibt-cell r">$8/M avg</div><div class="ibt-cell r cost">$64,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Self-Hosted AI Models</div><div class="ibt-cell">GPU cluster (A100s) for fine-tuned models on routine tasks (handles ~60% of volume)</div><div class="ibt-cell r">20 GPUs</div><div class="ibt-cell r">$4,000/mo</div><div class="ibt-cell r cost">$80,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Semantic Cache</div><div class="ibt-cell">Saves ~35% of API calls at this scale</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">($25,000 saved)</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">AI Infra Total</div><div class="ibt-cell" style="color:var(--teal-light)">Claude API + GPU cluster + cache savings</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">~$900,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Object Storage</div><div class="ibt-cell">S3 intelligent-tiering + Glacier, 700 TB</div><div class="ibt-cell r">700 TB</div><div class="ibt-cell r">$15/TB</div><div class="ibt-cell r cost">$10,500</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">CDN / Egress</div><div class="ibt-cell">CloudFront enterprise + 1 PB transfer</div><div class="ibt-cell r">1 PB</div><div class="ibt-cell r">$25/TB</div><div class="ibt-cell r cost">$25,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Message Queue / Events</div><div class="ibt-cell">Kafka (MSK) + SQS enterprise</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$18,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Search</div><div class="ibt-cell">OpenSearch large cluster × 3 regions</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$15,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Observability</div><div class="ibt-cell">Datadog enterprise + custom dashboards</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$40,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Security</div><div class="ibt-cell">Shield Advanced + WAF + SOC2 tooling + SIEM</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$25,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Messaging / Comms</div><div class="ibt-cell">SES + Twilio + push notifications</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$18,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Support Infra</div><div class="ibt-cell">Intercom enterprise + ticketing</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$12,000</div></div>
+      <div class="ibt-row"><div class="ibt-cell bold">Backup / DR / Compliance</div><div class="ibt-cell">Cross-region + SOC2 + HIPAA tooling</div><div class="ibt-cell r">—</div><div class="ibt-cell r">—</div><div class="ibt-cell r cost">$20,000</div></div>
+      <div class="ibt-total"><div class="ibt-cell total-row bold">TOTAL MONTHLY INFRA</div><div class="ibt-cell"></div><div class="ibt-cell r"></div><div class="ibt-cell r"></div><div class="ibt-cell r cost" style="font-size:18px">~$2,100,000</div></div>
+    </div>
+    <div class="architecture-note">
+      <div class="arch-title">Architecture at 1,000,000 Customers</div>
+      <div class="arch-list">
+        <div class="arch-item">Global multi-region EKS: US-East, US-West, EU, India (for India market)</div>
+        <div class="arch-item">Aurora Global with geographic tenant routing — US customers → US DB</div>
+        <div class="arch-item">Hybrid AI: Claude API for complex tasks; self-hosted GPU cluster for routine classification</div>
+        <div class="arch-item">Dedicated infrastructure team: 8–12 SREs minimum</div>
+        <div class="arch-item">Apache Kafka (MSK) for event-driven architecture at this scale</div>
+        <div class="arch-item">SOC2 Type II, HIPAA, PCI-DSS compliance tooling required</div>
+        <div class="arch-item">Cost per customer: ~$2.10/mo — best unit economics</div>
+        <div class="arch-item">Infra as % of ARR (at $49/mo): ~4.3% — industry-leading efficiency</div>
+      </div>
+    </div>
+    <div class="scaling-note"><strong>At 1M customers, the strategic decision is:</strong> continue pure cloud (predictable opex, less control) vs. hybrid cloud + owned GPU infrastructure (higher capex, dramatically lower AI marginal cost). At this volume, owning A100/H100 clusters for routine AI tasks could save $300–400K/month. A FinOps team dedicated to cloud cost optimization is essential — typically saves 15–25% of cloud spend.</div>
+  </div>
+
+  <!-- Cross-tier comparison table -->
+  <div style="margin-top:40px;">
+    <p style="font-size:13px;font-weight:700;color:var(--teal-light);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;">All-Tier Cost Comparison</p>
+    <div class="compare-wrap">
+      <div class="compare-head">
+        <div class="ch">Metric</div>
+        <div class="ch r">1,000 Customers</div>
+        <div class="ch r">10,000 Customers</div>
+        <div class="ch r">100,000 Customers</div>
+        <div class="ch r">1,000,000 Customers</div>
+      </div>
+      <div class="compare-row"><div class="cv bold">Monthly Infra Cost</div><div class="cv r t1">~$4,500</div><div class="cv r t2">~$32,000</div><div class="cv r t3">~$250,000</div><div class="cv r t4">~$2,100,000</div></div>
+      <div class="compare-row"><div class="cv bold">Annual Infra Cost</div><div class="cv r t1">~$54K</div><div class="cv r t2">~$384K</div><div class="cv r t3">~$3M</div><div class="cv r t4">~$25M</div></div>
+      <div class="compare-row"><div class="cv bold">Cost Per Customer / Month</div><div class="cv r t1">~$4.50</div><div class="cv r t2">~$3.20</div><div class="cv r t3">~$2.50</div><div class="cv r t4">~$2.10</div></div>
+      <div class="compare-row"><div class="cv bold">Revenue (@ $49/mo avg)</div><div class="cv r">$49K/mo</div><div class="cv r">$490K/mo</div><div class="cv r">$4.9M/mo</div><div class="cv r">$49M/mo</div></div>
+      <div class="compare-row"><div class="cv bold">Infra as % of Revenue</div><div class="cv r t1">9.2%</div><div class="cv r t2">6.5%</div><div class="cv r t3">5.1%</div><div class="cv r t4">4.3%</div></div>
+      <div class="compare-row"><div class="cv bold">AI API % of Total Infra</div><div class="cv r">40%</div><div class="cv r">50%</div><div class="cv r">52%</div><div class="cv r">43%*</div></div>
+      <div class="compare-row"><div class="cv bold">Team Size Needed</div><div class="cv r">1 engineer (part-time)</div><div class="cv r">1–2 DevOps</div><div class="cv r">2–3 SRE</div><div class="cv r">8–12 SRE</div></div>
+      <div class="compare-row"><div class="cv bold">Architecture</div><div class="cv r">Single AZ, 2 EC2</div><div class="cv r">Multi-AZ ASG + RDS</div><div class="cv r">EKS 2-region, Aurora</div><div class="cv r">Global EKS + GPU cluster</div></div>
+      <div class="compare-row"><div class="cv bold">AWS Savings Plans Applied</div><div class="cv r">No</div><div class="cv r">Partial</div><div class="cv r">Yes (~20% savings)</div><div class="cv r">Yes + Reserved (~35% savings)</div></div>
+      <div class="compare-row total-row"><div class="cv bold">Gross Margin on Infra Alone</div><div class="cv r t1">90.8%</div><div class="cv r t2">93.5%</div><div class="cv r t3">94.9%</div><div class="cv r t4">95.7%</div></div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:8px;">* 1M customers: AI % lower because self-hosted GPU cluster handles 60% of volume at fixed cost, reducing per-token API spend. All figures are estimates based on Sep 2026 AWS + Anthropic pricing.</p>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Karyva.AI, Inc. · Market sizing: NRA, IBISWorld, ARELLO, Definitive Healthcare, AMA, NGA, BLS, Anthropic pricing (Sep 2026). Infrastructure estimates based on AWS US-East list pricing with Savings Plans applied at higher tiers. AI token costs use Claude Haiku 4.5 and Sonnet 5 published rates. All figures are estimates — actual costs vary with usage patterns. Not for external distribution.
+</footer>
+
+<script>
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showInfra(id, card) {
+  document.querySelectorAll('.infra-detail').forEach(d => d.classList.remove('active'));
+  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(id).classList.add('active');
+  card.classList.add('selected');
+}
+</script>
+
+</body>
+</html>

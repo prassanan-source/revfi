@@ -6,7 +6,12 @@
     <div class="page-title">Products &amp; Subscription Plans</div>
     <div class="page-sub">Configure pricing for each product independently</div>
   </div>
-  <a href="{{ url_for('product_new') }}" class="btn btn-gold"><i class="bi bi-plus-lg me-1"></i> Add Product</a>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{{ url_for('karyva_combined_report') }}" class="btn btn-navy" target="_blank" rel="noopener noreferrer">
+      <i class="bi bi-graph-up-arrow me-1"></i> Market report
+    </a>
+    <a href="{{ url_for('product_new') }}" class="btn btn-gold"><i class="bi bi-plus-lg me-1"></i> Add Product</a>
+  </div>
 </div>
 
 {% for prod in products %}

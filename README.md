@@ -18,7 +18,7 @@ python app.py
 # → http://localhost:5050
 ```
 
-Default login: `shan@revfi.ai` / `Admin@123`  
+Default login: `info@karyva.ai` / `Admin@123`  
 Sales reps default: `Sales@123`
 
 ## TMDHosting Deploy
