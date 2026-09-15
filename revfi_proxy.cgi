@@ -340,6 +340,10 @@ def _handle_ctl(uri):
         return True
     if action == "start":
         _set_stopped(False)
+        # Always recycle. A healthy worker keeps the old app.py in memory
+        # after ./start.sh pull, so start must kill then spawn.
+        killed = _kill_stale_gunicorn()
+        _log("ctl start recycled pids=%s" % killed)
         started = _ensure_gunicorn(bind)
         snap = _status_snapshot(bind)
         _json_response(

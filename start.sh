@@ -618,7 +618,9 @@ case "$CMD" in
     mkdir -p "$APPDIR/tmp" "$LOG_DIR" "$APPDIR/data" "$APPDIR/backups"
     ensure_live_db_writable
     echo "Updated to origin/master. Live sqlite in data/ is untracked and was not replaced."
-    echo "Do not run git pull on this host. Next: $0 deps && $0 start"
+    echo "Do not run git pull on this host."
+    echo "Gunicorn still has the old code until you recycle it:"
+    echo "  $0 stop && $0 start"
     exit 0
     ;;
   deps)
@@ -694,6 +696,8 @@ ensure_live_db_writable
 ensure_venv_readable
 if on_ionos_webspace && [[ "${START_LOCAL:-}" != "1" ]]; then
   echo "Starting via Apache CGI so gunicorn survives SSH logout."
+  echo "Recycling workers so disk code from ./start.sh pull is loaded."
+  apache_ctl stop || true
   apache_ctl start
 else
   if on_ionos_webspace; then
