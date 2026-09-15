@@ -48,7 +48,12 @@
       <tbody>
       {% for l in leads %}
       <tr>
-        <td><strong>{{ l.company }}</strong></td>
+        <td>
+          <strong>{{ l.company }}</strong>
+          {% if account_type_of(l) != 'single' %}
+          <div style="font-size:11px;color:#C9A84C;margin-top:2px;">{{ account_type_label(l) }} · {{ seat_count_of(l) }} {{ 'clients' if account_type_of(l)=='auditor' else 'branches' }}</div>
+          {% endif %}
+        </td>
         <td>
           <div style="font-size:13px;">{{ l.contact }}</div>
           <div style="font-size:11px;color:var(--revfi-muted);">{{ l.email }}</div>

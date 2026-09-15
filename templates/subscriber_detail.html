@@ -9,6 +9,7 @@
       {% if s.product %} · {{ s.product.name }}{% endif %}
       {% if s.plan %} {{ s.plan.name }}{% endif %}
       · {{ fmt_usd(price.final) }}/mo
+      {% if account_type_of(s) != 'single' %}<br>{{ account_coverage_text(s) }}{% endif %}
     </div>
   </div>
   <a href="{{ url_for('subscribers') }}" class="btn btn-navy">All subscribers</a>

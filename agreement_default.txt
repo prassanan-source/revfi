@@ -48,7 +48,7 @@ The company, organization, or individual identified in the proposal or Order For
 
 CORE SUBSCRIPTION TERMS
 
-1.  Subscription.  {{client}} agrees to subscribe to {{company}} — {{product}} — {{plan}} at {{price}}, billed {{cadence}}. Subscriber acknowledges the platform provides AI-powered back-office and operations automation covering finance, AP, reconciliation, vendor management, and workforce scheduling.
+1.  Subscription.  {{client}} agrees to subscribe to {{company}} — {{product}} — {{plan}} at {{price}}, billed {{cadence}}. {{coverage}} Subscriber acknowledges the platform provides AI-powered back-office and operations automation covering finance, AP, reconciliation, vendor management, and workforce scheduling.
 2.  Payment.  Invoices due within 14 days of issuance. Late payments incur 1.5% monthly fee plus collection costs. Provider may suspend access after 30-day delinquency.
 3.  Term.  Commences on date of email acceptance and auto-renews unless cancelled with 30 days written notice before term end.
 4.  Cancellation.  Either Party may terminate with 30 days written notice (email sufficient). No refunds for partial periods. Subscriber data accessible 30 days post-termination, then permanently deleted.

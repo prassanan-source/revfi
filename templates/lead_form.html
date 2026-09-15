@@ -1,23 +1,65 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit Lead' if lead else 'New Lead' }}{% endblock %}
 {% block content %}
+{% set at = account_type_of(lead) if lead else 'single' %}
 <div class="page-header">
   <div class="page-title">{{ 'Edit Lead' if lead else 'New Lead' }}</div>
-  <div class="page-sub">{{ lead.company if lead else 'Enter lead details below' }}</div>
+  <div class="page-sub">{{ lead.company if lead else 'Choose account type, then enter details' }}</div>
 </div>
 
-<div class="card" style="max-width:860px;">
+<div class="card" style="max-width:900px;">
   <div class="card-body p-4">
-    <form method="post">
+    <form method="post" id="lead-form">
+      <input type="hidden" name="account_type" id="account-type" value="{{ at }}">
+
+      <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item">
+          <button type="button" class="nav-link {% if at=='single' %}active{% endif %}" data-account="single" id="tab-single">Single owner</button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link {% if at=='multi_branch' %}active{% endif %}" data-account="multi_branch" id="tab-multi">Multi-branch</button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link {% if at=='auditor' %}active{% endif %}" data-account="auditor" id="tab-auditor">Auditor</button>
+        </li>
+      </ul>
+
+      <div id="account-hint" class="mb-4 p-3 rounded" style="background:#0d1117;border:1px solid #1f2d3d;font-size:13px;color:#cdd5e0;"></div>
 
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Contact Details</div>
       <div class="row g-3 mb-3">
-        <div class="col-md-6"><label class="form-label">Company Name *</label><input type="text" name="company" class="form-control" value="{{ lead.company if lead else '' }}" required></div>
+        <div class="col-md-6">
+          <label class="form-label" id="lbl-company">Company Name *</label>
+          <input type="text" name="company" class="form-control" value="{{ lead.company if lead else '' }}" required>
+        </div>
         <div class="col-md-6"><label class="form-label">Contact Name</label><input type="text" name="contact" class="form-control" value="{{ lead.contact if lead else '' }}"></div>
       </div>
       <div class="row g-3 mb-4">
         <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" class="form-control" value="{{ lead.email if lead else '' }}"></div>
         <div class="col-md-6"><label class="form-label">Phone</label><input type="text" name="phone" class="form-control" value="{{ lead.phone if lead else '' }}"></div>
+      </div>
+
+      <div id="seats-panel" style="display:none;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;" id="seats-heading">Locations</div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="form-label" id="lbl-seat-count">Count</label>
+            <input type="number" name="seat_count" id="seat-count" class="form-control" min="1" step="1" value="{{ lead.seat_count if lead else '2' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" id="lbl-unit-price">Price per unit ($)</label>
+            <input type="number" name="unit_price" id="unit-price" class="form-control" step="0.01" min="0" value="{{ lead.unit_price if lead else '0' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Invoice total ($)</label>
+            <input type="text" class="form-control" id="seats-total" readonly style="background:#0d1117;">
+            <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:3px;">One invoice covers all listed below</div>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label" id="lbl-seat-names">Names (one per line)</label>
+          <textarea name="seat_names" id="seat-names" class="form-control" rows="5" placeholder="One name per line">{{ lead.seat_names if lead else '' }}</textarea>
+        </div>
       </div>
 
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Product & Pricing</div>
@@ -44,7 +86,7 @@
           </select>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Base Monthly Fee ($)</label>
+          <label class="form-label" id="lbl-value">Monthly Fee ($)</label>
           <input type="number" name="value" class="form-control" id="value-input" step="0.01" value="{{ lead.value if lead else '0' }}">
         </div>
       </div>
@@ -52,7 +94,7 @@
         <div class="col-md-4">
           <label class="form-label">One-time Setup Fee ($)</label>
           <input type="number" name="setup_fee" class="form-control" step="0.01" min="0" value="{{ lead.setup_fee if lead else '300' }}" placeholder="0 = waived">
-          <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:3px;">Enter 0 if waived</div>
+          <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:3px;">Enter 0 if waived · still one setup for the whole account</div>
         </div>
       </div>
 
@@ -143,9 +185,99 @@
 {% endblock %}
 {% block scripts %}
 <script>
+const HAS_LEAD = {{ 'true' if lead else 'false' }};
+const COPY = {
+  single: {
+    hint: 'One restaurant, one agreement, one invoice.',
+    company: 'Restaurant / company name *',
+    value: 'Monthly Fee ($)',
+    seats: false
+  },
+  multi_branch: {
+    hint: 'Group with multiple locations. One agreement and one invoice cover every branch listed.',
+    company: 'Group / parent company *',
+    value: 'Invoice total ($)',
+    heading: 'Branches covered',
+    count: 'Number of branches',
+    unit: 'Price per branch ($)',
+    names: 'Branch names (one per line)',
+    seats: true
+  },
+  auditor: {
+    hint: 'Audit firm with multiple restaurant clients. One agreement and one invoice cover every client listed.',
+    company: 'Audit firm name *',
+    value: 'Invoice total ($)',
+    heading: 'Restaurant clients covered',
+    count: 'Number of clients',
+    unit: 'Price per client ($)',
+    names: 'Client / restaurant names (one per line)',
+    seats: true
+  }
+};
+
+function accountType() {
+  return document.getElementById('account-type').value || 'single';
+}
+
+function applyTab(type) {
+  document.getElementById('account-type').value = type;
+  document.querySelectorAll('.nav-link[data-account]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.account === type);
+  });
+  const c = COPY[type] || COPY.single;
+  document.getElementById('account-hint').textContent = c.hint;
+  document.getElementById('lbl-company').textContent = c.company;
+  document.getElementById('lbl-value').textContent = c.value;
+  const panel = document.getElementById('seats-panel');
+  panel.style.display = c.seats ? '' : 'none';
+  if (c.seats) {
+    document.getElementById('seats-heading').textContent = c.heading;
+    document.getElementById('lbl-seat-count').textContent = c.count;
+    document.getElementById('lbl-unit-price').textContent = c.unit;
+    document.getElementById('lbl-seat-names').textContent = c.names;
+  }
+  const val = document.getElementById('value-input');
+  val.readOnly = !!c.seats;
+  val.style.background = c.seats ? '#0d1117' : '';
+  syncSeatTotal();
+  updatePreviews();
+}
+
+function syncSeatTotal() {
+  const type = accountType();
+  const count = Math.max(1, parseInt(document.getElementById('seat-count').value, 10) || 1);
+  let unit = parseFloat(document.getElementById('unit-price').value) || 0;
+  if (type === 'single') {
+    document.getElementById('seats-total').value = '';
+    return;
+  }
+  if (unit <= 0) {
+    const planOpt = document.getElementById('plan-select').options[document.getElementById('plan-select').selectedIndex];
+    unit = parseFloat(planOpt && planOpt.dataset.price) || parseFloat(document.getElementById('value-input').value) || 0;
+    if (unit > 0) document.getElementById('unit-price').value = unit.toFixed(2);
+  }
+  const total = +(unit * count).toFixed(2);
+  document.getElementById('seats-total').value = total.toFixed(2);
+  document.getElementById('value-input').value = total.toFixed(2);
+}
+
+document.querySelectorAll('.nav-link[data-account]').forEach(btn => {
+  btn.addEventListener('click', () => applyTab(btn.dataset.account));
+});
+['seat-count','unit-price'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { syncSeatTotal(); updatePreviews(); });
+});
+
 document.getElementById('plan-select').addEventListener('change', function() {
   const opt = this.options[this.selectedIndex];
-  if (opt.dataset.price) { document.getElementById('value-input').value = opt.dataset.price; }
+  if (opt.dataset.price) {
+    if (accountType() === 'single') {
+      document.getElementById('value-input').value = opt.dataset.price;
+    } else {
+      document.getElementById('unit-price').value = opt.dataset.price;
+      syncSeatTotal();
+    }
+  }
   updatePreviews();
 });
 document.getElementById('product-select').addEventListener('change', function() {
@@ -154,8 +286,13 @@ document.getElementById('product-select').addEventListener('change', function() 
   Array.from(planSel.options).forEach(o => {
     o.style.display = (!pid || o.dataset.product === pid || o.value === '') ? '' : 'none';
   });
-  planSel.value = '';
-  document.getElementById('value-input').value = '0';
+  if (!HAS_LEAD) {
+    const cur = planSel.options[planSel.selectedIndex];
+    if (pid && cur && cur.dataset.product && cur.dataset.product !== pid) {
+      planSel.value = '';
+      if (accountType() === 'single') document.getElementById('value-input').value = '0';
+    }
+  }
   updatePreviews();
 });
 ['discount-type','discount-value-input','value-input'].forEach(id => {
@@ -167,6 +304,8 @@ document.getElementById('product-select').addEventListener('change', function() 
 document.querySelector('[name=setup_fee]').addEventListener('input', updatePreviews);
 
 function updatePreviews() {
+  const type   = accountType();
+  const count  = Math.max(1, parseInt(document.getElementById('seat-count').value, 10) || 1);
   const base   = parseFloat(document.getElementById('value-input').value) || 0;
   const dtype  = document.getElementById('discount-type').value;
   const dval   = parseFloat(document.getElementById('discount-value-input').value) || 0;
@@ -176,14 +315,12 @@ function updatePreviews() {
   const wrap   = document.getElementById('discount-value-wrap');
   const lbl    = document.getElementById('discount-value-label');
 
-  // Discount value input visibility
   if (dtype === 'none' || dtype === 'waive_setup') { wrap.style.display = 'none'; }
   else {
     wrap.style.display = '';
     lbl.textContent = dtype === 'pct' ? 'Discount %' : dtype === 'fixed' ? '$ Amount' : '# Months';
   }
 
-  // Calc final price
   let final = base, discountLabel = '';
   if (dtype === 'pct')          { final = base * (1 - dval/100); discountLabel = dval + '% off'; }
   else if (dtype === 'fixed')   { final = Math.max(base - dval, 0); discountLabel = '$' + dval.toFixed(0) + ' off/mo'; }
@@ -203,6 +340,10 @@ function updatePreviews() {
       txt = `<span style="color:#10B981;font-weight:700;">$${final.toFixed(2)}/mo</span>`;
       if (discountLabel) txt += ` <span style="color:#F59E0B;font-size:12px;margin-left:4px;">(${discountLabel})</span>`;
     }
+    if (type !== 'single') {
+      const noun = type === 'auditor' ? 'clients' : 'branches';
+      txt += ` <span style="color:#8A9BB0;font-size:12px;"> · one invoice for ${count} ${noun}</span>`;
+    }
     if (setup > 0) txt += ` &nbsp;+&nbsp; <span style="color:#8A9BB0;font-size:12px;">$${setup.toFixed(2)} one-time setup</span>`;
     else if (dtype === 'waive_setup') txt += ` <span style="color:#10B981;font-size:12px;">(setup fee waived)</span>`;
     previewTxt.innerHTML = txt;
@@ -210,7 +351,6 @@ function updatePreviews() {
     preview.style.display = 'none';
   }
 
-  // Referral preview
   const refDiv = document.getElementById('referral-preview');
   if (refPct > 0 && base > 0) {
     const comm = (final * refPct / 100).toFixed(2);
@@ -220,7 +360,9 @@ function updatePreviews() {
   }
 }
 
-// Init
+document.getElementById('lead-form').addEventListener('submit', syncSeatTotal);
+
+applyTab(accountType());
 document.getElementById('product-select').dispatchEvent(new Event('change'));
 updatePreviews();
 </script>

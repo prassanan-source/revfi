@@ -98,6 +98,10 @@ class Lead(db.Model):
     billing_status  = db.Column(db.String(20),   default="active")  # active | unsubscribed
     unsubscribed_at = db.Column(db.DateTime,     nullable=True)
     resubscribed_at = db.Column(db.DateTime,     nullable=True)
+    account_type    = db.Column(db.String(30),   default="single")  # single | multi_branch | auditor
+    seat_count      = db.Column(db.Integer,     default=1)
+    unit_price      = db.Column(db.Float,       default=0)       # per branch or per client
+    seat_names      = db.Column(db.Text,        default="")        # one name per line
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -335,6 +339,11 @@ def agreement_term_context(agr, lead):
         "setup_fee": setup_txt,
         "discount": discount_label or agr.discount_reason or "",
         "notes": agr.notes or "",
+        "account_type": account_type_label(lead),
+        "seat_count": str(seat_count_of(lead)),
+        "unit_price": f"${float(getattr(lead, 'unit_price', 0) or 0):,.2f}",
+        "seats": seat_names_text(lead) or "—",
+        "coverage": account_coverage_text(lead),
     }
 
 
@@ -854,6 +863,95 @@ def can_manage_subscriber(lead):
         return True
     return lead and lead.assignee_id == session.get("user_id")
 
+
+ACCOUNT_TYPES = ("single", "multi_branch", "auditor")
+
+
+def seat_count_of(lead):
+    n = int(getattr(lead, "seat_count", None) or 1)
+    return max(1, n)
+
+
+def account_type_of(lead):
+    t = (getattr(lead, "account_type", None) or "single").strip()
+    return t if t in ACCOUNT_TYPES else "single"
+
+
+def account_type_label(lead):
+    return {
+        "single": "Single owner",
+        "multi_branch": "Multi-branch",
+        "auditor": "Audit firm",
+    }.get(account_type_of(lead), "Single owner")
+
+
+def seat_noun(lead, plural=False):
+    t = account_type_of(lead)
+    if t == "auditor":
+        return "clients" if plural else "client"
+    if t == "multi_branch":
+        return "branches" if plural else "branch"
+    return "location" if not plural else "locations"
+
+
+def seat_names_list(lead):
+    raw = getattr(lead, "seat_names", None) or ""
+    return [ln.strip() for ln in str(raw).splitlines() if ln.strip()]
+
+
+def seat_names_text(lead):
+    return ", ".join(seat_names_list(lead))
+
+
+def account_coverage_text(lead):
+    if not lead or account_type_of(lead) == "single":
+        return ""
+    n = seat_count_of(lead)
+    noun = seat_noun(lead, plural=n != 1)
+    text = (
+        f"One agreement and one invoice cover {n} {noun} under {lead.company}."
+    )
+    names = seat_names_text(lead)
+    if names:
+        text += f" Included: {names}."
+    unit = float(getattr(lead, "unit_price", 0) or 0)
+    if unit:
+        text += f" Rate ${unit:,.2f} per {seat_noun(lead)}."
+    return text
+
+
+def apply_lead_account_fields(lead, f):
+    atype = (f.get("account_type") or "single").strip()
+    if atype not in ACCOUNT_TYPES:
+        atype = "single"
+    try:
+        count = max(1, int(f.get("seat_count") or 1))
+    except (TypeError, ValueError):
+        count = 1
+    names = [n.strip() for n in (f.get("seat_names") or "").splitlines() if n.strip()]
+    try:
+        unit = float(f.get("unit_price") or 0)
+    except (TypeError, ValueError):
+        unit = 0.0
+    try:
+        total_in = float(f.get("value") or 0)
+    except (TypeError, ValueError):
+        total_in = 0.0
+    if atype == "single":
+        count = 1
+        names = []
+        total = total_in or unit
+        unit = total
+    else:
+        if unit <= 0 and total_in > 0:
+            unit = round(total_in / count, 2)
+        total = round(unit * count, 2)
+    lead.account_type = atype
+    lead.seat_count = count
+    lead.unit_price = unit
+    lead.seat_names = "\n".join(names)
+    lead.value = total
+
 app.jinja_env.globals.update(
     fmt_usd=fmt_usd,
     current_user=current_user,
@@ -862,6 +960,10 @@ app.jinja_env.globals.update(
     datetime=datetime,
     date=date,
     is_billable=is_billable,
+    account_type_label=account_type_label,
+    account_type_of=account_type_of,
+    seat_count_of=seat_count_of,
+    account_coverage_text=account_coverage_text,
 )
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
@@ -1049,6 +1151,7 @@ def lead_new():
             notes           = f.get("notes",""),
             value           = float(f.get("value",0)),
         )
+        apply_lead_account_fields(lead, f)
         db.session.add(lead)
         db.session.commit()
         flash(f"Lead for {lead.company} created.", "success")
@@ -1082,6 +1185,7 @@ def lead_edit(lid):
         lead.setup_fee       = float(f.get("setup_fee") or 0)
         lead.notes           = f.get("notes","")
         lead.value           = float(f.get("value",0))
+        apply_lead_account_fields(lead, f)
         lead.updated_at   = datetime.utcnow()
         db.session.commit()
         flash("Lead updated.", "success")
@@ -1116,12 +1220,16 @@ def agreement_send():
     f = request.form
     lead = Lead.query.get_or_404(f["lead_id"])
     final_monthly, final_setup, discount_label = calc_discounted_price(lead)
+    notes = f.get("notes","")
+    cov = account_coverage_text(lead)
+    if cov:
+        notes = (notes + "\n" + cov).strip() if notes else cov
     agr = Agreement(
         ref             = next_ref(Agreement, "AGR"),
         lead_id         = lead.id,
         signer_name     = f.get("signer_name",""),
         signer_title    = f.get("signer_title",""),
-        notes           = f.get("notes",""),
+        notes           = notes,
         discount_type   = lead.discount_type,
         discount_value  = lead.discount_value,
         discount_reason = lead.discount_reason,
@@ -1263,6 +1371,10 @@ def invoice_new():
     if include_setup and lead and lead.setup_fee:
         setup_line = f"Includes one-time setup fee: ${lead.setup_fee:,.2f}"
         notes = (notes + " | " + setup_line).strip() if notes else setup_line
+    if lead:
+        cov = account_coverage_text(lead)
+        if cov:
+            notes = (notes + " | " + cov).strip() if notes else cov
 
     inv = Invoice(
         ref     = next_ref(Invoice, "INV"),
@@ -2183,6 +2295,7 @@ def safe_init_db():
     db.create_all()
     _migrate_agreement_template_schema(db_path)
     _migrate_billing_schema(db_path)
+    _migrate_account_type_schema(db_path)
 
 
 def _migrate_agreement_template_schema(db_path):
@@ -2244,6 +2357,36 @@ def _migrate_billing_schema(db_path):
             )"""
         )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def _migrate_account_type_schema(db_path):
+    """Account type (single / multi-branch / auditor) without wiping data."""
+    if not os.path.exists(db_path):
+        return
+    conn = sqlite3.connect(db_path)
+    try:
+        lead_cols = [r[1] for r in conn.execute("PRAGMA table_info(leads)").fetchall()]
+        if not lead_cols:
+            return
+        added = False
+        if "account_type" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN account_type VARCHAR(20) DEFAULT 'single'")
+            conn.execute("UPDATE leads SET account_type = 'single' WHERE account_type IS NULL")
+            added = True
+        if "seat_count" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN seat_count INTEGER DEFAULT 1")
+            added = True
+        if "unit_price" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN unit_price FLOAT DEFAULT 0")
+            added = True
+        if "seat_names" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN seat_names TEXT")
+            added = True
+        conn.commit()
+        if added:
+            print("✅  Added leads account_type / seat_count / unit_price / seat_names")
     finally:
         conn.close()
 
