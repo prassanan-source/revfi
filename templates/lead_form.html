@@ -239,8 +239,17 @@ function applyTab(type) {
   const val = document.getElementById('value-input');
   val.readOnly = !!c.seats;
   val.style.background = c.seats ? '#0d1117' : '';
-  syncSeatTotal();
-  updatePreviews();
+  applyPlanPrice();
+}
+
+function selectedPlan() {
+  const sel = document.getElementById('plan-select');
+  return sel.options[sel.selectedIndex];
+}
+
+function planPrice() {
+  const opt = selectedPlan();
+  return parseFloat(opt && opt.dataset.price) || 0;
 }
 
 function syncSeatTotal() {
@@ -252,13 +261,44 @@ function syncSeatTotal() {
     return;
   }
   if (unit <= 0) {
-    const planOpt = document.getElementById('plan-select').options[document.getElementById('plan-select').selectedIndex];
-    unit = parseFloat(planOpt && planOpt.dataset.price) || parseFloat(document.getElementById('value-input').value) || 0;
+    unit = planPrice();
     if (unit > 0) document.getElementById('unit-price').value = unit.toFixed(2);
   }
   const total = +(unit * count).toFixed(2);
   document.getElementById('seats-total').value = total.toFixed(2);
   document.getElementById('value-input').value = total.toFixed(2);
+}
+
+function applyPlanPrice() {
+  const price = planPrice();
+  if (accountType() === 'single') {
+    document.getElementById('value-input').value = price ? String(price) : '0';
+  } else if (price > 0) {
+    document.getElementById('unit-price').value = Number(price).toFixed(2);
+    syncSeatTotal();
+  } else {
+    syncSeatTotal();
+  }
+  updatePreviews();
+}
+
+function filterPlans(autoPick) {
+  const pid = String(document.getElementById('product-select').value || '');
+  const planSel = document.getElementById('plan-select');
+  Array.from(planSel.options).forEach(o => {
+    const match = !pid || !o.value || String(o.dataset.product) === pid;
+    o.hidden = !match;
+    o.disabled = !match;
+  });
+  const cur = selectedPlan();
+  const curOk = !!(cur && (!pid || !cur.value || String(cur.dataset.product) === pid));
+  const first = Array.from(planSel.options).find(o => o.value && (!pid || String(o.dataset.product) === pid));
+  if (autoPick) {
+    planSel.value = first ? first.value : '';
+  } else if (!curOk) {
+    planSel.value = first ? first.value : '';
+  }
+  applyPlanPrice();
 }
 
 document.querySelectorAll('.nav-link[data-account]').forEach(btn => {
@@ -268,32 +308,9 @@ document.querySelectorAll('.nav-link[data-account]').forEach(btn => {
   document.getElementById(id).addEventListener('input', () => { syncSeatTotal(); updatePreviews(); });
 });
 
-document.getElementById('plan-select').addEventListener('change', function() {
-  const opt = this.options[this.selectedIndex];
-  if (opt.dataset.price) {
-    if (accountType() === 'single') {
-      document.getElementById('value-input').value = opt.dataset.price;
-    } else {
-      document.getElementById('unit-price').value = opt.dataset.price;
-      syncSeatTotal();
-    }
-  }
-  updatePreviews();
-});
+document.getElementById('plan-select').addEventListener('change', applyPlanPrice);
 document.getElementById('product-select').addEventListener('change', function() {
-  const pid = this.value;
-  const planSel = document.getElementById('plan-select');
-  Array.from(planSel.options).forEach(o => {
-    o.style.display = (!pid || o.dataset.product === pid || o.value === '') ? '' : 'none';
-  });
-  if (!HAS_LEAD) {
-    const cur = planSel.options[planSel.selectedIndex];
-    if (pid && cur && cur.dataset.product && cur.dataset.product !== pid) {
-      planSel.value = '';
-      if (accountType() === 'single') document.getElementById('value-input').value = '0';
-    }
-  }
-  updatePreviews();
+  filterPlans(true);
 });
 ['discount-type','discount-value-input','value-input'].forEach(id => {
   document.getElementById(id).addEventListener('input', updatePreviews);
@@ -362,8 +379,7 @@ function updatePreviews() {
 
 document.getElementById('lead-form').addEventListener('submit', syncSeatTotal);
 
+filterPlans(false);
 applyTab(accountType());
-document.getElementById('product-select').dispatchEvent(new Event('change'));
-updatePreviews();
 </script>
 {% endblock %}
