@@ -71,8 +71,8 @@
         </td>
         <td style="font-size:12px;color:#8A9BB0;">{{ i.paid_at.strftime('%b %d') if i.paid_at else '—' }}</td>
         <td>
-          {% if i.status == 'Sent' %}
           <div class="d-flex gap-1 flex-wrap">
+          {% if i.status == 'Sent' %}
             <form method="post" action="{{ url_for('invoice_mark_paid', iid=i.id) }}" class="d-inline">
               <button class="btn btn-sm" style="background:rgba(16,185,129,.15);color:#10B981;font-size:12px;">Mark Paid</button>
             </form>
@@ -84,8 +84,14 @@
             <form method="post" action="{{ url_for('invoice_void', iid=i.id) }}" class="d-inline">
               <button class="btn btn-sm btn-outline-secondary" style="font-size:12px;">Void</button>
             </form>
-          </div>
           {% endif %}
+          {% if session.get('user_role')=='admin' %}
+            <form method="post" action="{{ url_for('invoice_delete', iid=i.id) }}" class="d-inline"
+              onsubmit="return confirm('Delete invoice {{ i.ref }}? This cannot be undone.');">
+              <button class="btn btn-sm btn-outline-danger" style="font-size:12px;">Delete</button>
+            </form>
+          {% endif %}
+          </div>
         </td>
       </tr>
       {% else %}

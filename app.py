@@ -1495,6 +1495,27 @@ def invoice_void(iid):
     flash(f"Invoice {inv.ref} voided.", "warning")
     return redirect(url_for("invoices"))
 
+@app.route("/invoices/<int:iid>/delete", methods=["POST"])
+@login_required
+@admin_required
+def invoice_delete(iid):
+    inv = Invoice.query.get_or_404(iid)
+    ref = inv.ref
+    db.session.delete(inv)
+    db.session.commit()
+    flash(f"Invoice {ref} deleted.", "warning")
+    return redirect(url_for("invoices"))
+
+@app.route("/commissions/<int:cid>/delete", methods=["POST"])
+@login_required
+@admin_required
+def commission_delete(cid):
+    c = Commission.query.get_or_404(cid)
+    db.session.delete(c)
+    db.session.commit()
+    flash("Commission record deleted.", "warning")
+    return redirect(url_for("commissions"))
+
 @app.route("/invoices/generate-bulk", methods=["POST"])
 @login_required
 def invoice_generate_bulk():

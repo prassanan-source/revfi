@@ -66,11 +66,17 @@
         </td>
         {% if session.get('user_role')=='admin' %}
         <td>
+          <div class="d-flex gap-1 flex-wrap">
           {% if c.status == 'Pending' %}
           <form method="post" action="{{ url_for('commission_mark_paid', cid=c.id) }}" class="d-inline">
             <button class="btn btn-sm" style="background:rgba(16,185,129,.15);color:#10B981;font-size:12px;">Mark Paid</button>
           </form>
           {% endif %}
+          <form method="post" action="{{ url_for('commission_delete', cid=c.id) }}" class="d-inline"
+            onsubmit="return confirm('Delete this commission record? This cannot be undone.');">
+            <button class="btn btn-sm btn-outline-danger" style="font-size:12px;">Delete</button>
+          </form>
+          </div>
         </td>
         {% endif %}
       </tr>

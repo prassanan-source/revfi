@@ -662,7 +662,7 @@
   </div>
   <div style="background:var(--card-bg);border-radius:12px;border:1px solid var(--card-border);overflow:hidden;">
     <table class="list-table">
-      <thead><tr><th>Invoice</th><th>Company</th><th>Product</th><th>Amount</th><th>Due</th><th>Status</th><th>Pay Link</th></tr></thead>
+      <thead><tr><th>Invoice</th><th>Company</th><th>Product</th><th>Amount</th><th>Due</th><th>Status</th><th>Pay Link</th>{% if is_admin %}<th></th>{% endif %}</tr></thead>
       <tbody>
       {% for i in invoices_all %}
       <tr>
@@ -673,8 +673,16 @@
         <td style="font-size:12px;color:var(--muted);">{{ i.due_date.strftime('%b %d, %Y') }}</td>
         <td><span class="s-pill" style="background:{% if i.status=='Paid' %}rgba(34,160,107,.15);color:#167A4F{% elif i.status=='Void' %}rgba(176,184,200,.15);color:var(--muted){% else %}rgba(240,160,48,.15);color:#B07010{% endif %};">{{ i.status }}</span></td>
         <td>{% if i.square_public_url %}<a href="{{ i.square_public_url }}" target="_blank" style="font-size:12px;color:#4C9EEB;font-weight:600;text-decoration:none;">Pay ↗</a>{% else %}—{% endif %}</td>
+        {% if is_admin %}
+        <td>
+          <form method="post" action="{{ url_for('invoice_delete', iid=i.id) }}" class="d-inline"
+            onsubmit="return confirm('Delete invoice {{ i.ref }}? This cannot be undone.');">
+            <button class="btn btn-sm btn-outline-danger" style="font-size:11px;">Delete</button>
+          </form>
+        </td>
+        {% endif %}
       </tr>
-      {% else %}<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;">No invoices.</td></tr>{% endfor %}
+      {% else %}<tr><td colspan="{{ 8 if is_admin else 7 }}" style="text-align:center;color:var(--muted);padding:40px;">No invoices.</td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
