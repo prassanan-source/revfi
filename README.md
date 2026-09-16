@@ -71,7 +71,7 @@ Then add plans under it. It will immediately appear in the lead form product dro
 
 ## Commission Logic
 
-- Sales reps earn 12% MRR by default (edit `SALES_COMMISSION_RATE` in `app.py`)
+- Sales reps: admin sets each rep’s commission % (e.g. 15% vs 12%) and consecutive paid months (default 6) on the user record
 - Referral % is set per lead when creating/editing
 - Commissions are auto-created when an agreement is marked Signed
 - Admin can mark commissions Paid from the Commissions page

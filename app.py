@@ -48,6 +48,8 @@ class User(db.Model):
     password = db.Column(db.String(256), nullable=False)
     role     = db.Column(db.String(30), default="sales")   # admin | sales
     active   = db.Column(db.Boolean, default=True)
+    commission_pct    = db.Column(db.Float, default=0)   # admin-set; % of first month after consecutive paid months
+    commission_months = db.Column(db.Integer, default=6)
     created  = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -86,6 +88,7 @@ class Lead(db.Model):
     status       = db.Column(db.String(50), default="New")
     assignee_id  = db.Column(db.Integer, db.ForeignKey("users.id"))
     referral_id  = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    referral_name   = db.Column(db.String(300), default="")  # one-time referrer with no login
     referral_pct    = db.Column(db.Float,   default=0)
     referral_months = db.Column(db.Integer, default=6)   # consecutive months before referral pays out
     # Discount fields
@@ -858,6 +861,67 @@ def log_sub_activity(lead, action, channel, notes, happened_at=None):
     ))
 
 
+def user_commission_pct(user):
+    if not user:
+        return 0.0
+    try:
+        return max(0.0, float(getattr(user, "commission_pct", None) or 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def user_commission_months(user):
+    try:
+        n = int(getattr(user, "commission_months", None) or 6)
+    except (TypeError, ValueError):
+        n = 6
+    return max(1, min(24, n))
+
+
+def apply_lead_referral_fields(lead, f):
+    """Dropdown user, or free-text one-time referrer with no login."""
+    raw = (f.get("referral_id") or "").strip()
+    name = (f.get("referral_name") or "").strip()
+    uid = None
+    if raw and raw != "other" and raw.isdigit():
+        uid = int(raw)
+        if not User.query.get(uid):
+            uid = None
+    if uid:
+        lead.referral_id = uid
+        lead.referral_name = ""
+        ref = User.query.get(uid)
+        lead.referral_pct = user_commission_pct(ref)
+        lead.referral_months = user_commission_months(ref)
+        return
+    lead.referral_id = None
+    lead.referral_name = name
+    lead.referral_pct = 0
+    lead.referral_months = 6
+
+
+def referral_label(lead):
+    if not lead:
+        return ""
+    if getattr(lead, "referral", None):
+        pct = int(user_commission_pct(lead.referral) or lead.referral_pct or 0)
+        if pct:
+            return f"{lead.referral.name} ({pct}%)"
+        return lead.referral.name
+    return (getattr(lead, "referral_name", None) or "").strip()
+
+
+def apply_user_commission_fields(user, f):
+    try:
+        user.commission_pct = max(0.0, min(100.0, float(f.get("commission_pct") or 0)))
+    except (TypeError, ValueError):
+        user.commission_pct = 0.0
+    try:
+        user.commission_months = max(1, min(24, int(f.get("commission_months") or 6)))
+    except (TypeError, ValueError):
+        user.commission_months = 6
+
+
 def can_manage_subscriber(lead):
     if session.get("user_role") == "admin":
         return True
@@ -964,6 +1028,9 @@ app.jinja_env.globals.update(
     account_type_of=account_type_of,
     seat_count_of=seat_count_of,
     account_coverage_text=account_coverage_text,
+    user_commission_pct=user_commission_pct,
+    user_commission_months=user_commission_months,
+    referral_label=referral_label,
 )
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
@@ -1141,9 +1208,6 @@ def lead_new():
             plan_id      = f.get("plan_id") or None,
             status       = f.get("status","New"),
             assignee_id  = f.get("assignee_id") or None,
-            referral_id  = f.get("referral_id") or None,
-            referral_pct    = float(f.get("referral_pct") or 0),
-            referral_months = int(f.get("referral_months") or 6),
             discount_type   = f.get("discount_type","none"),
             discount_value  = float(f.get("discount_value") or 0),
             discount_reason = f.get("discount_reason",""),
@@ -1152,6 +1216,7 @@ def lead_new():
             value           = float(f.get("value",0)),
         )
         apply_lead_account_fields(lead, f)
+        apply_lead_referral_fields(lead, f)
         db.session.add(lead)
         db.session.commit()
         flash(f"Lead for {lead.company} created.", "success")
@@ -1176,9 +1241,6 @@ def lead_edit(lid):
         lead.plan_id      = f.get("plan_id") or None
         lead.status       = f.get("status","New")
         lead.assignee_id  = f.get("assignee_id") or None
-        lead.referral_id  = f.get("referral_id") or None
-        lead.referral_pct    = float(f.get("referral_pct") or 0)
-        lead.referral_months = int(f.get("referral_months") or 6)
         lead.discount_type   = f.get("discount_type","none")
         lead.discount_value  = float(f.get("discount_value") or 0)
         lead.discount_reason = f.get("discount_reason","")
@@ -1186,6 +1248,7 @@ def lead_edit(lid):
         lead.notes           = f.get("notes","")
         lead.value           = float(f.get("value",0))
         apply_lead_account_fields(lead, f)
+        apply_lead_referral_fields(lead, f)
         lead.updated_at   = datetime.utcnow()
         db.session.commit()
         flash("Lead updated.", "success")
@@ -1510,39 +1573,41 @@ def commission_mark_paid(cid):
 
 def _create_commissions(lead):
     """
-    Create sales + referral commission records for a newly won lead.
-    Referral commission: % of first month fee, paid out after N consecutive paid months.
-    Status is set to Pending until manually marked Paid (admin confirms retention).
+    Sales / referral commission: admin-fixed % of first-month fee,
+    pending until N consecutive paid months (default 6).
     """
     period = datetime.utcnow().strftime("%Y-%m")
     final_monthly, _, _ = calc_discounted_price(lead)
 
-    # Sales commission — % of discounted monthly fee
-    if lead.assignee_id:
-        rate   = SALES_COMMISSION_RATE
+    def add_pending(user, kind):
+        if not user:
+            return
+        rate = user_commission_pct(user)
+        if rate <= 0:
+            return
+        months = user_commission_months(user)
+        existing = Commission.query.filter_by(lead_id=lead.id, user_id=user.id, kind=kind).first()
+        if existing:
+            return
         amount = round(final_monthly * rate / 100, 2)
-        existing = Commission.query.filter_by(lead_id=lead.id, user_id=lead.assignee_id, kind="sales").first()
-        if not existing:
-            db.session.add(Commission(user_id=lead.assignee_id, lead_id=lead.id,
-                                      kind="sales", rate=rate, amount=amount, period=period))
+        c = Commission(
+            user_id=user.id,
+            lead_id=lead.id,
+            kind=kind,
+            rate=rate,
+            amount=amount,
+            period=period,
+            status="Pending",
+            notes=(
+                f"{rate:g}% of first month ({fmt_usd(final_monthly)}) "
+                f"after {months} consecutive paid months"
+            ),
+        )
+        db.session.add(c)
 
-    # Referral commission — % of first month fee, held Pending until retention confirmed
-    if lead.referral_id and lead.referral_pct > 0:
-        months  = int(lead.referral_months or 6)
-        amount  = round(final_monthly * lead.referral_pct / 100, 2)
-        existing = Commission.query.filter_by(lead_id=lead.id, user_id=lead.referral_id, kind="referral").first()
-        if not existing:
-            c = Commission(
-                user_id  = lead.referral_id,
-                lead_id  = lead.id,
-                kind     = "referral",
-                rate     = lead.referral_pct,
-                amount   = amount,
-                period   = period,
-                status   = "Pending",  # held until retention confirmed
-            )
-            c.notes = f"Pays out after {months} consecutive paid months"
-            db.session.add(c)
+    add_pending(lead.assignee, "sales")
+    if lead.referral_id and lead.referral_id != lead.assignee_id:
+        add_pending(lead.referral, "referral")
 
 # ── Subscribers ───────────────────────────────────────────────────────────────
 
@@ -2172,6 +2237,7 @@ def user_new():
             u = User(name=f["name"], email=f["email"],
                      password=generate_password_hash(f["password"]),
                      role=f.get("role","sales"))
+            apply_user_commission_fields(u, f)
             db.session.add(u)
             db.session.commit()
             flash(f"User {u.name} created.", "success")
@@ -2188,6 +2254,7 @@ def user_edit(uid):
         u.name = f["name"]; u.email = f["email"]
         u.role = f.get("role","sales")
         u.active = "active" in f
+        apply_user_commission_fields(u, f)
         if f.get("password"):
             u.password = generate_password_hash(f["password"])
         db.session.commit()
@@ -2214,7 +2281,8 @@ def seed_db():
     for name, email in [("Priya Nair","priya@revfi.ai"),("Ravi Sharma","ravi@revfi.ai"),
                          ("Meena Patel","meena@revfi.ai"),("Arjun Das","arjun@revfi.ai")]:
         db.session.add(User(name=name, email=email,
-                            password=generate_password_hash("Sales@123"), role="sales"))
+                            password=generate_password_hash("Sales@123"), role="sales",
+                            commission_pct=12, commission_months=6))
     # Products
     freshfi = Product(name="FreshFi", slug="freshfi", icon="🌿", color="#2E7D5E",
                       description="Fresh produce financing platform")
@@ -2296,6 +2364,7 @@ def safe_init_db():
     _migrate_agreement_template_schema(db_path)
     _migrate_billing_schema(db_path)
     _migrate_account_type_schema(db_path)
+    _migrate_user_commission_schema(db_path)
 
 
 def _migrate_agreement_template_schema(db_path):
@@ -2384,9 +2453,39 @@ def _migrate_account_type_schema(db_path):
         if "seat_names" not in lead_cols:
             conn.execute("ALTER TABLE leads ADD COLUMN seat_names TEXT")
             added = True
+        if "referral_name" not in lead_cols:
+            conn.execute("ALTER TABLE leads ADD COLUMN referral_name VARCHAR(300) DEFAULT ''")
+            added = True
         conn.commit()
         if added:
             print("✅  Added leads account_type / seat_count / unit_price / seat_names")
+    finally:
+        conn.close()
+
+
+def _migrate_user_commission_schema(db_path):
+    """Per-rep commission % and hold months without wiping data."""
+    if not os.path.exists(db_path):
+        return
+    conn = sqlite3.connect(db_path)
+    try:
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
+        if not cols:
+            return
+        added = False
+        if "commission_pct" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN commission_pct FLOAT DEFAULT 0")
+            conn.execute(
+                "UPDATE users SET commission_pct = 12 WHERE role = 'sales' AND (commission_pct IS NULL OR commission_pct = 0)"
+            )
+            added = True
+        if "commission_months" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN commission_months INTEGER DEFAULT 6")
+            conn.execute("UPDATE users SET commission_months = 6 WHERE commission_months IS NULL")
+            added = True
+        conn.commit()
+        if added:
+            print("✅  Added users.commission_pct / commission_months")
     finally:
         conn.close()
 

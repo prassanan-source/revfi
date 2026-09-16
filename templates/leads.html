@@ -74,7 +74,7 @@
         </td>
         <td style="font-size:12.5px;">{{ l.assignee.name if l.assignee else '—' }}</td>
         <td style="font-size:12px;color:var(--revfi-muted);">
-          {% if l.referral %}{{ l.referral.name }} ({{ l.referral_pct|int }}%){% else %}—{% endif %}
+          {% if referral_label(l) %}{{ referral_label(l) }}{% else %}—{% endif %}
         </td>
         <td style="font-weight:700;">{{ fmt_usd(l.value) }}</td>
         <td style="font-size:11.5px;color:var(--revfi-muted);">{{ l.created_at.strftime('%b %d') }}</td>

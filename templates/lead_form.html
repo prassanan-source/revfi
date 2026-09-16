@@ -136,39 +136,35 @@
         </div>
         <div class="col-md-4">
           <label class="form-label">Assigned To</label>
-          <select name="assignee_id" class="form-select">
-            <option value="">Unassigned</option>
+          <select name="assignee_id" class="form-select" id="assignee-select">
+            <option value="" data-pct="0" data-months="6">Unassigned</option>
             {% for u in users %}
-            <option value="{{ u.id }}" {% if lead and lead.assignee_id==u.id %}selected{% endif %}>{{ u.name }}</option>
+            <option value="{{ u.id }}" data-pct="{{ user_commission_pct(u) }}" data-months="{{ user_commission_months(u) }}"
+              {% if lead and lead.assignee_id==u.id %}selected{% endif %}>{{ u.name }} ({{ user_commission_pct(u)|int }}%)</option>
             {% endfor %}
           </select>
         </div>
       </div>
 
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Referral Commission</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--karyva-muted,#8A9BB0);margin-bottom:10px;">Sales commission (admin-set per rep)</div>
       <div class="row g-3 mb-2">
         <div class="col-md-4">
           <label class="form-label">Referred By</label>
-          <select name="referral_id" class="form-select">
-            <option value="">None</option>
+          <select name="referral_id" class="form-select" id="referral-select">
+            <option value="" data-pct="0" data-months="6">None</option>
             {% for u in users %}
-            <option value="{{ u.id }}" {% if lead and lead.referral_id==u.id %}selected{% endif %}>{{ u.name }}</option>
+            <option value="{{ u.id }}" data-pct="{{ user_commission_pct(u) }}" data-months="{{ user_commission_months(u) }}"
+              {% if lead and lead.referral_id==u.id %}selected{% endif %}>{{ u.name }} ({{ user_commission_pct(u)|int }}%)</option>
             {% endfor %}
+            <option value="other" {% if lead and not lead.referral_id and lead.referral_name %}selected{% endif %}>Someone else (no login)</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label">Commission % <span style="font-size:10px;color:var(--karyva-muted,#8A9BB0);">(0–100 of 1st month fee)</span></label>
-          <div class="input-group">
-            <input type="number" name="referral_pct" class="form-control" step="1" min="0" max="100" value="{{ lead.referral_pct|int if lead else '0' }}" id="ref-pct">
-            <span class="input-group-text" style="background:#1f2d3d;border-color:#2a3f58;color:#8A9BB0;">%</span>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Pays Out After <span style="font-size:10px;color:var(--karyva-muted,#8A9BB0);">(consecutive paid months)</span></label>
-          <div class="input-group">
-            <input type="number" name="referral_months" class="form-control" step="1" min="1" max="24" value="{{ lead.referral_months if lead else '6' }}" id="ref-months">
-            <span class="input-group-text" style="background:#1f2d3d;border-color:#2a3f58;color:#8A9BB0;">mo</span>
-          </div>
+        <div class="col-md-8" id="referral-other-wrap" style="{% if lead and not lead.referral_id and lead.referral_name %}{% else %}display:none;{% endif %}">
+          <label class="form-label">One-time referrer</label>
+          <input type="text" name="referral_name" id="referral-name" class="form-control"
+            value="{{ lead.referral_name if lead and not lead.referral_id else '' }}"
+            placeholder="Name, phone, or how to reach them">
+          <div style="font-size:11px;color:var(--karyva-muted,#8A9BB0);margin-top:3px;">No account needed — recorded on the lead only. Commission is not auto-created.</div>
         </div>
       </div>
       <div id="referral-preview" class="mb-4" style="font-size:12px;color:var(--karyva-muted,#8A9BB0);padding-left:2px;min-height:18px;"></div>
@@ -315,8 +311,17 @@ document.getElementById('product-select').addEventListener('change', function() 
 ['discount-type','discount-value-input','value-input'].forEach(id => {
   document.getElementById(id).addEventListener('input', updatePreviews);
 });
-['ref-pct','ref-months'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updatePreviews);
+function toggleReferralOther() {
+  const sel = document.getElementById('referral-select');
+  const wrap = document.getElementById('referral-other-wrap');
+  if (!sel || !wrap) return;
+  const other = sel.value === 'other';
+  wrap.style.display = other ? '' : 'none';
+}
+
+['assignee-select','referral-select'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => { toggleReferralOther(); updatePreviews(); });
 });
 document.querySelector('[name=setup_fee]').addEventListener('input', updatePreviews);
 
@@ -327,8 +332,14 @@ function updatePreviews() {
   const dtype  = document.getElementById('discount-type').value;
   const dval   = parseFloat(document.getElementById('discount-value-input').value) || 0;
   const setup  = parseFloat(document.querySelector('[name=setup_fee]').value) || 0;
-  const refPct = parseFloat(document.getElementById('ref-pct').value) || 0;
-  const refMo  = parseInt(document.getElementById('ref-months').value) || 6;
+  const asg    = document.getElementById('assignee-select');
+  const refSel = document.getElementById('referral-select');
+  const asgOpt = asg && asg.options[asg.selectedIndex];
+  const refOpt = refSel && refSel.options[refSel.selectedIndex];
+  const asgPct = parseFloat(asgOpt && asgOpt.dataset.pct) || 0;
+  const asgMo  = parseInt(asgOpt && asgOpt.dataset.months, 10) || 6;
+  const refPct = parseFloat(refOpt && refOpt.dataset.pct) || 0;
+  const refMo  = parseInt(refOpt && refOpt.dataset.months, 10) || 6;
   const wrap   = document.getElementById('discount-value-wrap');
   const lbl    = document.getElementById('discount-value-label');
 
@@ -369,17 +380,22 @@ function updatePreviews() {
   }
 
   const refDiv = document.getElementById('referral-preview');
-  if (refPct > 0 && base > 0) {
-    const comm = (final * refPct / 100).toFixed(2);
-    refDiv.innerHTML = `Referral payout: <strong style="color:#C9A84C;">$${comm}</strong> &nbsp;(${refPct}% of $${final.toFixed(2)} first month fee) — paid after <strong style="color:#fff;">${refMo} consecutive paid months</strong>`;
-  } else {
-    refDiv.innerHTML = '';
+  let bits = [];
+  if (asgPct > 0 && base > 0) {
+    bits.push(`Assigned rep: <strong style="color:#C9A84C;">$${(final * asgPct / 100).toFixed(2)}</strong> (${asgPct}% of first month) after <strong style="color:#fff;">${asgMo} consecutive paid months</strong>`);
   }
+  if (refPct > 0 && base > 0 && refSel && refSel.value && refSel.value !== 'other' && asg && refSel.value !== asg.value) {
+    bits.push(`Referrer: <strong style="color:#C9A84C;">$${(final * refPct / 100).toFixed(2)}</strong> (${refPct}% of first month) after <strong style="color:#fff;">${refMo} consecutive paid months</strong>`);
+  } else if (refSel && refSel.value === 'other') {
+    bits.push('One-time referrer is recorded on the lead (no login, no auto commission).');
+  }
+  refDiv.innerHTML = bits.join('<br>');
 }
 
 document.getElementById('lead-form').addEventListener('submit', syncSeatTotal);
 
 filterPlans(false);
 applyTab(accountType());
+toggleReferralOther();
 </script>
 {% endblock %}

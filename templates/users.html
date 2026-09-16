@@ -18,6 +18,7 @@
         <th>Name</th>
         <th>Email</th>
         <th>Role</th>
+        <th>Commission</th>
         <th>Status</th>
         <th>Created</th>
         <th style="text-align:right;">Actions</th>
@@ -40,6 +41,11 @@
           {{ u.role|capitalize }}
         </span>
       </td>
+      <td style="font-size:13px;">
+        {% if u.role == 'sales' or user_commission_pct(u) %}
+          {{ user_commission_pct(u)|int }}% after {{ user_commission_months(u) }} mo
+        {% else %}—{% endif %}
+      </td>
       <td>
         <span class="badge rounded-pill px-3" style="font-size:11px;background:{% if u.active %}rgba(34,160,107,.15);color:#22A06B{% else %}rgba(176,184,200,.15);color:var(--muted){% endif %};">
           {{ 'Active' if u.active else 'Inactive' }}
@@ -53,7 +59,7 @@
       </td>
     </tr>
     {% else %}
-    <tr><td colspan="6" class="text-center py-5" style="color:var(--muted);">No users found.</td></tr>
+    <tr><td colspan="7" class="text-center py-5" style="color:var(--muted);">No users found.</td></tr>
     {% endfor %}
     </tbody>
   </table>

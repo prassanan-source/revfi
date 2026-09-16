@@ -259,7 +259,7 @@ name = type(application).__name__
 print("WSGI_OK", name)
 if name != "Flask":
     raise SystemExit("expected Flask, got %s (see data/startup_error.log)" % name)
-' >"$BOOT_LOG" 2>"$ERROR_LOG"
+' >"$BOOT_LOG" 2>>"$BOOT_LOG"
   local rc=$?
   set -e
   return "$rc"
@@ -389,7 +389,9 @@ check_local_http() {
 print_sqlite_info() {
   echo "=== sqlite (Python stdlib; do not pip install sqlite3) ==="
   echo "Python: $PYTHON ($("$PYTHON" -V 2>&1))"
+  set +e
   "$PYTHON" "$APPDIR/show_db.py"
+  set -e
 }
 
 print_diagnose() {
@@ -696,8 +698,8 @@ ensure_live_db_writable
 ensure_venv_readable
 if on_ionos_webspace && [[ "${START_LOCAL:-}" != "1" ]]; then
   echo "Starting via Apache CGI so gunicorn survives SSH logout."
-  echo "Recycling workers so disk code from ./start.sh pull is loaded."
-  apache_ctl stop || true
+  echo "Removing hold file if present, then recycling Apache-jail workers."
+  rm -f "$APPDIR/tmp/revfi.stopped"
   apache_ctl start
 else
   if on_ionos_webspace; then

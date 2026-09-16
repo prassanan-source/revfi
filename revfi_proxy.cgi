@@ -264,19 +264,29 @@ def _db_snapshot():
     try:
         conn = sqlite3.connect(path)
         try:
-            out["restaurants"] = [
-                row[0] for row in conn.execute("SELECT id FROM restaurants")
-            ]
-            out["line_items"] = {
-                (row[0] or ""): int(row[1] or 0)
+            tables = {
+                row[0]
                 for row in conn.execute(
-                    "SELECT restaurant_id, COUNT(*) FROM line_items GROUP BY restaurant_id"
+                    "SELECT name FROM sqlite_master WHERE type='table'"
                 )
             }
-            out["users"] = [
-                {"username": row[0], "restaurant_id": row[1]}
-                for row in conn.execute("SELECT username, restaurant_id FROM users")
-            ]
+            out["tables"] = sorted(tables)
+            if "leads" in tables:
+                out["leads"] = conn.execute("SELECT COUNT(*) FROM leads").fetchone()[0]
+            if "users" in tables:
+                cols = {
+                    row[1] for row in conn.execute("PRAGMA table_info(users)")
+                }
+                if "email" in cols:
+                    out["users"] = [
+                        {"name": row[0], "email": row[1], "role": row[2]}
+                        for row in conn.execute("SELECT name, email, role FROM users")
+                    ]
+                elif "username" in cols:
+                    out["users"] = [
+                        {"username": row[0]}
+                        for row in conn.execute("SELECT username FROM users")
+                    ]
         finally:
             conn.close()
     except Exception as err:
@@ -443,8 +453,10 @@ def _ensure_gunicorn(bind):
             "VIRTUAL_ENV", "TMPDIR",
         )
         clean_env = {key: os.environ[key] for key in keep if key in os.environ}
+        venv_bin = os.path.join(APPDIR, "venv", "bin")
         clean_env["HOME"] = os.environ.get("HOME") or "/home/www"
-        clean_env["PATH"] = os.environ.get("PATH") or "/usr/bin:/bin"
+        clean_env["PATH"] = venv_bin + ":" + (os.environ.get("PATH") or "/usr/bin:/bin")
+        clean_env["VIRTUAL_ENV"] = os.path.join(APPDIR, "venv")
         db_path = os.path.join(APPDIR, "data", "revfi.db")
         if not os.path.isfile(db_path):
             db_path = os.path.join(APPDIR, "data", "aifinance.db")
@@ -452,22 +464,25 @@ def _ensure_gunicorn(bind):
         if "freshfi" in clean_env["REZFI_DB_PATH"].replace("\\", "/").lower():
             _log("refusing FreshFi database path")
             return False
+        spawn_log = os.path.join(logs, "revfi-spawn.log")
+        spawn_fh = open(spawn_log, "ab")
         subprocess.Popen(
             cmd,
             cwd=APPDIR,
             start_new_session=True,
             stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=spawn_fh,
+            stderr=spawn_fh,
             close_fds=True,
             env=clean_env,
         )
-        for _ in range(80):
+        spawn_fh.close()
+        for _ in range(120):
             if _port_open(host, port) and _gunicorn_healthy(bind):
                 return True
             time.sleep(0.25)
         ok = _port_open(host, port)
-        _log("gunicorn listening=%s" % ok)
+        _log("gunicorn listening=%s (see %s)" % (ok, spawn_log))
         return ok
     except Exception as err:
         _log("gunicorn spawn failed: %s" % err)

@@ -43,6 +43,28 @@
           </div>
         </div>
       </div>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">Commission % <span style="font-size:10px;color:var(--muted);">(of first month)</span></label>
+          <div class="input-group">
+            <input type="number" name="commission_pct" class="form-control" step="0.1" min="0" max="100"
+              value="{{ user.commission_pct if user else '12' }}">
+            <span class="input-group-text">%</span>
+          </div>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Pays after consecutive months</label>
+          <div class="input-group">
+            <input type="number" name="commission_months" class="form-control" step="1" min="1" max="24"
+              value="{{ user.commission_months if user else '6' }}">
+            <span class="input-group-text">mo</span>
+          </div>
+        </div>
+      </div>
+      <div class="mb-4" style="font-size:12px;color:var(--muted);">
+        Example: 15% means 15% of the first month’s subscription, paid after 6 consecutive paid months. Each rep can have a different rate.
+      </div>
+
       <div class="mb-4">
         <label class="form-label">Password {% if user %}<span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(leave blank to keep current)</span>{% endif %}</label>
         <input type="password" name="password" class="form-control"
